@@ -274,7 +274,7 @@ export default function AppShell() {
       <header className="no-print">
         <div className="headerrow">
           <div className="brand-row">
-            <CenterMark name={ctx?.center?.name ?? "حلقات"} logo={ctx?.center?.logo_url} />
+            <CenterMark name={ctx?.center?.name ?? "منارات"} logo={ctx?.center?.logo_url} />
             <div className="brand-text">
               <h1>{ctx?.center?.name ?? "حلقات القرآن"}</h1>
               <div className="dates">

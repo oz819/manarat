@@ -18,7 +18,7 @@ export async function POST() {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   webpush.setVapidDetails(`mailto:${process.env.VAPID_CONTACT || "admin@example.com"}`, pub, priv);
-  const payload = JSON.stringify({ title: "حلقات", body: "الإشعارات تعمل على هذا الجهاز ✓", url: "/", tag: "test" });
+  const payload = JSON.stringify({ title: "منارات", body: "الإشعارات تعمل على هذا الجهاز ✓", url: "/", tag: "test" });
   let sent = 0;
   for (const s of subs ?? []) {
     try {

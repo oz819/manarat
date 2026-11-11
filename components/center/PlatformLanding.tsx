@@ -31,7 +31,7 @@ export default function PlatformLanding() {
     <div className="cx" dir={dirOf(locale)} lang={locale}>
       <header className="cx-nav">
         <span className="cx-brand">
-          <span className="header-mark" style={{ width: 38, height: 38 }}>ح</span>
+          <span className="header-mark" style={{ width: 38, height: 38 }}>م</span>
           <span>{tr("platform.name")}</span>
         </span>
         <div className="cx-nav-actions">

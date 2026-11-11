@@ -8,7 +8,7 @@ import ServiceWorker from "@/components/ServiceWorker";
 const plex = IBM_Plex_Sans_Arabic({ subsets: ["arabic", "latin"], weight: ["400", "500", "600", "700"], variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "حلقات — منصة مراكز تحفيظ القرآن",
+  title: "منارات — منصة مراكز تحفيظ القرآن",
   description: "متابعة الحفظ والتلاوة والمراجعة والتلقين والعربية والتربية — تعمل بدون إنترنت",
   applicationName: "حلقات القرآن",
   // Every page is behind a login — nothing here should be indexed.

@@ -88,7 +88,7 @@ export default function SignupPage() {
       <div className="ob-box">
         <div className="cx-nav" style={{ padding: "0 0 8px" }}>
           <Link href="/login" className="cx-brand">
-            <span className="header-mark" style={{ width: 34, height: 34 }}>ح</span>
+            <span className="header-mark" style={{ width: 34, height: 34 }}>م</span>
             <span>{tr("platform.name")}</span>
           </Link>
           <button type="button" className="link" onClick={() => setLocale(locale === "ar" ? "en" : "ar")}>

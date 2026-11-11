@@ -46,7 +46,7 @@ export default function SuperAdmin() {
       <header>
         <div className="headerrow">
           <div className="brand-row">
-            <span className="header-mark">ح</span>
+            <span className="header-mark">م</span>
             <div className="brand-text">
               <h1>إدارة المنصة</h1>
               <div className="dates"><span className="hijri">كل المراكز المسجّلة</span></div>

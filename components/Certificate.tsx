@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useStore } from "@/lib/offline/store";
 import { juzTitle } from "@/lib/exams";
 import type { Exam } from "@/lib/types";
+import { AppContext } from "@/components/AppContext";
 
 // شهادة إتمام جزء: an A4 landscape certificate for a passed juz' exam, printed (or saved as PDF)
 // straight from the browser. Only the certificate is printed: the app is hidden meanwhile.
 export default function Certificate({ exam, onClose }: { exam: Exam; onClose: () => void }) {
   const s = useStore();
+  const center = useContext(AppContext)?.center;
   const student = s.get("students", exam.student_id);
   const female = s.get("circles", student?.circle_id ?? "")?.section === "FEMALE";
   const g = (m: string, f: string) => (female ? f : m);
@@ -52,8 +54,8 @@ export default function Certificate({ exam, onClose }: { exam: Exam; onClose: ()
             <span className="cert-corner bl" aria-hidden />
             <span className="cert-corner br" aria-hidden />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="cert-logo" src="/images/logo.png" alt="" />
-            <div className="cert-center">المركز الثقافي الدعوي في مضايا</div>
+            {center?.logo_url && <img className="cert-logo" src={center.logo_url} alt="" />}
+            {center?.name && <div className="cert-center">{center.name}</div>}
             <div className="cert-basmala">بسم الله الرحمن الرحيم</div>
             <h1 className="cert-title">شهادة إتمام حفظ</h1>
             <p className="cert-text">

@@ -25,7 +25,7 @@ export default function SignupPage() {
   const [host, setHost] = useState("");
   useEffect(() => setHost(location.host), []);
 
-  useEffect(() => applyPalette({ palette: "indigo" }), []);
+  useEffect(() => applyPalette({ palette: "navy" }), []);
   // Already signed in: the centre is created straight away in the wizard.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -88,7 +88,8 @@ export default function SignupPage() {
       <div className="ob-box">
         <div className="cx-nav" style={{ padding: "0 0 8px" }}>
           <Link href="/login" className="cx-brand">
-            <span className="header-mark" style={{ width: 34, height: 34 }}>م</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="header-mark" src="/icon-192.png" alt="" style={{ width: 34, height: 34 }} />
             <span>{tr("platform.name")}</span>
           </Link>
           <button type="button" className="link" onClick={() => setLocale(locale === "ar" ? "en" : "ar")}>

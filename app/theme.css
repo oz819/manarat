@@ -1,5 +1,5 @@
 /* =====================================================================================
-   هوية "منارات" 2026-11 — نظيفة، بيضاء، لون مميز واحد هادئ (غير أخضر)، أشكال هندسية رفيعة.
+   هوية "منارات" — بيضاء ونظيفة، كحلي وذهبي افتراضيًا، أشكال هندسية رفيعة.
    كل الألوان والخطوط والمسافات هنا كـ Design Tokens. كل مركز يختار لوحته (data-palette) أو
    لونًا خاصًا (--accent من إعداداته)، والوضع الداكن يقلب نفس المتغيرات.
    Loaded after globals.css, so it re-skins the older rules without touching their layout.
@@ -27,18 +27,19 @@
   --warn: #9a6a00;
   --warn-soft: #fff6dc;
   --info-soft: #eef4ff;
-  /* palette "indigo" (default): نيلي + رملي */
-  --accent: #2f3e9e;
-  --accent-strong: #222d78;
-  --accent-soft: #eef0fb;
-  --accent-2: #b8925a;
-  --accent-2-soft: #f7f0e5;
+  /* palette "navy" (default): كحلي + ذهبي */
+  --accent: #1b2550;
+  --accent-strong: #121a3d;
+  --accent-soft: #eceef6;
+  --accent-2: #c48b38;
+  --accent-2-soft: #f8f0e1;
   --on-accent: #ffffff;
   /* names the older stylesheet uses */
   --g: var(--accent); --g2: var(--accent-strong); --gold: var(--accent-2); --card: var(--surface); --red: var(--danger); --blue: var(--accent);
   color-scheme: light;
 }
-[data-palette="navy"] { --accent: #1c2b4a; --accent-strong: #101a30; --accent-soft: #edf0f5; --accent-2: #b98d2e; --accent-2-soft: #f8f1e1; }
+[data-palette="navy"] { --accent: #1b2550; --accent-strong: #121a3d; --accent-soft: #eceef6; --accent-2: #c48b38; --accent-2-soft: #f8f0e1; }
+[data-palette="indigo"] { --accent: #2f3e9e; --accent-strong: #222d78; --accent-soft: #eef0fb; --accent-2: #b8925a; --accent-2-soft: #f7f0e5; }
 [data-palette="plum"] { --accent: #6a2c5b; --accent-strong: #4f1f43; --accent-soft: #f6eef4; --accent-2: #c09a73; --accent-2-soft: #f8f1ea; }
 [data-palette="slate"] { --accent: #334155; --accent-strong: #1e293b; --accent-soft: #eef1f5; --accent-2: #8a94a6; --accent-2-soft: #f1f3f6; }
 
@@ -46,18 +47,19 @@
   :root:not([data-theme="light"]) {
     --bg: #0e1116; --surface: #161a21; --surface-2: #1d222b; --line: #2a303b; --line-strong: #3a4250;
     --text: #e8eaf0; --muted: #9aa3b2; --danger: #ef6b5b; --danger-soft: #3a1f1c; --warn: #f0c050; --warn-soft: #332a12; --info-soft: #1b2436;
-    --accent: #8f9bff; --accent-strong: #b3bbff; --accent-soft: #232842; --accent-2: #d8b98a; --accent-2-soft: #2e2719; --on-accent: #0e1116;
+    --accent: #9db4e6; --accent-strong: #c3d2f3; --accent-soft: #1f2840; --accent-2: #e0bd6a; --accent-2-soft: #2e2719; --on-accent: #0e1116;
     --shadow-2: 0 10px 30px -12px rgba(0, 0, 0, .6);
     color-scheme: dark;
   }
   :root:not([data-theme="light"])[data-palette="navy"], :root:not([data-theme="light"]) [data-palette="navy"] { --accent: #9db4e6; --accent-strong: #c3d2f3; --accent-soft: #1f2840; --accent-2: #e0bd6a; }
+  :root:not([data-theme="light"])[data-palette="indigo"], :root:not([data-theme="light"]) [data-palette="indigo"] { --accent: #8f9bff; --accent-strong: #b3bbff; --accent-soft: #232842; --accent-2: #d8b98a; }
   :root:not([data-theme="light"])[data-palette="plum"], :root:not([data-theme="light"]) [data-palette="plum"] { --accent: #e3a3d2; --accent-strong: #f0c6e4; --accent-soft: #352234; --accent-2: #dcb995; }
   :root:not([data-theme="light"])[data-palette="slate"], :root:not([data-theme="light"]) [data-palette="slate"] { --accent: #b6c2d4; --accent-strong: #dbe3ee; --accent-soft: #252b35; --accent-2: #9aa3b2; }
 }
 :root[data-theme="dark"] {
   --bg: #0e1116; --surface: #161a21; --surface-2: #1d222b; --line: #2a303b; --line-strong: #3a4250;
   --text: #e8eaf0; --muted: #9aa3b2; --danger: #ef6b5b; --danger-soft: #3a1f1c; --warn: #f0c050; --warn-soft: #332a12; --info-soft: #1b2436;
-  --accent: #8f9bff; --accent-strong: #b3bbff; --accent-soft: #232842; --accent-2: #d8b98a; --accent-2-soft: #2e2719; --on-accent: #0e1116;
+  --accent: #9db4e6; --accent-strong: #c3d2f3; --accent-soft: #1f2840; --accent-2: #e0bd6a; --accent-2-soft: #2e2719; --on-accent: #0e1116;
   color-scheme: dark;
 }
 

@@ -15,7 +15,7 @@ update public.centers set status = 'ACTIVE', trial_ends_at = null where status =
 update public.centers set trial_ends_at = null where trial_ends_at is not null;
 
 create or replace function public.create_center(p_name text, p_slug text, p_country text, p_city text, p_owner_name text,
-                                     p_about text default null, p_phone text default null, p_palette text default 'indigo')
+                                     p_about text default null, p_phone text default null, p_palette text default 'navy')
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   v_uid uuid := auth.uid();
@@ -47,7 +47,7 @@ begin
 
   insert into public.centers (slug, name, country, city, about, contact_phone, palette, owner_id, status, plan, trial_ends_at)
   values (v_slug, btrim(p_name), nullif(btrim(p_country), ''), nullif(btrim(p_city), ''), nullif(btrim(p_about), ''),
-          nullif(btrim(p_phone), ''), coalesce(nullif(p_palette, ''), 'indigo'), v_uid, 'ACTIVE', 'FREE', null)
+          nullif(btrim(p_phone), ''), coalesce(nullif(p_palette, ''), 'navy'), v_uid, 'ACTIVE', 'FREE', null)
   returning id into v_id;
 
   insert into public.app_users (id, name) values (v_uid, btrim(p_owner_name))
@@ -122,7 +122,7 @@ begin
     return true;
   end if;
   select * into v_center from public.centers
-  where slug = lower(coalesce(nullif(btrim(p_center), ''), 'madaya')) and status <> 'SUSPENDED';
+  where slug = lower(coalesce(nullif(btrim(p_center), ''), 'markaz')) and status <> 'SUSPENDED';
   if v_center.id is null then
     raise exception 'المركز غير موجود';
   end if;

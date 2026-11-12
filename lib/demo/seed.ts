@@ -25,7 +25,7 @@ export function seedSql(): string {
   const out: string[] = [];
   out.push(`insert into auth.users (id, email, raw_user_meta_data) values
     ${Object.values(u).map((x) => `(${q(x.id)}, ${q(x.email)}, jsonb_build_object('name', ${q(x.name)}))`).join(",\n    ")};`);
-  // The schema's first centre is Madaya's (from the migrations); in the demo it is a made-up centre.
+  // The schema's first centre (a neutral placeholder) becomes the demo's made-up centre.
   out.push(`update public.centers set slug = 'noor', name = 'مركز النور لتحفيظ القرآن (تجريبي)', country = 'الأردن', city = 'عمّان',
     logo_url = null, domain = null, instagram = null, facebook = null, whatsapp = null, address = null, palette = 'navy',
     about = 'مركز تجريبي على منصة منارات ببيانات وهمية لتجربة المنصة.' where id = ${q(NOOR)};`);

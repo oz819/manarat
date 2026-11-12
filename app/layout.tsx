@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ar" dir="rtl" data-palette="indigo">
+    <html lang="ar" dir="rtl" data-palette="navy">
       <body className={plex.variable}>
         {children}
         <ServiceWorker />

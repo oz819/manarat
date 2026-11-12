@@ -26,7 +26,7 @@ export default function Onboarding() {
 
   const [c, setC] = useState<PendingCenter>({ name: "", slug: "", country: "", city: "", owner: "" });
   const [logo, setLogo] = useState<string | null>(null);
-  const [palette, setPalette] = useState<Palette>("indigo");
+  const [palette, setPalette] = useState<Palette>("navy");
   const [created, setCreated] = useState<CreatedCircle[]>([]);
   const [moreCircles, setMoreCircles] = useState(false);
   const [teacher, setTeacher] = useState({ email: "", name: "" });

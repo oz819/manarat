@@ -503,7 +503,7 @@ export default function PlatformLanding() {
         <div className="mn-credit"><DevCredit /></div>
       </div>
 
-      {showLogin && <LoginDialog title={tr.brand} subtitle={tr.login} onClose={() => setShowLogin(false)} />}
+      {showLogin && <LoginDialog title={tr.brand} subtitle={tr.login} logo="/icon-192.png" onClose={() => setShowLogin(false)} />}
     </div>
   );
 }

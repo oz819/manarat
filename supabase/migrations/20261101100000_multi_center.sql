@@ -1,4 +1,4 @@
--- منصة متعددة المراكز (Multi-tenant SaaS) — المرحلة 2 من برومبت "مضايا سنتر".
+-- منصة متعددة المراكز (Multi-tenant SaaS).
 --
 -- The idea in one paragraph: every row of centre data gets a center_id. A user can belong to several
 -- centres (memberships) and works in one at a time (app_users.current_center_id, switchable).
@@ -8,12 +8,12 @@
 -- is_staff()/is_admin() now mean "staff/admin *of the current centre*". SECURITY DEFINER
 -- functions (which bypass RLS) are rewritten to filter by the current centre explicitly.
 --
--- Madaya's existing data becomes the first centre with no visible change for its users:
+-- Any data that exists before centres (from the single-centre schema) goes to a neutral first centre:
 -- center_id is added with a constant default (no table rewrite, no triggers, no audit noise),
 -- and the old profiles table lives on as a view over memberships, so the app's queries work as is.
 
--- The fixed id of Madaya's centre (used by this migration and by the tests).
-create function private.madaya_center_id() returns uuid language sql immutable set search_path = '' as $$
+-- The fixed id of that first centre (used by this migration and by the tests).
+create function private.first_center_id() returns uuid language sql immutable set search_path = '' as $$
   select '00000000-0000-4000-8000-00000000a001'::uuid
 $$;
 
@@ -27,7 +27,7 @@ create table public.centers (
   -- An https URL or a small inline PNG/JPEG/WebP (resized in the browser). No SVG: it can carry script.
   logo_url text check (logo_url is null or (char_length(logo_url) <= 350000
     and logo_url ~ '^(https://[^\s"''<>]+|/images/[a-z0-9._-]+|data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)$')),
-  palette text not null default 'indigo' check (palette in ('indigo', 'navy', 'plum', 'slate')),
+  palette text not null default 'navy' check (palette in ('indigo', 'navy', 'plum', 'slate')),
   primary_color text check (primary_color ~ '^#[0-9a-fA-F]{6}$'),
   about text check (char_length(about) <= 2000),
   extra_notes text check (char_length(extra_notes) <= 4000),
@@ -53,17 +53,14 @@ create table public.centers (
 create function private.is_reserved_slug(p_slug text) returns boolean language sql immutable set search_path = '' as $$
   select p_slug = any (array['login','register','honor','p','api','auth','forgot-password','reset-password','admin','super',
     'signup','new','onboarding','invite','app','www','sb','static','images','icons','manifest','sw','_next','help','about',
-    'pricing','terms','privacy','centers','center','madaya-demo'])
+    'pricing','terms','privacy','centers','center','manarat-demo'])
 $$;
 alter table public.centers add constraint centers_slug_not_reserved check (not private.is_reserved_slug(slug));
 
--- Madaya's public profile: what its landing page said (now editable from the admin settings).
-insert into public.centers (id, slug, name, country, city, logo_url, about, whatsapp, instagram, facebook, address,
-                            domain, status, plan, onboarded, palette)
-values (private.madaya_center_id(), 'madaya', 'المركز الثقافي الدعوي في مضايا', 'سوريا', 'مضايا', '/images/logo.png',
-  'تأسس المركز عام ٢٠٢٥ في بلدة مضايا بريف دمشق، بإشراف د. محمد العبده. يحتضن حلقات تحفيظ القرآن الكريم وتدارسه، ويقيم الدورات العلمية، ويفتح أبوابه للشباب بأنشطة ثقافية وتربوية هادفة.',
-  '963993323763', 'https://www.instagram.com/lmrkzlthqfyldwy', 'https://www.facebook.com/share/1HjPsLvumo/', 'مضايا · ريف دمشق',
-  'madayacentre.com', 'ACTIVE', 'PRO', true, 'indigo');
+-- The first centre: a neutral placeholder that its owner renames from the settings (or the platform
+-- admin from /super). It holds whatever rows existed before centres; a new database starts empty.
+insert into public.centers (id, slug, name, status, plan, onboarded, palette)
+values (private.first_center_id(), 'markaz', 'المركز الأول', 'ACTIVE', 'FREE', false, 'navy');
 
 -- Us: the people who run the platform. They see the list of centres; they do not get into a
 -- centre's daily data unless that centre adds them as staff.
@@ -102,8 +99,8 @@ create table public.memberships (
 create index idx_memberships_center on public.memberships (center_id);
 
 insert into public.memberships (user_id, center_id, name, role, active, default_filter, created_at, deleted_at, deleted_by)
-select id, private.madaya_center_id(), name, role, active, default_filter, created_at, deleted_at, deleted_by from public.app_users;
-update public.app_users set current_center_id = private.madaya_center_id();
+select id, private.first_center_id(), name, role, active, default_filter, created_at, deleted_at, deleted_by from public.app_users;
+update public.app_users set current_center_id = private.first_center_id();
 
 alter table public.app_users drop column role, drop column active, drop column deleted_at, drop column deleted_by, drop column default_filter;
 
@@ -196,7 +193,7 @@ begin
     'guardian_links','report_sends','exams','registration_requests','audit_log','student_transfers','user_settings'] loop
     -- A constant default fills existing rows without rewriting them or firing triggers.
     execute format('alter table public.%I add column center_id uuid not null default %L references public.centers(id) on delete cascade',
-                   t, private.madaya_center_id());
+                   t, private.first_center_id());
     execute format('alter table public.%I alter column center_id set default private.current_center_id()', t);
     execute format('create index %I on public.%I (center_id)', 'idx_' || t || '_center', t);
     execute format('create policy %I on public.%I as restrictive for all to authenticated using (center_id = (select private.current_center_id())) with check (center_id = (select private.current_center_id()))',
@@ -455,7 +452,7 @@ $$;
 
 -- ============================================================== self-service: a new centre
 create function public.create_center(p_name text, p_slug text, p_country text, p_city text, p_owner_name text,
-                                     p_about text default null, p_phone text default null, p_palette text default 'indigo')
+                                     p_about text default null, p_phone text default null, p_palette text default 'navy')
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   v_uid uuid := auth.uid();
@@ -487,7 +484,7 @@ begin
 
   insert into public.centers (slug, name, country, city, about, contact_phone, palette, owner_id, status, plan, trial_ends_at)
   values (v_slug, btrim(p_name), nullif(btrim(p_country), ''), nullif(btrim(p_city), ''), nullif(btrim(p_about), ''),
-          nullif(btrim(p_phone), ''), coalesce(nullif(p_palette, ''), 'indigo'), v_uid, 'TRIAL', 'FREE', now() + interval '30 days')
+          nullif(btrim(p_phone), ''), coalesce(nullif(p_palette, ''), 'navy'), v_uid, 'TRIAL', 'FREE', now() + interval '30 days')
   returning id into v_id;
 
   insert into public.app_users (id, name) values (v_uid, btrim(p_owner_name))
@@ -909,7 +906,7 @@ begin
 end $$;
 
 -- The public registration form now says which centre it is for (its slug). Old cached pages that
--- don't send one keep going to Madaya, where the form lived before.
+-- don't send one go to the first centre.
 drop function if exists public.submit_registration(text, integer, text, text, text, text, text);
 create function public.submit_registration(p_student_name text, p_age integer, p_section text, p_guardian_name text,
                                            p_guardian_phone text, p_memorized text, p_trap text default null,
@@ -923,7 +920,7 @@ begin
     return true;
   end if;
   select id into v_center from public.centers
-  where slug = lower(coalesce(nullif(btrim(p_center), ''), 'madaya')) and status <> 'SUSPENDED';
+  where slug = lower(coalesce(nullif(btrim(p_center), ''), 'markaz')) and status <> 'SUSPENDED';
   if v_center is null then
     raise exception 'المركز غير موجود';
   end if;
@@ -961,10 +958,10 @@ grant execute on function public.my_context(), public.switch_center(uuid), publi
   public.accept_invite(text, text), public.super_centers(), public.super_set_center(uuid, text, text) to authenticated;
 grant execute on function public.public_center(text, text), public.invite_info(text),
   public.submit_registration(text, integer, text, text, text, text, text, text) to anon, authenticated;
-revoke all on function private.current_center_id(), private.is_platform_admin(), private.madaya_center_id(),
+revoke all on function private.current_center_id(), private.is_platform_admin(), private.first_center_id(),
   private.check_same_center(), private.check_activity_students(), private.check_student_limit(), private.guard_membership()
   from public;
-grant execute on function private.current_center_id(), private.is_platform_admin(), private.madaya_center_id(),
+grant execute on function private.current_center_id(), private.is_platform_admin(), private.first_center_id(),
   private.is_reserved_slug(text), private.plan_student_limit(text) to authenticated, anon, service_role;
 
 -- ============================================================== for the server only (service key)

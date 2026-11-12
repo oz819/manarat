@@ -4,8 +4,8 @@
 export type Palette = "indigo" | "navy" | "plum" | "slate";
 
 export const PALETTES: { id: Palette; label: string; colors: [string, string] }[] = [
+  { id: "navy", label: "كحلي وذهبي", colors: ["#1b2550", "#c48b38"] },
   { id: "indigo", label: "نيلي ورملي", colors: ["#2f3e9e", "#b8925a"] },
-  { id: "navy", label: "كحلي وذهبي", colors: ["#1c2b4a", "#b98d2e"] },
   { id: "plum", label: "عنّابي ورملي", colors: ["#6a2c5b", "#c09a73"] },
   { id: "slate", label: "رمادي هادئ", colors: ["#334155", "#8a94a6"] },
 ];
@@ -69,7 +69,7 @@ export function accentStyle(c: { primary_color?: string | null } | null | undefi
 export function applyPalette(c: { palette?: Palette | null; primary_color?: string | null } | null | undefined) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  root.dataset.palette = c?.palette || "indigo";
+  root.dataset.palette = c?.palette || "navy";
   for (const [k, v] of Object.entries(accentStyle(c) ?? {})) root.style.setProperty(k, String(v));
   if (!accentStyle(c)) for (const k of ["--accent", "--accent-strong", "--accent-soft"]) root.style.removeProperty(k);
 }

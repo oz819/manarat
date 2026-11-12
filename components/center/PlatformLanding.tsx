@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import DevCredit from "@/components/landing/DevCredit";
 import LoginDialog from "@/components/center/LoginDialog";
 import StarField from "@/components/center/StarField";
 import { AboutBody } from "@/components/center/PlatformAbout";
+import { createClient } from "@/utils/supabase/client";
 import { useReveal } from "@/components/landing/useReveal";
 import { T, Icon, ManaratMark, amiri, display, type Locale } from "@/components/landing/manarat";
 import "@/app/landing.css";
@@ -16,7 +17,16 @@ import "@/app/landing.css";
 export default function PlatformLanding() {
   const [locale, setLocale] = useState<Locale>("ar");
   const tr = T[locale];
+  // Who is already signed in on this device (null = nobody, undefined = still checking).
+  const [me, setMe] = useState<string | null | undefined>(undefined);
   useReveal();
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setMe(data.user?.email ?? null)).catch(() => setMe(null));
+  }, []);
+  async function signOut() {
+    await createClient().auth.signOut();
+    setMe(null);
+  }
 
   return (
     <div className={`mn mn-home ${display.variable} ${amiri.variable}`} dir={tr.dir} lang={locale}>
@@ -49,7 +59,18 @@ export default function PlatformLanding() {
         </section>
 
         <section className="mn-gate-card" aria-label={tr.login}>
-          <LoginDialog title={tr.brand} subtitle={tr.gateSub} logo="/icon-192.png" />
+          {me ? (
+            <div className="loginbox mn-in">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon-192.png" alt="" className="mn-in-mark" />
+              <h2>{tr.brand}</h2>
+              <p>{tr.inAs} <b dir="ltr">{me}</b></p>
+              <Link href="/" className="mn-btn gold">{tr.enter}</Link>
+              <button type="button" className="mn-in-out" onClick={signOut}>{tr.signOut}</button>
+            </div>
+          ) : (
+            <LoginDialog title={tr.brand} subtitle={tr.gateSub} logo="/icon-192.png" />
+          )}
           <div className="mn-gate-new">
             <span>{tr.gateNew}</span>
             <Link href="/signup" className="mn-btn gold sm">{tr.cta}</Link>

@@ -447,3 +447,11 @@
 .mn-home .mn-more .mn-intro{margin-top:56px}
 .mn.mn-home .mn-footer{justify-content:center;gap:24px}
 @media (max-width:900px){.mn .mn-gate-down{display:none}}
+
+/* /login when already signed in: a button into the app instead of the form */
+.mn-gate-card .mn-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:28px 22px}
+.mn-in-mark{width:60px;height:60px;border-radius:16px}
+.mn .mn-in h2{font-size:22px;color:var(--navy)}
+.mn-in p{margin:0 0 8px;color:var(--muted);font-size:14.5px}
+.mn-in .mn-btn{width:100%}
+.mn .mn-in-out,.mn .mn-in-out:hover{background:none;border:0;box-shadow:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-weight:500;padding:6px}

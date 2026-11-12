@@ -44,8 +44,10 @@ export async function updateSession(request: NextRequest) {
   // registration, "سجّل مركزك" (/signup) and invitation links (/invite/…).
   const needsSession = pathname === "/" || pathname.startsWith("/onboarding") || pathname.startsWith("/super");
 
-  // Reachable without a session; a signed-in visitor is sent to the app instead.
-  const isSignedOutRoute = pathname.startsWith("/login") || pathname.startsWith("/forgot-password");
+  // Reachable without a session; a signed-in visitor is sent to the app instead. /login is not on
+  // this list: it is the platform's front page, shown to everyone (signed-in people get a button
+  // into the app there instead of the form).
+  const isSignedOutRoute = pathname.startsWith("/forgot-password");
 
   if (!user && needsSession) {
     const url = request.nextUrl.clone();

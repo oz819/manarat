@@ -362,3 +362,78 @@
   .mn *,.mn *::before,.mn *::after{animation:none!important;transition:none!important}
   .mn [data-reveal]{opacity:1;transform:none}
 }
+
+/* ================= the sign-in gate (/login): full-screen living scene + the form ================= */
+.mn.mn-gate{position:relative;isolation:isolate;min-height:100svh;padding:0;display:flex;flex-direction:column;color:#fff;background:#0d1330;overflow:hidden}
+.mn-gate-bg{position:absolute;inset:0;z-index:-3;background:url("/landing/hero.webp") 70% 70%/cover no-repeat}
+.mn-gate-bg .mn-hero-video{object-position:70% 70%}
+.mn.mn-gate::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(13,19,48,.92) 0%,rgba(13,19,48,.55) 38%,rgba(13,19,48,.15) 62%,rgba(13,19,48,.55) 100%),linear-gradient(0deg,rgba(13,19,48,.7),transparent 35%)}
+.mn[dir=ltr].mn-gate::before{background:linear-gradient(270deg,rgba(13,19,48,.92) 0%,rgba(13,19,48,.55) 38%,rgba(13,19,48,.15) 62%,rgba(13,19,48,.55) 100%),linear-gradient(0deg,rgba(13,19,48,.7),transparent 35%)}
+.mn .mn-gate-stars{position:absolute;z-index:-2;inset:0 0 0 auto;width:50%;height:100%;opacity:.45}
+.mn[dir=ltr] .mn-gate-stars{inset:0 auto 0 0}
+.mn header.mn-gate-top,.mn header.mn-about-top{position:relative;top:auto;z-index:5;background:none;box-shadow:none;border:0;color:inherit}
+.mn-gate-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px clamp(16px,4vw,44px)}
+.mn-gate-acts{display:flex;align-items:center;gap:14px}
+.mn .mn-gate-link{font-family:var(--display);font-size:15px;color:rgba(255,255,255,.88);border-bottom:1px solid rgba(227,176,98,.6);padding-bottom:2px}
+.mn .mn-gate-link:hover{color:var(--gold-l)}
+.mn main.mn-gate-main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:clamp(24px,5vw,72px);align-items:center;padding:8px clamp(16px,5vw,72px) 96px;max-width:1280px;width:100%;margin:0 auto}
+.mn-gate-intro{text-align:start;max-width:520px}
+.mn .mn-gate-intro h1{font-weight:700;font-size:clamp(56px,7vw,96px);line-height:1.3;text-shadow:0 6px 30px rgba(0,0,0,.45)}
+.mn-gate-intro .mn-sub{text-wrap:balance}
+.mn-gate-card{display:flex;flex-direction:column;gap:12px}
+.mn-gate-card .loginbox{max-width:none;background:rgba(255,253,248,.95);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.6);box-shadow:0 30px 60px -24px rgba(0,0,0,.6);color:#1b2147}
+.mn-gate-card .loginbox .dev-credit{display:none}
+.mn-gate-card .loginbox .notice{font-size:12px;line-height:1.7;padding:8px 10px}
+.mn-gate-card .loginbox{padding:22px 22px 18px}
+.mn-gate-card .lg-head img{width:54px;height:54px;margin-bottom:6px}
+.mn-gate-card .loginbox h2{font-family:var(--display)}
+.mn-gate-new{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 16px;border-radius:18px;background:rgba(13,19,48,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);font-size:15px}
+.mn-gate-credit,.mn-float-credit{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50}
+.mn-gate-credit .dev-credit,.mn-float-credit .dev-credit{margin:0;white-space:nowrap}
+.mn.mn-gate .dev-credit{background:rgba(13,19,48,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-color:rgba(227,176,98,.45);color:rgba(255,255,255,.75)}
+.mn.mn-gate .dev-credit .dev-name{color:var(--gold-l)}
+.mn.mn-gate .dev-credit .dev-by{color:rgba(255,255,255,.55)}
+@media (max-width:900px){
+  .mn main.mn-gate-main{grid-template-columns:1fr;padding-top:0;gap:18px;padding-bottom:90px}
+  .mn-gate-intro{text-align:center;margin:0 auto}
+  .mn .mn-gate-intro h1{font-size:clamp(48px,14vw,72px)}
+  .mn-gate-intro .mn-tri{margin-bottom:0}
+  .mn.mn-gate::before,.mn[dir=ltr].mn-gate::before{background:linear-gradient(180deg,rgba(13,19,48,.85) 0%,rgba(13,19,48,.45) 40%,rgba(13,19,48,.75) 100%)}
+  .mn .mn-gate-stars{width:100%;height:50%}
+  .mn-gate-card{width:100%;max-width:440px;margin:0 auto}
+}
+@media (max-width:560px){
+  .mn .mn-gate-link{font-size:13.5px}
+  .mn .mn-lang span{display:none}
+  .mn-gate-intro .mn-hadith{font-size:16px}
+  .mn-gate-new{justify-content:center;text-align:center}
+}
+
+/* ================= /about: short page ================= */
+.mn-about-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 4px 0}
+.mn .mn-about-top .mn-logo{color:var(--navy)}
+.mn .mn-about-top .mn-logo svg{filter:none}
+.mn.mn-about .mn-lang,.mn.mn-about .mn-lang:hover{color:var(--navy)}
+.mn .mn-btn.navy,.mn .mn-btn.navy:hover{background:var(--navy);color:#fff}
+.mn .mn-btn.line,.mn .mn-btn.line:hover{background:transparent;color:var(--navy);box-shadow:inset 0 0 0 1.5px var(--navy)}
+.mn-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(20px,4vw,56px);align-items:center;margin-top:28px;padding:36px clamp(20px,4vw,48px);border-radius:32px;background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,255,255,.85)}
+.mn .mn-intro-txt h1{font-weight:700;font-size:clamp(26px,3.2vw,40px);line-height:1.5;color:var(--navy);text-wrap:balance}
+.mn-intro-txt p{margin:12px 0 22px;color:var(--muted);max-width:520px}
+.mn-intro-txt .mn-cta{justify-content:flex-start}
+.mn-intro .mn-phones{zoom:.82;margin:0;padding-top:24px}
+.mn .mn-strip.mn-strip-flat{margin:22px 0 0}
+.mn-about .mn-footer{justify-content:center;gap:24px;padding-bottom:84px}
+.mn.mn-about .dev-credit{background:#fff}
+@media (max-width:1000px){
+  .mn-intro{grid-template-columns:1fr;text-align:center}
+  .mn-intro-txt p{margin-inline:auto}
+  .mn-intro-txt .mn-cta{justify-content:center}
+  .mn-intro .mn-phones{justify-content:center;margin:0 auto}
+}
+@media (max-width:860px){.mn .mn-strip.mn-strip-flat{margin:18px 0 0}}
+@media (max-width:560px){
+  .mn-intro{padding:26px 16px}
+  .mn-intro .mn-phones{zoom:.66}
+  .mn.mn-about .mn-about-top .mn-btn span,.mn.mn-about .mn-lang span{display:none}
+}

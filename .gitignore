@@ -35,3 +35,4 @@ _deprecated_express_backend_prototype/
 
 # netlify cli build output
 /.netlify
+.netlify

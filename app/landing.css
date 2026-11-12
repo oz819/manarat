@@ -52,6 +52,9 @@
   box-shadow:0 30px 60px -30px rgba(18,26,61,.7),inset 0 0 0 1px rgba(255,255,255,.12)}
 /* hero.webp = the 3D render; hero-scene.svg (drawn) shows until it is added */
 .mn-hero-img{position:absolute;inset:0;z-index:-3;background:url("/landing/hero.webp") 78% 70%/cover no-repeat,url("/landing/hero-scene.svg") 72% 100%/cover no-repeat}
+.mn-hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:78% 70%}
+@media (max-width:860px){.mn-hero-video{object-position:76% 80%}}
+@media (prefers-reduced-motion:reduce){.mn-hero-video{display:none}}
 .mn-hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
   background:linear-gradient(90deg,rgba(16,23,58,.9) 0%,rgba(16,23,58,.62) 30%,rgba(16,23,58,0) 58%),linear-gradient(0deg,rgba(16,23,58,.35),transparent 30%)}
 .mn .mn-stars{position:absolute;z-index:-2;inset:0 auto 0 0;width:58%;height:100%;opacity:.6}

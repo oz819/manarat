@@ -235,7 +235,10 @@ export default function PlatformLanding() {
         <div className="mn-stage">
           <div className="mn-stage-main">
             <header className="mn-hero" id="top">
-              <div className="mn-hero-img" aria-hidden="true" />
+              <div className="mn-hero-img" aria-hidden="true">
+                {/* the living version of the hero image: pages turning, lanterns swaying (muted loop) */}
+                <video className="mn-hero-video" src="/landing/hero.mp4" poster="/landing/hero.webp" autoPlay muted loop playsInline preload="metadata" tabIndex={-1} />
+              </div>
               <StarField className="mn-stars" density={0.8} />
               <nav className="mn-nav" aria-label={locale === "ar" ? "التنقل الرئيسي" : "Main"}>
                 <a href="#top" className="mn-logo" aria-label={tr.brand}>

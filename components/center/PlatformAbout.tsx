@@ -13,13 +13,8 @@ import "@/app/landing.css";
 // منارات — /about: what the platform is, kept short. Intro with the two phones, six features,
 // how to start, the memorization map and "register your centre". Sign-in lives on /login.
 export default function PlatformAbout() {
-  const router = useRouter();
   const [locale, setLocale] = useState<Locale>("ar");
-  const [slug, setSlug] = useState("");
   const tr = T[locale];
-  const num = (n: number) => n.toLocaleString(locale === "ar" ? "ar-EG" : "en");
-  const pct = (n: number) => (locale === "ar" ? `${num(n)}٪` : `${n}%`);
-  const byIcon = (i: string) => FEATURES.find((f) => f.i === i)!;
   useReveal();
 
   return (
@@ -38,7 +33,27 @@ export default function PlatformAbout() {
             <Link href="/login" className="mn-btn navy sm"><Icon name="user" />{tr.back}</Link>
           </div>
         </header>
+        <AboutBody locale={locale} />
+      </div>
 
+      {/* the developer's Instagram, always in view at the bottom centre */}
+      <div className="mn-float-credit"><DevCredit compact /></div>
+    </div>
+  );
+}
+
+/** The platform's story (intro + phones, features, how to start, the map, register). Shown under
+ *  the sign-in gate on /login and on its own on /about. Must sit inside a `.mn` wrapper. */
+export function AboutBody({ locale }: { locale: Locale }) {
+  const router = useRouter();
+  const [slug, setSlug] = useState("");
+  const tr = T[locale];
+  const num = (n: number) => n.toLocaleString(locale === "ar" ? "ar-EG" : "en");
+  const pct = (n: number) => (locale === "ar" ? `${num(n)}٪` : `${n}%`);
+  const byIcon = (i: string) => FEATURES.find((f) => f.i === i)!;
+
+  return (
+    <>
         {/* intro + phones */}
         <section className="mn-intro">
           <div className="mn-intro-txt">
@@ -46,7 +61,7 @@ export default function PlatformAbout() {
             <p>{tr.aboutLead}</p>
             <div className="mn-cta">
               <Link href="/signup" className="mn-btn gold">{tr.cta}</Link>
-              <Link href="/login" className="mn-btn line">{tr.back}</Link>
+              <a href="#top" className="mn-btn line">{tr.back}</a>
             </div>
           </div>
           <div className="mn-phones" aria-hidden="true">
@@ -91,7 +106,7 @@ export default function PlatformAbout() {
           ))}
         </ul>
 
-        <main>
+        <div className="mn-body">
           <section id="features" className="mn-sec" data-reveal>
             <div className="mn-panel">
               <h2 className="mn-pill"><Icon name="star" />{tr.boardFeat}</h2>
@@ -155,16 +170,12 @@ export default function PlatformAbout() {
               </div>
             </div>
           </section>
-        </main>
+        </div>
 
         <footer className="mn-footer">
           <span>{tr.footer}</span>
           <span dir="ltr">© {new Date().getFullYear()}</span>
         </footer>
-      </div>
-
-      {/* the developer's Instagram, always in view at the bottom centre */}
-      <div className="mn-float-credit"><DevCredit compact /></div>
-    </div>
+    </>
   );
 }

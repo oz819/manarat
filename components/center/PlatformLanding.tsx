@@ -5,18 +5,22 @@ import Link from "next/link";
 import DevCredit from "@/components/landing/DevCredit";
 import LoginDialog from "@/components/center/LoginDialog";
 import StarField from "@/components/center/StarField";
+import { AboutBody } from "@/components/center/PlatformAbout";
+import { useReveal } from "@/components/landing/useReveal";
 import { T, Icon, ManaratMark, amiri, display, type Locale } from "@/components/landing/manarat";
 import "@/app/landing.css";
 
-// منارات — the first screen on the platform's address: the living night scene (the mushaf's pages
-// turning, lanterns swaying) behind the sign-in form. Everything about the platform lives on /about,
-// so this screen stays calm. The developer's Instagram is pinned at the bottom from the first moment.
+// منارات — the platform's address. First screen: the living night scene (the mushaf's pages turning,
+// lanterns swaying) behind the sign-in form. Scrolling down shows the whole platform page (AboutBody).
+// The developer's Instagram is pinned at the bottom from the first moment.
 export default function PlatformLanding() {
   const [locale, setLocale] = useState<Locale>("ar");
   const tr = T[locale];
+  useReveal();
 
   return (
-    <div className={`mn mn-gate ${display.variable} ${amiri.variable}`} dir={tr.dir} lang={locale}>
+    <div className={`mn mn-home ${display.variable} ${amiri.variable}`} dir={tr.dir} lang={locale}>
+    <div className="mn-gate" id="top">
       <div className="mn-gate-bg" aria-hidden="true">
         <video className="mn-hero-video" src="/landing/hero.mp4" poster="/landing/hero.webp" autoPlay muted loop playsInline preload="auto" tabIndex={-1} />
       </div>
@@ -28,7 +32,7 @@ export default function PlatformLanding() {
           <span><b>{tr.brand}</b><small>{tr.latin}</small></span>
         </span>
         <div className="mn-gate-acts">
-          <Link href="/about" className="mn-gate-link">{tr.gateAbout}</Link>
+          <a href="#more" className="mn-gate-link">{tr.gateAbout}</a>
           <button type="button" className="mn-lang" onClick={() => setLocale(locale === "ar" ? "en" : "ar")}>
             <Icon name="globe" />
             <span>{tr.lang}</span>
@@ -52,6 +56,13 @@ export default function PlatformLanding() {
           </div>
         </section>
       </main>
+      <a href="#more" className="mn-gate-down" aria-label={tr.gateAbout}><span>{tr.gateAbout}</span><i aria-hidden="true">↓</i></a>
+    </div>
+
+      {/* the whole platform page, right under the first screen */}
+      <div className="mn-wrap mn-more" id="more">
+        <AboutBody locale={locale} />
+      </div>
 
       {/* the developer's Instagram: visible from the first moment, centred at the bottom */}
       <div className="mn-gate-credit"><DevCredit /></div>

@@ -123,7 +123,7 @@ export default function LoginDialog({
 
       {process.env.NEXT_PUBLIC_DEMO === "1" && (
         <p className="notice" style={{ marginTop: 12 }}>
-          نسخة تجريبية ببيانات وهمية: <b dir="ltr">admin@demo.com</b> (مضايا) أو <b dir="ltr">doha@demo.com</b> (الدوحة) أو{" "}
+          نسخة تجريبية ببيانات وهمية: <b dir="ltr">admin@demo.com</b> (مركز النور) أو <b dir="ltr">doha@demo.com</b> (الدوحة) أو{" "}
           <b dir="ltr">both@demo.com</b> (معلّم بالمركزين) أو <b dir="ltr">super@demo.com</b> (إدارة المنصة) — الكود <b dir="ltr">123456</b> أو كلمة
           المرور <b dir="ltr">demo1234</b>.
         </p>

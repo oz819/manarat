@@ -10,7 +10,7 @@ const plex = IBM_Plex_Sans_Arabic({ subsets: ["arabic", "latin"], weight: ["400"
 export const metadata: Metadata = {
   title: "منارات — منصة مراكز تحفيظ القرآن",
   description: "متابعة الحفظ والتلاوة والمراجعة والتلقين والعربية والتربية — تعمل بدون إنترنت",
-  applicationName: "حلقات القرآن",
+  applicationName: "منارات",
   // Every page is behind a login — nothing here should be indexed.
   robots: { index: false, follow: false },
 };

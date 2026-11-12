@@ -41,7 +41,7 @@ async function blobStore(): Promise<Store | null> {
   if (g.__demoStore !== undefined) return g.__demoStore;
   try {
     const { getStore } = await import("@netlify/blobs");
-    g.__demoStore = getStore({ name: "madaya-demo", consistency: "strong" }) as unknown as Store;
+    g.__demoStore = getStore({ name: "manarat-demo", consistency: "strong" }) as unknown as Store;
     await g.__demoStore.getMetadata(SNAPSHOT);
   } catch {
     g.__demoStore = null;

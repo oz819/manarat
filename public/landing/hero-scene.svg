@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 0 1200 720" preserveAspectRatio="xMidYMax slice">
+<style>.tw{animation:tw 3.2s ease-in-out infinite}.tw:nth-child(3n){animation-delay:1s}.tw:nth-child(3n+1){animation-delay:2s}@keyframes tw{50%{opacity:.25}}</style>
+    <defs>
+<linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F8DFAE"/><stop offset=".55" stop-color="#E3B062"/><stop offset="1" stop-color="#B97F2E"/></linearGradient>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE3B0" stop-opacity=".95"/><stop offset=".35" stop-color="#F3B7A6" stop-opacity=".55"/><stop offset="1" stop-color="#B79BD6" stop-opacity="0"/></radialGradient>
+      <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3E7F3"/><stop offset="1" stop-color="#B9A3D3"/></linearGradient>
+      <linearGradient id="wall2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9C9EA"/><stop offset="1" stop-color="#9A86BF"/></linearGradient>
+      <linearGradient id="dome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".5" stop-color="#DCCDEE"/><stop offset="1" stop-color="#8F7FBA"/></linearGradient>
+      <linearGradient id="lit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF3CF"/><stop offset="1" stop-color="#F6B25A"/></linearGradient>
+      <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CDB9E2"/><stop offset=".25" stop-color="#E7DAF1"/><stop offset="1" stop-color="#F6F1FA"/></linearGradient>
+      <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9773F"/><stop offset=".5" stop-color="#7C4420"/><stop offset="1" stop-color="#4E2810"/></linearGradient>
+      <linearGradient id="page" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFDF5"/><stop offset="1" stop-color="#EAD9B8"/></linearGradient>
+      <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D5C6E6"/></linearGradient>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+      <filter id="halo" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="14"/></filter>
+      <path id="arch" d="M-9 0v-22c0-8 5-12 9-17 4 5 9 9 9 17v22z"/>
+      <g id="minaret">
+        <rect x="-11" y="-300" width="22" height="300" fill="url(#wall)"/>
+        <rect x="-11" y="-300" width="8" height="300" fill="#fff" opacity=".35"/>
+        <rect x="-18" y="-232" width="36" height="10" rx="3" fill="#F3E7F3"/><rect x="-16" y="-222" width="32" height="5" fill="#9A86BF"/>
+        <rect x="-18" y="-152" width="36" height="10" rx="3" fill="#F3E7F3"/><rect x="-16" y="-142" width="32" height="5" fill="#9A86BF"/>
+        <rect x="-8" y="-330" width="16" height="30" fill="url(#wall)"/>
+        <rect x="-14" y="-304" width="28" height="7" rx="3" fill="#F3E7F3"/>
+        <path d="M-9-330c-3-14 5-18 9-28 4 10 12 14 9 28z" fill="url(#dome)"/>
+        <path d="M0-358v-16" stroke="#E3B062" stroke-width="2.500"/><circle cx="0" cy="-378" r="4" fill="#F6D9A2"/>
+        <use href="#arch" transform="translate(0,-250) scale(.5)" fill="url(#lit)"/>
+        <use href="#arch" transform="translate(0,-170) scale(.5)" fill="url(#lit)"/>
+        <use href="#arch" transform="translate(0,-80) scale(.55)" fill="url(#lit)"/>
+        <rect x="-5" y="-322" width="10" height="14" rx="5" fill="url(#lit)"/>
+      </g>
+      <g id="sdome"><path d="M-34 0c-12-34 22-46 34-70 12 24 46 36 34 70z" fill="url(#dome)"/><path d="M0-70v-14" stroke="#E3B062" stroke-width="2.500"/><circle cx="0" cy="-87" r="3.500" fill="#F6D9A2"/></g>
+      <g id="mosque">
+        <!-- far wings -->
+        <rect x="330" y="420" width="250" height="80" fill="url(#wall2)"/><rect x="940" y="420" width="250" height="80" fill="url(#wall2)"/>
+        <use href="#sdome" transform="translate(400,420) scale(.75)"/><use href="#sdome" transform="translate(1120,420) scale(.75)"/>
+        <use href="#minaret" transform="translate(350,500) scale(.62)"/><use href="#minaret" transform="translate(1170,500) scale(.62)"/>
+        <!-- minarets -->
+        <use href="#minaret" transform="translate(520,500)"/><use href="#minaret" transform="translate(1000,500)"/>
+        <!-- main hall -->
+        <rect x="560" y="372" width="400" height="128" fill="url(#wall)"/>
+        <rect x="552" y="364" width="416" height="10" rx="3" fill="#FBF3FA"/>
+        <use href="#sdome" transform="translate(612,364)"/><use href="#sdome" transform="translate(908,364)"/>
+        <!-- drum + great dome -->
+        <rect x="686" y="286" width="148" height="80" fill="url(#wall)"/>
+        <rect x="678" y="280" width="164" height="9" rx="3" fill="#FBF3FA"/>
+        <path d="M690 280c-34-74 44-104 70-158 26 54 104 84 70 158z" fill="url(#dome)"/>
+        <path d="M715 270c-18-52 22-84 45-122" fill="none" stroke="#fff" stroke-width="5" opacity=".55" stroke-linecap="round"/>
+        <path d="M760 122v-26" stroke="#E3B062" stroke-width="3"/><circle cx="760" cy="104" r="5" fill="#F6D9A2"/>
+        <path d="M760 80a9 9 0 1 0 7 14 7 7 0 1 1-7-14z" fill="#F6D9A2"/>
+        <g fill="url(#lit)">
+          <use href="#arch" x="706" y="350"/><use href="#arch" x="733" y="350"/><use href="#arch" x="760" y="350"/><use href="#arch" x="787" y="350"/><use href="#arch" x="814" y="350"/>
+          <use href="#arch" transform="translate(588,500) scale(1.5)"/><use href="#arch" transform="translate(628,500) scale(1.5)"/><use href="#arch" transform="translate(668,500) scale(1.5)"/>
+          <use href="#arch" transform="translate(852,500) scale(1.5)"/><use href="#arch" transform="translate(892,500) scale(1.5)"/><use href="#arch" transform="translate(932,500) scale(1.5)"/>
+          <use href="#arch" x="588" y="424"/><use href="#arch" x="628" y="424"/><use href="#arch" x="668" y="424"/><use href="#arch" x="852" y="424"/><use href="#arch" x="892" y="424"/><use href="#arch" x="932" y="424"/>
+          <use href="#arch" transform="translate(370,500) scale(1.1)"/><use href="#arch" transform="translate(410,500) scale(1.1)"/><use href="#arch" transform="translate(450,500) scale(1.1)"/><use href="#arch" transform="translate(1070,500) scale(1.1)"/><use href="#arch" transform="translate(1110,500) scale(1.1)"/><use href="#arch" transform="translate(1150,500) scale(1.1)"/>
+        </g>
+        <!-- great portal -->
+        <rect x="704" y="366" width="112" height="134" fill="#FBF3FA"/>
+        <path d="M720 500v-74c0-26 22-36 40-56 18 20 40 30 40 56v74z" fill="url(#lit)"/>
+        <path d="M738 500v-62c0-16 12-24 22-36 10 12 22 20 22 36v62z" fill="#FFF8E2"/>
+      </g>
+    </defs>
+
+    <!-- stars -->
+    <g fill="#fff">
+      <circle class="tw" cx="90" cy="60" r="1.600"/><circle class="tw" cx="210" cy="130" r="1.200"/><circle class="tw" cx="330" cy="50" r="1.800"/><circle class="tw" cx="455" cy="150" r="1.200"/><circle class="tw" cx="560" cy="70" r="1.500"/><circle class="tw" cx="640" cy="170" r="1.100"/><circle class="tw" cx="880" cy="60" r="1.700"/><circle class="tw" cx="960" cy="150" r="1.200"/><circle class="tw" cx="1060" cy="90" r="1.600"/><circle class="tw" cx="1150" cy="190" r="1.200"/><circle class="tw" cx="150" cy="240" r="1.200"/><circle class="tw" cx="1010" cy="250" r="1.100"/><circle class="tw" cx="700" cy="40" r="1.300"/><circle class="tw" cx="270" cy="300" r="1"/><circle class="tw" cx="840" cy="200" r="1"/>
+    </g>
+    <!-- soft clouds -->
+    <g fill="#C9B6E6" opacity=".22" filter="url(#soft)"><ellipse cx="420" cy="250" rx="170" ry="16"/><ellipse cx="1050" cy="300" rx="190" ry="18"/><ellipse cx="640" cy="330" rx="120" ry="12"/></g>
+
+    <ellipse cx="760" cy="440" rx="520" ry="260" fill="url(#glow)"/>
+    <use href="#mosque"/>
+
+    <!-- floor + reflection -->
+    <rect x="-200" y="500" width="1600" height="220" fill="url(#floor)"/>
+    <g opacity=".22" filter="url(#soft)"><use href="#mosque" transform="translate(0,1000) scale(1,-1)"/></g>
+    <rect x="-200" y="500" width="1600" height="3" fill="#fff" opacity=".7"/>
+    <ellipse cx="760" cy="520" rx="330" ry="26" fill="#FFE3B0" opacity=".55" filter="url(#soft)"/>
+
+    <!-- pedestal -->
+    <ellipse cx="760" cy="606" rx="190" ry="26" fill="#8F7FBA" opacity=".35" filter="url(#soft)"/>
+    <path d="M590 574v18c0 14 76 25 170 25s170-11 170-25v-18z" fill="url(#marble)"/>
+    <ellipse cx="760" cy="574" rx="170" ry="24" fill="#fff"/>
+    <ellipse cx="760" cy="574" rx="150" ry="19" fill="none" stroke="#E3B062" stroke-width="1.500" opacity=".8"/>
+    <!-- rehl (stand) -->
+    <ellipse cx="760" cy="578" rx="110" ry="10" fill="#4E2810" opacity=".3" filter="url(#soft)"/>
+    <path d="M668 498l26-10 172 86-22 8z" fill="url(#wood)"/>
+    <path d="M852 498l-26-10-172 86 22 8z" fill="url(#wood)"/>
+    <path d="M852 498l-26-10-12 6 24 10z" fill="#D49A5E"/><path d="M668 498l26-10 12 6-24 10z" fill="#D49A5E"/>
+    <path d="M700 546l60-30 60 30-60 30z" fill="#5B2F14" opacity=".55"/>
+    <!-- mushaf -->
+    <path d="M760 512c-30-22-66-28-112-22l8-44c40-8 76-2 104 20 28-22 64-28 104-20l8 44c-46-6-82 0-112 22z" fill="#6B3A1A"/>
+    <path d="M760 504c-28-20-62-26-104-21l7-40c36-6 70 0 97 21z" fill="url(#page)"/>
+    <path d="M760 504c28-20 62-26 104-21l-7-40c-36-6-70 0-97 21z" fill="url(#page)"/>
+    <path d="M760 464v40" stroke="#B9773F" stroke-width="2"/>
+    <g fill="none" stroke="#B08A4A" stroke-width="1.300" opacity=".8">
+      <path d="M674 452c28-4 54 0 76 14M672 462c28-4 55 0 78 14M670 472c29-4 57 0 80 14"/>
+      <path d="M846 452c-28-4-54 0-76 14M848 462c-28-4-55 0-78 14M850 472c-29-4-57 0-80 14"/>
+    </g>
+    <path d="M663 443c36-6 70 0 97 21 27-21 61-27 97-21" fill="none" stroke="#E3B062" stroke-width="2"/>
+    <ellipse cx="760" cy="470" rx="90" ry="34" fill="#FFE9B8" opacity=".35" filter="url(#halo)"/>
+
+    <!-- lanterns -->
+    <g transform="translate(-104 0)"><g>
+      <path d="M1096 0v178" stroke="#E3B062" stroke-width="2"/>
+      <circle cx="1096" cy="250" r="70" fill="#FFD58A" opacity=".5" filter="url(#halo)"/>
+      <path d="M1096 172l16 16h-32z" fill="url(#gg)"/>
+      <path d="M1076 190h40l8 26v52l-8 22h-40l-8-22v-52z" fill="#3A2A18"/>
+      <path d="M1080 196h32l6 22v48l-6 18h-32l-6-18v-48z" fill="url(#lit)"/>
+      <path d="M1096 196v88M1074 218h44M1074 266h44" stroke="#8A5A22" stroke-width="2.500"/>
+      <path d="M1096 206c-9 10-13 20-13 34s4 24 13 34c9-10 13-20 13-34s-4-24-13-34z" fill="none" stroke="#8A5A22" stroke-width="2"/>
+      <path d="M1070 290h52l-8 12h-36z" fill="url(#gg)"/><circle cx="1096" cy="310" r="5" fill="url(#gg)"/>
+    </g></g>
+    <g transform="translate(-232 96)"><g>
+      <path d="M1160 -100v170" stroke="#E3B062" stroke-width="1.500"/>
+      <circle cx="1160" cy="112" r="40" fill="#FFD58A" opacity=".45" filter="url(#halo)"/>
+      <path d="M1160 66l10 10h-20z" fill="url(#gg)"/>
+      <path d="M1148 78h24l5 16v32l-5 13h-24l-5-13V94z" fill="#3A2A18"/>
+      <path d="M1151 82h18l4 13v30l-4 10h-18l-4-10V95z" fill="url(#lit)"/>
+      <path d="M1160 82v53M1146 96h28M1146 124h28" stroke="#8A5A22" stroke-width="1.800"/>
+      <path d="M1144 139h32l-5 8h-22z" fill="url(#gg)"/>
+    </g></g>
+    <!-- floor lantern -->
+    <g transform="translate(-55 0)">
+      <circle cx="1010" cy="560" r="60" fill="#FFD58A" opacity=".5" filter="url(#halo)"/>
+      <path d="M1010 508l14 14h-28z" fill="url(#gg)"/>
+      <path d="M994 524h32l6 18v40l-6 14h-32l-6-14v-40z" fill="#3A2A18"/>
+      <path d="M997 529h26l5 15v36l-5 11h-26l-5-11v-36z" fill="url(#lit)"/>
+      <path d="M1010 529v62M990 546h40M990 578h40" stroke="#8A5A22" stroke-width="2"/>
+      <path d="M986 596h48l-4 10h-40z" fill="url(#gg)"/>
+    </g>
+  </svg>

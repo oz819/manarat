@@ -3,7 +3,7 @@ import CenterLanding from "@/components/center/CenterLanding";
 import PlatformLanding from "@/components/center/PlatformLanding";
 import { centerForHost } from "@/lib/centerServer";
 
-// The first screen. On a centre's own domain (madayacentre.com → Madaya) it is that centre's page;
+// The first screen. On a centre's own domain (a centre's own domain) it is that centre's page;
 // on the platform's address it is the platform's page with "سجّل مركزك".
 export const dynamic = "force-dynamic";
 

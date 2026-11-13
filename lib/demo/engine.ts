@@ -22,9 +22,7 @@ async function boot(): Promise<PGlite> {
   const sql = (p: string) => readFileSync(join(/* turbopackIgnore: true */ root, p), "utf8");
   const db = new PGlite();
   await db.exec(sql("supabase/tests/auth_stub.sql"));
-  await db.exec(sql("supabase/tests/base_schema.sql"));
-  await db.exec(sql("supabase/seed_quran_surahs.sql"));
-  for (const f of readdirSync(join(/* turbopackIgnore: true */ root, "supabase/migrations")).filter((f) => f >= "20261101").sort()) {
+  for (const f of readdirSync(join(/* turbopackIgnore: true */ root, "supabase/migrations")).filter((f) => f.endsWith(".sql")).sort()) {
     await db.exec(sql(`supabase/migrations/${f}`));
   }
   await db.exec(seedSql());
@@ -35,7 +33,7 @@ async function boot(): Promise<PGlite> {
 // database is snapshotted to Netlify Blobs after every change, and an instance that is behind
 // loads the latest snapshot before answering. Locally (no Blobs) it simply stays in memory.
 // Bump SNAPSHOT to start the demo over (e.g. after a schema change).
-const SNAPSHOT = "db-2026-11-04-v1";
+const SNAPSHOT = "manarat-2026-11-13-empty";
 
 async function blobStore(): Promise<Store | null> {
   if (g.__demoStore !== undefined) return g.__demoStore;

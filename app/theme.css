@@ -349,3 +349,9 @@ td.row-actions button.link { padding: 4px 2px; }
   .userbox-actions { margin-top: 0; }
 }
 .userbox .sync-badge, .userbox-actions > * { white-space: nowrap; }
+
+/* On phones every tab is visible at once (two rows) — no hidden tabs behind a sideways scroll. */
+@media (max-width: 650px) {
+  nav { flex-wrap: wrap; overflow-x: visible; justify-content: center; gap: 4px; padding: 8px 6px; }
+  nav > button { padding: 7px 10px; font-size: 13px; gap: 5px; }
+}

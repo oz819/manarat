@@ -26,7 +26,7 @@ import {
 } from "@/lib/types";
 
 type TrackKey = QuranTrack | "ARABIC" | "TARBIYA" | "ATTENDANCE" | "LESSON";
-const TRACKS: { id: TrackKey; label: string }[] = [
+const ALL_REPORT_TRACKS: { id: TrackKey; label: string }[] = [
   { id: "HIFZ", label: "الحفظ" },
   { id: "TILAWA", label: "التلاوة" },
   { id: "MURAJAA", label: "المراجعة" },
@@ -55,7 +55,11 @@ type Row = { student: Student; cells: Partial<Record<TrackKey, Cell>> };
 // offline it falls back to this device's local copy and says so.
 export default function Reports() {
   const s = useStore();
-  const { supabase, mushaf } = useApp();
+  const { supabase, mushaf, tracks: centreTracks } = useApp();
+  // Only the centre's enabled tracks (ملاحظة 4), with its own name for التلقين; الحضور and الدرس always.
+  const TRACKS = ALL_REPORT_TRACKS.filter((t) => t.id === "ATTENDANCE" || t.id === "LESSON" || centreTracks.has(t.id)).map((t) =>
+    t.id === "TALQEEN" ? { ...t, label: centreTracks.label("TALQEEN") } : t
+  );
   // Who the report covers: the students in the shared filter (section / halaqa / all), or one of them.
   const { filter, inScope, label: filterName } = useScope();
   const allStudents = s

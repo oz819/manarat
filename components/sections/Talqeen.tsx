@@ -15,7 +15,8 @@ type Tick = { checked: boolean; notes: string };
 // Talqeen session (spec §5.2): record a passage once for everyone present.
 export default function Talqeen() {
   const s = useStore();
-  const { mushaf, showToast } = useApp();
+  const { mushaf, showToast, tracks } = useApp();
+  const L = tracks.label("TALQEEN"); // the centre may call it something else, e.g. «التسميع»
   // A session is for one halaqa: offer the ones the shared filter covers.
   const circles = useScope().scopedCircles;
   const [savedCircleId, setCircleId] = usePersistentState("talqeen.circle", "");
@@ -84,7 +85,7 @@ export default function Talqeen() {
       },
       ticked.map((st) => ({ student_id: st.id, notes: effectiveTicks[st.id].notes.trim() || null }))
     );
-    showToast(`تم حفظ التلقين لـ ${ticked.length} طالب`);
+    showToast(`تم حفظ ${L} لـ ${ticked.length} طالب`);
     resetForm();
   }
 
@@ -114,7 +115,7 @@ export default function Talqeen() {
   return (
     <section>
       <div className="card">
-        <h3>🎙️ جلسة تلقين</h3>
+        <h3>🎙️ جلسة {L}</h3>
         <div className="formgrid compact">
           <div>
             <label>الحلقة</label>
@@ -212,7 +213,7 @@ export default function Talqeen() {
           <p className="muted">لا يوجد طلاب في هذه الحلقة.</p>
         )}
         <button onClick={save} style={{ marginTop: 10, width: "100%" }}>
-          {sessionId ? "حفظ تعديل الجلسة" : "حفظ التلقين"}
+          {sessionId ? "حفظ تعديل الجلسة" : `حفظ ${L}`}
         </button>
         {error && <p className="error-text">{error}</p>}
       </div>

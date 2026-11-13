@@ -6,6 +6,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import type { Profile } from "@/lib/types";
 import type { Mushaf } from "@/lib/quran";
 import type { MyContext } from "@/lib/center";
+import type { Tracks } from "@/lib/tracks";
 
 export type AppCtx = {
   supabase: SupabaseClient<Database>;
@@ -18,6 +19,8 @@ export type AppCtx = {
   isPlatformAdmin: boolean;
   /** Re-reads my_context, e.g. after the centre's settings change. */
   refreshCenter: () => Promise<void>;
+  /** The centre's enabled follow-up tracks and their names (ملاحظة 4). */
+  tracks: Tracks;
 };
 
 export const AppContext = createContext<AppCtx | null>(null);

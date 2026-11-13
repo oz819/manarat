@@ -25,7 +25,7 @@ type View = {
   lessons: { lesson_date: string; title: string }[];
   exams?: { exam_date: string; kind: string; juz_no: number | null; surah_no: number | null; score: number; passed: boolean }[];
   goal?: { weekly_ayahs: number; done: number } | null;
-  center?: { name: string; slug: string; logo_url: string | null; palette: "indigo" | "navy" | "plum" | "slate"; primary_color: string | null };
+  center?: { name: string; slug: string; logo_url: string | null; palette: "indigo" | "navy" | "plum" | "slate"; primary_color: string | null; enabled_tracks?: string[]; talqeen_label?: string | null };
 };
 
 export default async function GuardianPage({ params }: PageProps<"/p/[token]">) {
@@ -154,7 +154,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
                     .filter((e) => e.entry_date === d)
                     .map((e, i) => (
                       <div key={i}>
-                        {TRACK_LABEL[e.track]}: {mushaf.formatRange(entryRange(e))}
+                        {e.track === "TALQEEN" && v.center?.talqeen_label ? v.center.talqeen_label : TRACK_LABEL[e.track]}: {mushaf.formatRange(entryRange(e))}
                         {e.quality && <span className="muted"> ({e.quality})</span>}
                       </div>
                     ))}

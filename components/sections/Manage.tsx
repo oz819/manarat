@@ -12,6 +12,7 @@ import CenterSettings, { HonorSettings } from "@/components/CenterSettings";
 import Registrations from "@/components/Registrations";
 import ExportExcel from "@/components/ExportExcel";
 import CenterProfile from "@/components/center/CenterProfile";
+import CenterTracks from "@/components/center/CenterTracks";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
 import DevCredit from "@/components/landing/DevCredit";
@@ -26,6 +27,7 @@ export default function Manage() {
         الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
       </div>
       <CenterProfile />
+      <CenterTracks />
       <Registrations />
       <Invites />
       <Teachers />

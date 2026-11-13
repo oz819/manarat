@@ -28,6 +28,7 @@ import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
 import PushToggle from "@/components/PushToggle";
 import { applyPalette, type MyContext } from "@/lib/center";
+import { tracksOf } from "@/lib/tracks";
 
 type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "manage" | "trash" | "audit";
 
@@ -203,6 +204,7 @@ export default function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revoked]);
 
+  const tracks = useMemo(() => tracksOf(ctx?.center), [ctx?.center]);
   const surahs = s.all("quran_surahs");
   const mushaf = useMemo(() => new Mushaf(surahs), [surahs]);
 
@@ -270,7 +272,7 @@ export default function AppShell() {
   }
 
   return (
-    <AppContext.Provider value={{ supabase, profile, mushaf, showToast, center: ctx!.center!, isOwner: !!ctx?.membership?.is_owner, isPlatformAdmin: !!ctx?.is_platform_admin, refreshCenter }}>
+    <AppContext.Provider value={{ supabase, profile, mushaf, showToast, center: ctx!.center!, isOwner: !!ctx?.membership?.is_owner, isPlatformAdmin: !!ctx?.is_platform_admin, refreshCenter, tracks }}>
       <header className="no-print">
         <div className="headerrow">
           <div className="brand-row">
@@ -319,8 +321,8 @@ export default function AppShell() {
 
       <nav className="no-print sliding">
         <SlidingIndicator active={page} />
-        {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
-          <NavButton key={n.id} id={n.id} label={n.label} active={page === n.id} onClick={() => setPage(n.id)} />
+        {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).filter((n) => n.id !== "talqeen" || tracks.has("TALQEEN")).map((n) => (
+          <NavButton key={n.id} id={n.id} label={n.id === "talqeen" ? tracks.label("TALQEEN") : n.label} active={page === n.id} onClick={() => setPage(n.id)} />
         ))}
       </nav>
 
@@ -339,7 +341,7 @@ export default function AppShell() {
           {((page === "students" && !view.studentId) || page === "talqeen" || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
         </div>
         {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
-        {page === "talqeen" && <Talqeen />}
+        {page === "talqeen" && tracks.has("TALQEEN") && <Talqeen />}
         {page === "reports" && <Reports />}
         {page === "ranking" && <Ranking />}
         {page === "dashboard" && profile.role === "ADMIN" && <Dashboard openStudent={openStudent} openManage={() => setPage("manage")} />}

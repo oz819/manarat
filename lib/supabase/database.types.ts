@@ -31,6 +31,8 @@ export type Database = {
       }
       centers: {
         Row: {
+          enabled_tracks: string[]
+          talqeen_label: string | null
           id: string
           slug: string
           name: string
@@ -60,6 +62,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          enabled_tracks?: string[]
+          talqeen_label?: string | null
           id?: string
           slug: string
           name: string
@@ -89,6 +93,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          enabled_tracks?: string[]
+          talqeen_label?: string | null
           id?: string
           slug?: string
           name?: string

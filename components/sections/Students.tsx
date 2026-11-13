@@ -433,7 +433,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
 // recorded days (تنبيه الغياب, with a message to the family), and this month's top memorizers.
 function Insights({ students, open }: { students: Student[]; open: (id: string) => void }) {
   const s = useStore();
-  const { mushaf } = useApp();
+  const { mushaf, tracks } = useApp();
   const quranBy = s.byStudent("quran_entries");
   const month = todayStr().slice(0, 7);
 
@@ -451,7 +451,7 @@ function Insights({ students, open }: { students: Student[]; open: (id: string) 
   return (
     <div className="insights">
       <AbsenceAlerts students={students} open={open} />
-      <ReadyForExam students={students} open={open} />
+      {tracks.has("EXAMS") && <ReadyForExam students={students} open={open} />}
       {stars.length > 0 && (
         <div className="card insight star-card">
           <h3>🏆 نجوم الحفظ هذا الشهر</h3>

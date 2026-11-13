@@ -17,9 +17,13 @@ import { store, useStore } from "@/lib/offline/store";
 import { byNewest, studentProgress } from "@/lib/progress";
 import { normalizePhone } from "@/lib/guardian";
 import { entryRange, type QuranRange } from "@/lib/quran";
+import type { TrackKey } from "@/lib/tracks";
 import { ATTENDANCE_LABEL, QUALITIES, todayStr, type AttendanceStatus, type QuranEntry } from "@/lib/types";
 
 type Section = "HIFZ" | "TILAWA" | "MURAJAA" | "TALQEEN" | "ARABIC" | "TARBIYA" | "MAP" | "EXAMS";
+
+// Which centre track each tab belongs to (ملاحظة 4: tabs of tracks the centre hasn't enabled are hidden).
+const SECTION_TRACK: Partial<Record<Section, TrackKey>> = { TILAWA: "TILAWA", MURAJAA: "MURAJAA", TALQEEN: "TALQEEN", ARABIC: "ARABIC", TARBIYA: "TARBIYA", EXAMS: "EXAMS" };
 
 const SECTIONS: { id: Section; label: string }[] = [
   { id: "HIFZ", label: "الحفظ" },
@@ -36,10 +40,15 @@ const STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT"];
 
 export default function StudentCard({ studentId, onClose }: { studentId: string; onClose: () => void }) {
   const s = useStore();
-  const { mushaf, profile, showToast } = useApp();
+  const { mushaf, profile, showToast, tracks } = useApp();
+  const sections = SECTIONS.filter((x) => !SECTION_TRACK[x.id] || tracks.has(SECTION_TRACK[x.id]!)).map((x) =>
+    x.id === "TALQEEN" ? { ...x, label: tracks.label("TALQEEN") } : x
+  );
   // Opened from «جاهزون للاختبار»: straight to the exams tab on that juz'.
   const [intent] = useState(() => takeCardIntent(studentId));
-  const [section, setSection] = useState<Section>(intent?.tab ?? "HIFZ");
+  const [section, setSection] = useState<Section>(
+    intent?.tab && (!SECTION_TRACK[intent.tab as Section] || tracks.has(SECTION_TRACK[intent.tab as Section]!)) ? intent.tab : "HIFZ"
+  );
   const [editing, setEditing] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   // A suggested review chosen from the map: opens the review form on that range.
@@ -148,15 +157,15 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
 
         <div className="positions">
           <Pos label="الحفظ" value={p.hifz ? mushaf.formatRange(p.hifz.range) : null} extra={p.hifz?.percent != null ? `${p.hifz.percent}% محفوظ` : undefined} date={p.hifz?.entry.entry_date} />
-          <Pos label="التلاوة" value={p.tilawa ? mushaf.formatRange(p.tilawa.range) : null} extra={p.tilawa?.percent != null ? `${p.tilawa.percent}%` : undefined} date={p.tilawa?.entry.entry_date} />
-          <Pos label="المراجعة" value={p.murajaa ? mushaf.formatRange(p.murajaa.range) : null} date={p.murajaa?.entry.entry_date} />
-          <Pos label="التلقين" value={p.talqeen ? mushaf.formatRange(p.talqeen.range) : null} date={p.talqeen?.entry.entry_date} />
-          <Pos
+          {tracks.has("TILAWA") && <Pos label="التلاوة" value={p.tilawa ? mushaf.formatRange(p.tilawa.range) : null} extra={p.tilawa?.percent != null ? `${p.tilawa.percent}%` : undefined} date={p.tilawa?.entry.entry_date} />}
+          {tracks.has("MURAJAA") && <Pos label="المراجعة" value={p.murajaa ? mushaf.formatRange(p.murajaa.range) : null} date={p.murajaa?.entry.entry_date} />}
+          {tracks.has("TALQEEN") && <Pos label={tracks.label("TALQEEN")} value={p.talqeen ? mushaf.formatRange(p.talqeen.range) : null} date={p.talqeen?.entry.entry_date} />}
+          {tracks.has("ARABIC") && <Pos
             label="العربية"
             value={p.arabic ? `${p.arabic.book.title} — ص ${p.arabic.page}` : lastFinished ? `✅ أنهى ${lastFinished}` : null}
             extra={p.arabic ? `${p.arabic.percent}%` : undefined}
-          />
-          <Pos label="آخر ملاحظة تربوية" value={p.lastTarbiya ?? null} />
+          />}
+          {tracks.has("TARBIYA") && <Pos label="آخر ملاحظة تربوية" value={p.lastTarbiya ?? null} />}
         </div>
 
         <GuardianBox studentId={studentId} onEdit={() => setEditing(true)} />
@@ -164,7 +173,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
 
       <div className="tabs sliding">
         <SlidingIndicator active={section} />
-        {SECTIONS.map((sec) => (
+        {sections.map((sec) => (
           <button
             key={sec.id}
             className={section === sec.id ? "active" : ""}

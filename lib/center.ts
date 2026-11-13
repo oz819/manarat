@@ -52,6 +52,9 @@ export type MyContext = {
     onboarded: boolean;
     timezone: string;
     locale: "ar" | "en";
+    /** مسارات المتابعة المفعّلة (lib/tracks.ts); الحفظ always. */
+    enabled_tracks?: string[];
+    talqeen_label?: string | null;
   } | null;
   membership: { role: CenterRole; is_owner: boolean; active: boolean; name: string; default_filter: string | null } | null;
   centers: { id: string; slug: string; name: string; role: CenterRole; status: string; active: boolean }[];

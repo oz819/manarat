@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import type { Profile, Role } from "@/lib/types";
 import { Mushaf } from "@/lib/quran";
+import { SURAHS } from "@/lib/surahs";
 import { store, useStore } from "@/lib/offline/store";
 import { filterStore } from "@/lib/filter";
 import { getMeta, setMeta } from "@/lib/offline/idb";
@@ -116,50 +117,84 @@ export default function AppShell() {
       }
       const userId = session.user.id;
       const cached = await getMeta<CachedProfile>("profile");
+      const cachedP = cached?.userId === userId ? cached.profile : null;
+      const cachedC = cached?.userId === userId ? (cached.ctx ?? null) : null;
 
-      let p: Profile | null = cached?.userId === userId ? cached.profile : null;
-      let c: MyContext | null = cached?.userId === userId ? cached.ctx ?? null : null;
-      if (navigator.onLine) {
-        // Who I am in the centre I work in now (memberships), and which centres I belong to.
+      // Who I am in the centre I work in now (memberships). Returns false when the app can't open.
+      const fromServer = async (): Promise<{ p: Profile; c: MyContext } | false | null> => {
         const { data, error } = await supabase.rpc("my_context");
-        if (!error && data) {
-          c = data as unknown as MyContext;
-          const m = c.membership;
-          if (!c.center || !m) {
-            // Just signed up for a new centre and hasn't created it yet: finish that first.
-            if (c.blocked === "NO_CENTER" && !c.centers.length && session.user.user_metadata?.pending_center) {
-              router.replace("/onboarding");
-              return;
-            }
-            if (c.is_platform_admin && c.blocked === "NO_CENTER") {
-              router.replace("/super");
-              return;
-            }
-            setBlockedMessage(BLOCKED_MESSAGE[c.blocked ?? "NO_CENTER"]);
-            if (c.blocked !== "SUSPENDED") await supabase.auth.signOut();
-            return;
+        if (error || !data) return null;
+        const c = data as unknown as MyContext;
+        const m = c.membership;
+        if (!c.center || !m) {
+          // Just signed up for a new centre and hasn't created it yet: finish that first.
+          if (c.blocked === "NO_CENTER" && !c.centers.length && session.user.user_metadata?.pending_center) {
+            router.replace("/onboarding");
+            return false;
           }
-          p = { id: userId, name: m.name, role: m.role as Role, active: m.active, default_filter: m.default_filter };
+          if (c.is_platform_admin && c.blocked === "NO_CENTER") {
+            router.replace("/super");
+            return false;
+          }
+          setProfile(null);
+          setBlockedMessage(BLOCKED_MESSAGE[c.blocked ?? "NO_CENTER"]);
+          if (c.blocked !== "SUSPENDED") await supabase.auth.signOut({ scope: "local" });
+          return false;
         }
+        return { p: { id: userId, name: m.name, role: m.role as Role, active: m.active, default_filter: m.default_filter }, c };
+      };
+
+      const open = async (p: Profile, c: MyContext | null) => {
+        // A different account or a different centre on this device: start from a clean local copy,
+        // unless the previous one still has unsaved changes (those are kept and sent).
+        if (cached && (cached.userId !== userId || (cached.centerId && cached.centerId !== c?.center?.id))) {
+          await store.ensureLoaded();
+          if (store.status.pending + store.status.failed === 0) await store.reset();
+        }
+        await setMeta("profile", { userId, profile: p, centerId: c?.center?.id, ctx: c ?? undefined } satisfies CachedProfile);
+        applyPalette(c?.center);
+        setCtx(c);
+        setProfile(p);
+        filterStore.init(supabase, userId, p.default_filter);
+        await store.start(supabase, userId);
+        started = true;
+      };
+
+      // ملاحظة 9: back on this device with the same account — open at once from the saved copy and check
+      // with the server meanwhile, instead of making every opening wait for the network.
+      if (cachedP && cachedC?.center) {
+        await open(cachedP, cachedC);
+        if (!navigator.onLine) return;
+        const fresh = await fromServer();
+        if (!fresh) {
+          if (fresh === false) store.stop();
+          return;
+        }
+        if (fresh.c.center!.id !== cachedC.center.id) {
+          // The current centre changed on another device: reopen on the right one.
+          if (store.status.pending + store.status.failed === 0) await store.reset();
+          location.reload();
+          return;
+        }
+        await setMeta("profile", { userId, profile: fresh.p, centerId: fresh.c.center!.id, ctx: fresh.c } satisfies CachedProfile);
+        applyPalette(fresh.c.center);
+        setCtx(fresh.c);
+        setProfile(fresh.p);
+        return;
+      }
+
+      let p: Profile | null = cachedP;
+      let c: MyContext | null = cachedC;
+      if (navigator.onLine) {
+        const fresh = await fromServer();
+        if (fresh === false) return;
+        if (fresh) ({ p, c } = fresh);
       }
       if (!p) {
         setBlockedMessage("تعذّر التحقق من الحساب. اتصل بالإنترنت وأعد المحاولة.");
         return;
       }
-
-      // A different account or a different centre on this device: start from a clean local copy,
-      // unless the previous one still has unsynced changes (those are kept and sent).
-      if (cached && (cached.userId !== userId || (cached.centerId && cached.centerId !== c?.center?.id))) {
-        await store.ensureLoaded();
-        if (store.status.pending + store.status.failed === 0) await store.reset();
-      }
-      await setMeta("profile", { userId, profile: p, centerId: c?.center?.id, ctx: c ?? undefined } satisfies CachedProfile);
-      applyPalette(c?.center);
-      setCtx(c);
-      setProfile(p);
-      filterStore.init(supabase, userId, p.default_filter);
-      await store.start(supabase, userId);
-      started = true;
+      await open(p, c);
     })();
     return () => {
       if (started) store.stop();
@@ -205,7 +240,9 @@ export default function AppShell() {
   }, [revoked]);
 
   const tracks = useMemo(() => tracksOf(ctx?.center), [ctx?.center]);
-  const surahs = s.all("quran_surahs");
+  // The surahs ship with the app (lib/surahs.ts); the synced table is used once it is on the device.
+  const synced = s.all("quran_surahs");
+  const surahs = synced.length === 114 ? synced : SURAHS;
   const mushaf = useMemo(() => new Mushaf(surahs), [surahs]);
 
   async function refreshCenter() {
@@ -229,8 +266,10 @@ export default function AppShell() {
     location.reload();
   }
 
+  // ملاحظة 9: leaving is immediate — send what is waiting (a few seconds at most), never a full pull,
+  // then clear the session and this device's copy and go to the login page.
   async function logout() {
-    if (navigator.onLine) await store.sync();
+    await store.flush();
     const unsent = store.status.pending + store.status.failed;
     if (unsent > 0) {
       const ok = confirm(
@@ -238,9 +277,10 @@ export default function AppShell() {
       );
       if (!ok) return;
     }
-    await store.reset();
-    await supabase.auth.signOut();
+    store.stop();
+    await supabase.auth.signOut({ scope: "local" });
     router.replace("/login");
+    void store.reset();
   }
 
   if (blockedMessage) {

@@ -58,11 +58,18 @@ async function blobStore(): Promise<Store | null> {
   return g.__demoStore;
 }
 
+// ملاحظة 9: reads don't ask Blobs for the latest version again if this instance asked a moment ago;
+// every write still checks first, so no change is lost between instances.
+const FRESH_MS = 1500;
+let checkedAt = 0;
+
 /** The up-to-date database (call inside the lock). */
-async function current(): Promise<PGlite> {
+async function current(write = true): Promise<PGlite> {
   const store = await blobStore();
+  if (!write && g.__demo && Date.now() - checkedAt < FRESH_MS) return g.__demo.db;
   let remote = 0;
   if (store) remote = Number((await store.getMetadata(SNAPSHOT).catch(() => null))?.metadata?.version ?? 0);
+  checkedAt = Date.now();
   const st = g.__demo;
   if (st && st.version >= remote) return st.db;
   if (store && remote > 0) {
@@ -428,7 +435,7 @@ export async function handleDemo(req: Request, path: string): Promise<Response> 
   } catch {}
   return locked(async () => {
     try {
-      active = await current();
+      active = await current(changes(req, path, body));
     } catch (e) {
       g.__demo = undefined;
       return pgError(e);

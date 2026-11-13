@@ -154,8 +154,8 @@ export default function Talqeen() {
                 <button className="link" onClick={() => openSession(t)}>
                   {mushaf.formatRange({ from: { surah: t.from_surah_no, ayah: t.from_ayah }, to: { surah: t.to_surah_no, ayah: t.to_ayah } })}
                 </button>
-                <button className="link danger-link" onClick={() => removeSession(t)} title="حذف">
-                  ✕
+                <button className="link danger-link" onClick={() => removeSession(t)}>
+                  حذف
                 </button>
               </span>
             ))}

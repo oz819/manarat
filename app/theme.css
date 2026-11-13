@@ -404,3 +404,9 @@ button.sync-badge:hover:not(:disabled) { filter: brightness(.97); background-col
 .card-tabs { margin: 4px 0 10px; }
 .card-foot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 4px 4px 12px; font-size: var(--fs-md); }
 .card-foot .moves { flex-basis: 100%; }
+
+/* «⋯ المزيد» وزر الإغلاق بنص */
+.more { position: relative; display: inline-block; }
+.more-btn { font-weight: 600; white-space: nowrap; }
+.more-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 6px); z-index: 50; min-width: 190px; padding: 6px; display: grid; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); }
+button.icon-close { width: auto !important; padding: 6px 10px !important; gap: 4px; display: inline-flex; align-items: center; font-size: var(--fs-sm); font-weight: 600; }

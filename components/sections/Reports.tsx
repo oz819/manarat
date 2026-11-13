@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
+import MoreMenu from "@/components/MoreMenu";
 import { usePersistentState } from "@/lib/usePersistentState";
 import ProgressRing from "@/components/ProgressRing";
 import { useScope } from "@/components/FilterBar";
@@ -322,16 +323,14 @@ export default function Reports() {
           <h3>
             {scopeLabel} — {periodLabel}
           </h3>
-          <div className="row-actions no-print">
-            <button className="secondary" onClick={copy}>
-              نسخ لواتساب
-            </button>
-            <button className="secondary" onClick={() => window.print()}>
-              طباعة / PDF
-            </button>
-            <button className="secondary" onClick={csv}>
-              CSV
-            </button>
+          <div className="no-print">
+            <MoreMenu
+              items={[
+                { label: "نسخ نص التقرير", onClick: () => { copy(); showToast("تم نسخ نص التقرير"); } },
+                { label: "طباعة أو حفظ PDF", onClick: () => window.print() },
+                { label: "تنزيل ملف CSV", onClick: csv },
+              ]}
+            />
           </div>
         </div>
         {filtered && <SummaryRings data={filtered} studentCount={students.length} />}

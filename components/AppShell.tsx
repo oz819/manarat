@@ -324,6 +324,12 @@ export default function AppShell() {
             {/* Saved ✓ is the normal state and stays inside the account menu; anything else shows here. */}
             {(s.status.pending > 0 || s.status.failed > 0 || s.status.authProblem || !s.status.online) && <SyncBadge />}
             <AccountMenu profile={profile} ctx={ctx!} onSwitch={switchCenter} onLogout={logout} />
+            <button type="button" className="logout-btn" onClick={logout}>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
+              </svg>
+              خروج
+            </button>
           </div>
         </div>
       </header>
@@ -339,6 +345,13 @@ export default function AppShell() {
       {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && s.all("students").length > 0 && <SetupBanner centerId={ctx.center.id} />}
 
       <main>
+        {(page !== "students" || view.studentId) && (
+          <div className="back-row no-print">
+            <button type="button" className="link back-btn" onClick={() => (view.studentId ? closeStudent() : setPage("students"))}>
+              → رجوع
+            </button>
+          </div>
+        )}
         <div className="no-print">
           <InstallHint />
         </div>

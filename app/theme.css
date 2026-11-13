@@ -420,3 +420,10 @@ button.icon-close { width: auto !important; padding: 6px 10px !important; gap: 4
 .welcome-num { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .welcome-steps li.done .welcome-num { background: #e8f6ee; color: #1f7a45; }
 @media (max-width: 520px) { .welcome-steps li { grid-template-columns: auto 1fr; } .welcome-steps li button { grid-column: 1 / -1; width: 100%; } }
+
+/* زر «خروج» ظاهر في الرأس، وزر «رجوع» فوق كل شاشة غير الرئيسية */
+.logout-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: var(--surface-2); color: var(--danger); border: 1px solid var(--line); box-shadow: none; font-weight: 600; }
+header .logout-btn:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); border-color: #f3c3bd; }
+.back-row { margin: 0 2px 8px; }
+.back-btn { font-weight: 700; font-size: var(--fs-md); text-decoration: none; padding: 6px 0; }
+@media (max-width: 650px) { .logout-btn, .account-btn { padding: 7px 10px; font-size: var(--fs-sm); } .header-actions { gap: 6px; } }

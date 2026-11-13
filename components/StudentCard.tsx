@@ -105,10 +105,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
       <div className="card student-head">
         <div className="title">
           <div>
-            <button className="link" onClick={onClose}>
-              → كل الطلاب
-            </button>
-            <h2 style={{ margin: "4px 0" }}>
+            <h2 style={{ margin: "0 0 4px" }}>
               {student.name} {!student.active && <span className="badge redo">مؤرشف</span>}
             </h2>
             <span className="muted">{circle?.name ?? "—"}</span>

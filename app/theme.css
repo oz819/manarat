@@ -410,3 +410,13 @@ button.sync-badge:hover:not(:disabled) { filter: brightness(.97); background-col
 .more-btn { font-weight: 600; white-space: nowrap; }
 .more-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 6px); z-index: 50; min-width: 190px; padding: 6px; display: grid; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2); }
 button.icon-close { width: auto !important; padding: 6px 10px !important; gap: 4px; display: inline-flex; align-items: center; font-size: var(--fs-sm); font-weight: 600; }
+
+/* شاشة الترحيب لمركز فارغ */
+.welcome h3 { margin-top: 0; }
+.welcome-steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.welcome-steps li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.welcome-steps li.done { opacity: .7; }
+.welcome-steps p { margin: 2px 0 0; }
+.welcome-num { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.welcome-steps li.done .welcome-num { background: #e8f6ee; color: #1f7a45; }
+@media (max-width: 520px) { .welcome-steps li { grid-template-columns: auto 1fr; } .welcome-steps li button { grid-column: 1 / -1; width: 100%; } }

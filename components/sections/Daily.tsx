@@ -6,6 +6,7 @@ import { useScope } from "@/components/FilterBar";
 import LessonCard from "@/components/LessonCard";
 import Panel from "@/components/Panel";
 import ScreenHead from "@/components/ScreenHead";
+import FilterBar from "@/components/FilterBar";
 import AbsenceAlerts from "@/components/AbsenceAlerts";
 import ReadyForExam from "@/components/ReadyForExam";
 import { usePersistentState } from "@/lib/usePersistentState";
@@ -50,6 +51,8 @@ export default function Daily({ onOpen }: { onOpen: (id: string) => void }) {
           )
         }
       />
+
+      <FilterBar />
 
       {rollCall && <RollCall circles={scopedCircles} onClose={() => setRollCall(false)} onDone={(n) => showToast(`تم تحضير ${n} طالب`)} />}
 

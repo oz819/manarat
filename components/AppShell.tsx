@@ -21,7 +21,6 @@ import ConfirmDialogHost from "@/components/ConfirmDialog";
 import SyncBadge from "@/components/SyncBadge";
 import SlidingIndicator from "@/components/SlidingIndicator";
 import InstallHint from "@/components/InstallHint";
-import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
 import AccountMenu from "@/components/AccountMenu";
@@ -336,12 +335,12 @@ export default function AppShell() {
         ))}
       </nav>
 
-      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && <SetupBanner centerId={ctx.center.id} />}
+      {/* While the centre has no students, the welcome steps on «الطلاب» say the same thing. */}
+      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && s.all("students").length > 0 && <SetupBanner centerId={ctx.center.id} />}
 
       <main>
         <div className="no-print">
           <InstallHint />
-          {((page === "students" && !view.studentId) || page === "daily" || page === "talqeen" || page === "reports") && <FilterBar />}
         </div>
         {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
         {page === "daily" && <Daily onOpen={openStudent} />}

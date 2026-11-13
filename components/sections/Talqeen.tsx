@@ -5,7 +5,8 @@ import { useApp } from "@/components/AppContext";
 import { usePersistentState } from "@/lib/usePersistentState";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import RangePicker from "@/components/RangePicker";
-import { useScope } from "@/components/FilterBar";
+import FilterBar, { useScope } from "@/components/FilterBar";
+import ScreenHead from "@/components/ScreenHead";
 import { store, newId, useStore } from "@/lib/offline/store";
 import type { QuranRange } from "@/lib/quran";
 import { todayStr, type TalqeenSession } from "@/lib/types";
@@ -114,8 +115,10 @@ export default function Talqeen() {
 
   return (
     <section>
+      <ScreenHead title={L} text={`سجّل جلسة ${L} لطلاب الحلقة: ما سمعوه اليوم، ومن حضر.`} />
+      <FilterBar />
       <div className="card">
-        <h3>🎙️ جلسة {L}</h3>
+        <h3>جلسة {L}</h3>
         <div className="formgrid compact">
           <div>
             <label>الحلقة</label>

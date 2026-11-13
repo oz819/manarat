@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import MoreMenu from "@/components/MoreMenu";
+import ScreenHead from "@/components/ScreenHead";
 import { usePersistentState } from "@/lib/usePersistentState";
 import ProgressRing from "@/components/ProgressRing";
-import { useScope } from "@/components/FilterBar";
+import FilterBar, { useScope } from "@/components/FilterBar";
 import { useHistoryScope } from "@/components/ranking/useHistoryScope";
 import type { CircleOn } from "@/lib/transfers";
 import SendReports from "@/components/SendReports";
@@ -217,13 +218,19 @@ export default function Reports() {
 
   return (
     <section>
-      <div className="card no-print">
-        <div className="title">
-          <h3>📊 التقارير</h3>
-          <button onClick={sendToAdmin} disabled={toAdmin === "busy" || loading}>
+      <ScreenHead
+        title="التقارير"
+        text="اختر الحلقة والفترة، ثم أرسل تقرير الحلقة إلى الإدارة."
+        action={
+          <button className="no-print" onClick={sendToAdmin} disabled={toAdmin === "busy" || loading}>
             {toAdmin === "busy" ? "جارٍ الإرسال…" : sentKey === `${scopeLabel}|${pFrom}|${pTo}` ? "✓ أُرسل للإدارة" : "إرسال للإدارة"}
           </button>
-        </div>
+        }
+      />
+      <div className="no-print">
+        <FilterBar />
+      </div>
+      <div className="card no-print">
         <div className="formgrid compact">
           <div>
             <label>النطاق</label>

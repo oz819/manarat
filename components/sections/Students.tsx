@@ -6,6 +6,8 @@ import StudentCard from "@/components/StudentCard";
 import { useScope } from "@/components/FilterBar";
 import Panel from "@/components/Panel";
 import ScreenHead from "@/components/ScreenHead";
+import FilterBar from "@/components/FilterBar";
+import Welcome from "@/components/Welcome";
 import { matchesName } from "@/lib/arabic";
 import { normalizePhone } from "@/lib/guardian";
 import { store, newId, useStore } from "@/lib/offline/store";
@@ -82,6 +84,8 @@ export default function Students({
     return a && !a.deleted_at && (a.status === "PRESENT" || a.status === "LATE");
   }).length;
   const recentStudents = recent.map((id) => s.get("students", id)).filter((st) => st && st.active);
+  // An empty centre: the welcome steps are the whole screen (one button each), nothing else yet.
+  const empty = s.status.initialSyncDone && s.all("students").length === 0;
 
   return (
     <section>
@@ -89,11 +93,17 @@ export default function Students({
         title="الطلاب"
         text="ابحث عن طالب وافتح بطاقته لتسجيل حضوره وتسميعه."
         action={
-          <button className={adding ? "on" : ""} aria-pressed={adding} onClick={() => setAdding(true)}>
-            إضافة طالب
-          </button>
+          !empty && (
+            <button className={adding ? "on" : ""} aria-pressed={adding} onClick={() => setAdding(true)}>
+              إضافة طالب
+            </button>
+          )
         }
       />
+
+      {empty && <Welcome onAddStudent={() => setAdding(true)} />}
+
+      {!empty && <FilterBar />}
 
       {adding && (
         <Panel title="إضافة طالب" onClose={() => setAdding(false)}>
@@ -109,7 +119,7 @@ export default function Students({
         </Panel>
       )}
 
-      <div className="card">
+      {!empty && <div className="card">
         {active.length > 0 && (
           <p className="today-line">
             الحضور اليوم: <b>{presentToday}</b> من {active.length}
@@ -171,7 +181,7 @@ export default function Students({
             </button>
           </p>
         )}
-      </div>
+      </div>}
     </section>
   );
 }

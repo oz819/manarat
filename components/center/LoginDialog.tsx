@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 import { NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import DevCredit from "@/components/landing/DevCredit";
 import { CenterMark } from "@/components/center/Geo";
@@ -145,7 +146,7 @@ export default function LoginDialog({
           </div>
           <div className="field">
             <label htmlFor="lg-pass">كلمة المرور</label>
-            <input id="lg-pass" type="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" dir="ltr" />
+            <PasswordInput id="lg-pass" name="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" dir="ltr" />
           </div>
           <button type="submit" className="btn-block" disabled={loading}>
             {loading ? "جارٍ الدخول..." : "دخول"}

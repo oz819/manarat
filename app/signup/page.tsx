@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 import DevCredit from "@/components/landing/DevCredit";
 import { GeoStar } from "@/components/center/Geo";
 import { SLUG_RE, applyPalette, slugify, type PendingCenter } from "@/lib/center";
@@ -16,7 +17,7 @@ export default function SignupPage() {
   const [supabase] = useState(() => createClient());
   const [locale, setLocale] = useState<Locale>("ar");
   const tr = (k: Key) => t(locale, k);
-  const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: "", password: "", website: "" });
+  const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: "", password: "", confirm: "", website: "" });
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugTaken, setSlugTaken] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +59,7 @@ export default function SignupPage() {
     if (f.owner.trim().length < 2) return setError("اكتب اسمك");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) return setError("اكتب بريدًا صحيحًا");
     if (f.password.length < 8) return setError("كلمة المرور 8 أحرف على الأقل");
+    if (f.password !== f.confirm) return setError("كلمتا المرور غير متطابقتين");
     setBusy(true);
     const pending: PendingCenter = { name: f.name.trim(), slug: f.slug, country: f.country.trim(), city: f.city.trim(), owner: f.owner.trim() };
     const { data, error } = await supabase.auth.signUp({
@@ -148,7 +150,18 @@ export default function SignupPage() {
               </div>
               <div className="field">
                 <label htmlFor="s-pass">{tr("signup.password")}</label>
-                <input id="s-pass" type="password" dir="ltr" value={f.password} onChange={set("password")} autoComplete="new-password" />
+                <PasswordInput id="s-pass" value={f.password} onChange={set("password")} autoComplete="new-password" />
+              </div>
+              <div className="field">
+                <label htmlFor="s-pass2">{locale === "ar" ? "تأكيد كلمة المرور" : "Confirm password"}</label>
+                <PasswordInput id="s-pass2" value={f.confirm} onChange={set("confirm")} autoComplete="new-password" />
+                {f.confirm && (
+                  <p className={`pw-match${f.confirm === f.password ? " ok" : " error-text"}`}>
+                    {f.confirm === f.password
+                      ? locale === "ar" ? "✓ متطابقتان" : "✓ They match"
+                      : locale === "ar" ? "كلمتا المرور غير متطابقتين" : "The passwords don't match"}
+                  </p>
+                )}
               </div>
               {/* Spam trap: hidden from people, filled by bots. */}
               <input name="website" value={f.website} onChange={set("website")} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hp-field" />

@@ -340,3 +340,11 @@ td.row-actions button.link { padding: 4px 2px; }
 
 /* الحفظ بالسور (ملاحظة 7): "سورة الكهف كاملة + 20 آية من مريم" is longer than a number */
 .surah-sum { font-size: var(--fs-lg) !important; line-height: 1.5; }
+
+/* حقل كلمة المرور مع زر الإظهار (ملاحظة 8) */
+.pw-field { position: relative; display: block; }
+.pw-field input { width: 100%; padding-inline-end: 44px; }
+.pw-eye { position: absolute; inset-inline-end: 4px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; padding: 0; display: grid; place-items: center; background: none; border: 0; box-shadow: none; color: var(--muted); border-radius: var(--r-sm); }
+.pw-eye:hover, .pw-eye[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
+.pw-match { margin: 4px 0 0; font-size: var(--fs-sm); }
+.pw-match.ok { color: #1f8a4c; }

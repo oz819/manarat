@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 
 // Reached after /auth/confirm establishes a recovery session from the emailed link. Also usable
 // by an already-signed-in user who just wants to change their own password.
@@ -77,9 +78,12 @@ export default function ResetPasswordPage() {
         ) : (
           <form onSubmit={submit} style={{ marginTop: 18 }}>
             <label>كلمة المرور الجديدة</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus />
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus autoComplete="new-password" />
             <label style={{ marginTop: 9 }}>تأكيد كلمة المرور</label>
-            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+            <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" />
+            {confirm && (
+              <p className={`pw-match${confirm === password ? " ok" : " error-text"}`}>{confirm === password ? "✓ متطابقتان" : "كلمتا المرور غير متطابقتين"}</p>
+            )}
             <button type="submit" style={{ width: "100%", marginTop: 13 }} disabled={saving}>
               {saving ? "جارٍ الحفظ..." : "حفظ كلمة المرور"}
             </button>

@@ -427,3 +427,9 @@ header .logout-btn:hover:not(:disabled) { background: var(--danger-soft); color:
 .back-row { margin: 0 2px 8px; }
 .back-btn { font-weight: 700; font-size: var(--fs-md); text-decoration: none; padding: 6px 0; }
 @media (max-width: 650px) { .logout-btn, .account-btn { padding: 7px 10px; font-size: var(--fs-sm); } .header-actions { gap: 6px; } }
+
+/* «الرئيسية»: back to the home page (the platform or centre front page). */
+.home-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: var(--surface-2); color: var(--accent); border: 1px solid var(--line); font-weight: 600; text-decoration: none; }
+.home-btn:hover { background: var(--surface); border-color: var(--accent); }
+@media (max-width: 650px) { .home-btn { padding: 7px 10px; font-size: var(--fs-sm); } }
+@media (max-width: 400px) { .home-btn svg, .logout-btn svg { display: none; } }

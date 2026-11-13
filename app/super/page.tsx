@@ -53,7 +53,7 @@ export default function SuperAdmin() {
               <div className="dates"><span className="hijri">كل المراكز المسجّلة</span></div>
             </div>
           </div>
-          <Link href="/" className="btn ghost">العودة للتطبيق</Link>
+          <Link href="/app" className="btn ghost">العودة إلى التطبيق</Link>
         </div>
       </header>
       <main>

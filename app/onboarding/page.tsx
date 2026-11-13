@@ -42,7 +42,7 @@ export default function Onboarding() {
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase.auth.getSession();
-      if (!s.session) return router.replace("/login");
+      if (!s.session) return router.replace("/");
       const v = await loadCtx();
       const isNew = new URLSearchParams(location.search).has("new");
       const meta = s.session.user.user_metadata as { pending_center?: PendingCenter; name?: string } | undefined;
@@ -50,7 +50,7 @@ export default function Onboarding() {
       else setC((x) => ({ ...x, owner: meta?.name || v?.name || "" }));
       // The owner of a centre not set up yet continues from step 2.
       if (!isNew && v?.center && v.membership?.role === "ADMIN") {
-        if (v.center.onboarded) return router.replace("/");
+        if (v.center.onboarded) return router.replace("/app");
         setPalette(v.center.palette);
         setLogo(v.center.logo_url);
         applyPalette(v.center);
@@ -118,7 +118,7 @@ export default function Onboarding() {
   async function finish() {
     setBusy(true);
     await supabase.from("centers").update({ onboarded: true }).eq("id", ctx!.center!.id);
-    router.replace("/");
+    router.replace("/app");
   }
 
   async function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {

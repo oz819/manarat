@@ -403,7 +403,7 @@ function Halaqat() {
   const count = (id: string) => s.all("students").filter((st) => st.active && st.circle_id === id).length;
 
   function friendly(msg: string) {
-    return /circles_name_unique|duplicate/i.test(msg) ? "يوجد حلقة بهذا الاسم (ربما في سجل المحذوفات — استرجعها من هناك)" : msg;
+    return /circles_name_unique|duplicate/i.test(msg) ? "توجد حلقة بهذا الاسم (ربما في سجل المحذوفات — استرجعها من هناك)" : msg;
   }
 
 

@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
               إذا كان هذا البريد مسجّلًا في النظام، فقد أُرسل إليه رابط لتعيين كلمة مرور جديدة. تفقّد بريدك (وصندوق
               الرسائل غير المرغوبة أيضًا). الرابط صالح لفترة محدودة.
             </div>
-            <Link href="/login">
+            <Link href="/">
               <button className="secondary" style={{ width: "100%", marginTop: 13 }}>
                 العودة لتسجيل الدخول
               </button>
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
             </button>
             {error && <p className="error-text">{error}</p>}
             <p className="center small" style={{ marginTop: 14 }}>
-              <Link href="/login" style={{ color: "var(--g2)" }}>
+              <Link href="/" style={{ color: "var(--g2)" }}>
                 العودة لتسجيل الدخول
               </Link>
             </p>

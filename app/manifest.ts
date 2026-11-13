@@ -27,6 +27,6 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       ...SIZES.map((n) => ({ src: `/icon-${n}.png`, sizes: `${n}x${n}`, type: "image/png" })),
       { src: "/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
-    shortcuts: [{ name: "الطلاب", url: "/", icons: [{ src: "/icon-96.png", sizes: "96x96" }] }],
+    shortcuts: [{ name: "الطلاب", url: "/app", icons: [{ src: "/icon-96.png", sizes: "96x96" }] }],
   };
 }

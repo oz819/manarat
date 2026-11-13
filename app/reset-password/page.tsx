@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
         ) : done ? (
           <>
             <div className="notice" style={{ marginTop: 18 }}>تم تحديث كلمة المرور بنجاح.</div>
-            <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/")}>
+            <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/app")}>
               الدخول إلى النظام
             </button>
           </>

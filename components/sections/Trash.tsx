@@ -97,10 +97,10 @@ export default function Trash() {
     const second = await confirmDialog({
       title: "⚠️ لا رجعة في هذه الخطوة",
       body: `${PURGE_WARNING[it.kind]} لا يمكن لأحد استرجاعه بعدها. هل أنت متأكد تمامًا؟`,
-      ok: "نعم، امسح نهائيًا",
+      ok: "نعم، احذف نهائيًا",
       danger: true,
     });
-    if (second) await run(it, "admin_purge", `تم مسح «${it.label}» نهائيًا`);
+    if (second) await run(it, "admin_purge", `تم حذف «${it.label}» نهائيًا`);
   }
 
   const kinds = items ? (Array.from(new Set(items.map((i) => i.kind))) as Kind[]) : [];

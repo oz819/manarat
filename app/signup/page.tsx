@@ -89,7 +89,7 @@ export default function SignupPage() {
     <div className="ob geo-bg" dir={dirOf(locale)} lang={locale}>
       <div className="ob-box">
         <div className="cx-nav" style={{ padding: "0 0 8px" }}>
-          <Link href="/login" className="cx-brand">
+          <Link href="/" className="cx-brand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="header-mark" src="/icon-192.png" alt="" style={{ width: 34, height: 34 }} />
             <span>{tr("platform.name")}</span>
@@ -170,7 +170,7 @@ export default function SignupPage() {
               </button>
               {error && <p className="error-text">{error}</p>}
               <p className="small center" style={{ marginTop: 12 }}>
-                {tr("signup.have")} <Link href="/login">{tr("platform.login")}</Link>
+                {tr("signup.have")} <Link href="/">{tr("platform.login")}</Link>
               </p>
             </form>
           )}

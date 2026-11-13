@@ -65,7 +65,7 @@ export default function PlatformLanding() {
               <img src="/icon-192.png" alt="" className="mn-in-mark" />
               <h2>{tr.brand}</h2>
               <p>{tr.inAs} <b dir="ltr">{me}</b></p>
-              <Link href="/" className="mn-btn gold">{tr.enter}</Link>
+              <Link href="/app" className="mn-btn gold">{tr.enter}</Link>
               <button type="button" className="mn-in-out" onClick={signOut}>{tr.signOut}</button>
             </div>
           ) : (

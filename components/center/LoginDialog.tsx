@@ -17,7 +17,7 @@ export default function LoginDialog({
   title,
   subtitle,
   logo,
-  next = "/",
+  next = "/app",
   defaultEmail = "",
   allowCreate = false,
   onClose,

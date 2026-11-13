@@ -41,23 +41,22 @@ export async function updateSession(request: NextRequest) {
 
   // Only the app itself and the pages for signed-in people need a session. Everything else is
   // public: centre pages (/{slug}, /{slug}/register, /{slug}/honor), the family page (/p/…),
-  // registration, "سجّل مركزك" (/signup) and invitation links (/invite/…).
-  const needsSession = pathname === "/" || pathname.startsWith("/onboarding") || pathname.startsWith("/super");
+  // registration, "سجّل مركزك" (/signup), invitation links (/invite/…) and the home page (/), which
+  // everyone sees first — signed-in people get a button into the app there.
+  const needsSession = pathname === "/app" || pathname.startsWith("/app/") || pathname.startsWith("/onboarding") || pathname.startsWith("/super");
 
-  // Reachable without a session; a signed-in visitor is sent to the app instead. /login is not on
-  // this list: it is the platform's front page, shown to everyone (signed-in people get a button
-  // into the app there instead of the form).
+  // Reachable without a session; a signed-in visitor is sent to the app instead.
   const isSignedOutRoute = pathname.startsWith("/forgot-password");
 
   if (!user && needsSession) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
   if (user && isSignedOutRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 

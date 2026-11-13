@@ -21,7 +21,7 @@ export default function PlatformAbout() {
     <div className={`mn mn-about ${display.variable} ${amiri.variable}`} dir={tr.dir} lang={locale}>
       <div className="mn-wrap">
         <header className="mn-about-top">
-          <Link href="/login" className="mn-logo" aria-label={tr.brand}>
+          <Link href="/" className="mn-logo" aria-label={tr.brand}>
             <ManaratMark />
             <span><b>{tr.brand}</b><small>{tr.latin}</small></span>
           </Link>
@@ -30,7 +30,7 @@ export default function PlatformAbout() {
               <Icon name="globe" />
               <span>{tr.lang}</span>
             </button>
-            <Link href="/login" className="mn-btn navy sm"><Icon name="user" />{tr.back}</Link>
+            <Link href="/" className="mn-btn navy sm"><Icon name="user" />{tr.back}</Link>
           </div>
         </header>
         <AboutBody locale={locale} />

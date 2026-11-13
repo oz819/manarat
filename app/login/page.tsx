@@ -1,18 +1,6 @@
-import type { Metadata } from "next";
-import CenterLanding from "@/components/center/CenterLanding";
-import PlatformLanding from "@/components/center/PlatformLanding";
-import { centerForHost } from "@/lib/centerServer";
+import { redirect } from "next/navigation";
 
-// The first screen. On a centre's own domain (a centre's own domain) it is that centre's page;
-// on the platform's address it is the platform's page with "سجّل مركزك".
-export const dynamic = "force-dynamic";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const center = await centerForHost();
-  return { title: center ? center.name : "منصة منارات — إدارة مراكز تحفيظ القرآن", robots: { index: false, follow: false } };
-}
-
-export default async function LoginPage() {
-  const center = await centerForHost();
-  return center ? <CenterLanding center={center} base="" /> : <PlatformLanding />;
+// The front page used to live here; old links and bookmarks now land on the home page.
+export default function LoginPage() {
+  redirect("/");
 }

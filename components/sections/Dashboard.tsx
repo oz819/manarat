@@ -136,7 +136,7 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
 
       <div className="card">
         <h3>🏫 الحلقات</h3>
-        <p className="muted">مرتّبة بالآيات المحفوظة هذا الشهر</p>
+        <p className="muted">مرتّبة بما حُفظ هذا الشهر</p>
         <div className="table-scroll">
           <table className="dash-table">
             <thead>
@@ -144,7 +144,7 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
                 <th>#</th>
                 <th>الحلقة</th>
                 <th>الطلاب</th>
-                <th>آيات الشهر</th>
+                <th>السجل الشهري</th>
                 <th>حضور الأسبوع</th>
                 <th>حضور الشهر</th>
               </tr>

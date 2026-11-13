@@ -55,6 +55,8 @@ export type MyContext = {
     /** مسارات المتابعة المفعّلة (lib/tracks.ts); الحفظ always. */
     enabled_tracks?: string[];
     talqeen_label?: string | null;
+    /** إرسال التقارير لأولياء الأمور عبر واتساب (ملاحظة 5): off unless the administration turns it on. */
+    guardian_whatsapp?: boolean;
   } | null;
   membership: { role: CenterRole; is_owner: boolean; active: boolean; name: string; default_filter: string | null } | null;
   centers: { id: string; slug: string; name: string; role: CenterRole; status: string; active: boolean }[];

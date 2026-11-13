@@ -329,3 +329,11 @@ td.row-actions button.link { padding: 4px 2px; }
 .track-opt input { margin-top: 3px; width: auto; }
 .track-opt span { display: grid; gap: 2px; }
 .track-opt small { font-size: var(--fs-sm); }
+
+/* التقارير الواردة (الإدارة) */
+.inbox { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.inbox li { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); overflow: hidden; }
+.inbox li.unread { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.inbox-row { width: 100%; display: grid; gap: 2px; text-align: start; background: none; border: 0; box-shadow: none; color: var(--text); padding: 10px 12px; border-radius: 0; }
+.inbox-row:hover { background: var(--surface-2); }
+.inbox-body { margin: 0; padding: 10px 12px; border-top: 1px solid var(--line); white-space: pre-wrap; font: inherit; font-size: var(--fs-md); background: var(--surface-2); }

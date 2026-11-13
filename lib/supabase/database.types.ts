@@ -29,9 +29,47 @@ export type Database = {
         Update: { user_id?: string; created_at?: string }
         Relationships: []
       }
+      circle_reports: {
+        Row: {
+          body: string
+          center_id: string
+          circle_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          period_from: string
+          period_to: string
+          read_at: string | null
+          read_by: string | null
+          scope_label: string
+          sent_by: string
+          sent_by_name: string | null
+        }
+        Insert: {
+          body: string
+          center_id?: string
+          circle_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          period_from: string
+          period_to: string
+          read_at?: string | null
+          read_by?: string | null
+          scope_label: string
+          sent_by?: string
+          sent_by_name?: string | null
+        }
+        Update: {
+          read_at?: string | null
+          read_by?: string | null
+        }
+        Relationships: []
+      }
       centers: {
         Row: {
           enabled_tracks: string[]
+          guardian_whatsapp: boolean
           talqeen_label: string | null
           id: string
           slug: string
@@ -63,6 +101,7 @@ export type Database = {
         }
         Insert: {
           enabled_tracks?: string[]
+          guardian_whatsapp?: boolean
           talqeen_label?: string | null
           id?: string
           slug: string
@@ -94,6 +133,7 @@ export type Database = {
         }
         Update: {
           enabled_tracks?: string[]
+          guardian_whatsapp?: boolean
           talqeen_label?: string | null
           id?: string
           slug?: string

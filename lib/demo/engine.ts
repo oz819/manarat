@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
@@ -32,8 +33,18 @@ async function boot(): Promise<PGlite> {
 // On Netlify the site runs on several server instances at once, each with its own memory. So the
 // database is snapshotted to Netlify Blobs after every change, and an instance that is behind
 // loads the latest snapshot before answering. Locally (no Blobs) it simply stays in memory.
-// Bump SNAPSHOT to start the demo over (e.g. after a schema change).
-const SNAPSHOT = "manarat-2026-11-13-empty";
+// The snapshot is named after the schema and the starting data: a new migration or a change to the
+// seed starts the demo over by itself (an old snapshot would bring back the old schema).
+const SNAPSHOT = (() => {
+  try {
+    const dir = join(/* turbopackIgnore: true */ process.cwd(), "supabase/migrations");
+    const h = createHash("sha1");
+    for (const f of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) h.update(f).update(readFileSync(join(dir, f)));
+    return `manarat-${h.update(seedSql()).digest("hex").slice(0, 12)}`;
+  } catch {
+    return "manarat-demo";
+  }
+})();
 
 async function blobStore(): Promise<Store | null> {
   if (g.__demoStore !== undefined) return g.__demoStore;

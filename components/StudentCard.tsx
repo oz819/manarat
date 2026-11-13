@@ -319,7 +319,7 @@ function EditStudent({
   onDeleted: () => void;
 }) {
   const s = useStore();
-  const { supabase, showToast } = useApp();
+  const { supabase, showToast, center } = useApp();
   const student = s.get("students", studentId)!;
   const [name, setName] = useState(student.name);
   const [circleId, setCircleId] = useState(student.circle_id);
@@ -380,6 +380,7 @@ function EditStudent({
           <p className="small muted">نقل من اليوم: سجلاته السابقة تبقى محسوبة على حلقته الحالية في الترتيب والتقارير.</p>
         )}
       </div>
+      {center.guardian_whatsapp && <>
       <div>
         <label>اسم ولي الأمر</label>
         <input value={guardianName} onChange={(e) => setGuardianName(e.target.value)} placeholder="اختياري" />
@@ -388,6 +389,7 @@ function EditStudent({
         <label>رقم واتساب ولي الأمر</label>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" />
       </div>
+      </>}
       <div className="row-actions" style={{ alignSelf: "end" }}>
         <button onClick={save}>حفظ</button>
         <button className="secondary" onClick={onDone}>

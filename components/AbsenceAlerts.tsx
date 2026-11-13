@@ -43,7 +43,7 @@ export function absenceStreak(rows: Attendance[] | undefined): { days: number; s
 // Sending marks it (synced) so the other teachers know the family was contacted.
 export default function AbsenceAlerts({ students, open }: { students: Student[]; open: (id: string) => void }) {
   const s = useStore();
-  const { supabase } = useApp();
+  const { supabase, center } = useApp();
   const settings = useRankingSettings(supabase);
   const absent = useAbsentStudents(students);
   if (!absent.length) return null;
@@ -65,7 +65,7 @@ export default function AbsenceAlerts({ students, open }: { students: Student[];
               <span className="absent-name" onClick={() => open(a.student.id)}>
                 {a.student.name} <span className="badge redo">{a.days} أيام</span>
               </span>
-              {done ? (
+              {!center.guardian_whatsapp ? null : done ? (
                 <span className="badge excellent">✓ تواصلنا</span>
               ) : (
                 <a

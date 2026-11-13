@@ -296,6 +296,26 @@ async function main() {
   ok(JSON.stringify((await ctxTracks(ADMIN)).enabled_tracks) === '["HIFZ","MURAJAA"]', "إعداد مركز لا يغيّر مركزًا آخر");
   ok((await as(db, ADMIN, `update public.centers set enabled_tracks = '{HIFZ}' where id = '${B}'`)).affectedRows === 0, "ولا يغيّره مدير مركز آخر");
 
+  console.log("تقارير الحلقات للإدارة (ملاحظة 5)");
+  const rep = (who, circle) => as(db, who, `insert into public.circle_reports (circle_id, scope_label, period_from, period_to, body, sent_by_name)
+    values (${circle ? `'${circle}'` : "null"}, 'حلقة أبي بكر', current_date, current_date, 'تقرير اليوم', 'محفظ')`);
+  await rep(TEACHER, U(100));
+  ok((await rows(db, ADMIN, "select * from public.circle_reports")).length === 1, "المعلّم يرسل تقرير الحلقة ويصل إلى مدير مركزه");
+  ok((await rows(db, OWNER_B, "select * from public.circle_reports")).length === 0, "ولا يراه مدير مركز آخر");
+  ok(!!(await fails(db, TEACHER, `insert into public.circle_reports (scope_label, period_from, period_to, body, sent_by)
+    values ('x', current_date, current_date, 'x', '${ADMIN}')`)), "لا أحد يرسل تقريرًا باسم غيره");
+  ok(!!(await fails(db, OWNER_B, `insert into public.circle_reports (circle_id, scope_label, period_from, period_to, body)
+    values ('${U(100)}', 'x', current_date, current_date, 'x')`)), "ولا تقريرًا عن حلقة مركز آخر");
+  ok((await as(db, TEACHER, "update public.circle_reports set read_at = now()")).affectedRows === 0 ||
+     !!(await fails(db, TEACHER, "update public.circle_reports set read_at = now()")), "المعلّم لا يعلّم التقرير مقروءًا");
+  ok((await as(db, ADMIN, "update public.circle_reports set read_at = now(), read_by = auth.uid()")).affectedRows === 1, "المدير يعلّمه مقروءًا");
+  ok(!!(await fails(db, ADMIN, "update public.circle_reports set body = 'تغيير'")), "ولا يغيّر أحد نص التقرير");
+  ok(!!(await fails(db, null, "select * from public.circle_reports")) || (await rows(db, null, "select * from public.circle_reports")).length === 0, "الزائر لا يقرأ التقارير");
+  ok((await ctxTracks(ADMIN)).guardian_whatsapp === false, "إرسال التقارير لأولياء الأمور مُطفأ افتراضيًا");
+  ok((await as(db, TEACHER, "update public.centers set guardian_whatsapp = true")).affectedRows === 0, "المعلّم لا يفعّله");
+  await as(db, ADMIN, `update public.centers set guardian_whatsapp = true where id = '${NOOR}'`);
+  ok((await ctxTracks(ADMIN)).guardian_whatsapp === true && (await ctxTracks(OWNER_B)).guardian_whatsapp === false, "المدير يفعّله لمركزه فقط");
+
   console.log(`\n${passed} ناجح، ${failed} فاشل`);
   process.exit(failed ? 1 : 0);
 }

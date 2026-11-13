@@ -55,7 +55,7 @@ type Row = { student: Student; cells: Partial<Record<TrackKey, Cell>> };
 // offline it falls back to this device's local copy and says so.
 export default function Reports() {
   const s = useStore();
-  const { supabase, mushaf, tracks: centreTracks } = useApp();
+  const { supabase, mushaf, tracks: centreTracks, center, profile, showToast } = useApp();
   // Only the centre's enabled tracks (ملاحظة 4), with its own name for التلقين; الحضور and الدرس always.
   const TRACKS = ALL_REPORT_TRACKS.filter((t) => t.id === "ATTENDANCE" || t.id === "LESSON" || centreTracks.has(t.id)).map((t) =>
     t.id === "TALQEEN" ? { ...t, label: centreTracks.label("TALQEEN") } : t
@@ -82,6 +82,9 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [toAdmin, setToAdmin] = useState<"idle" | "busy">("idle");
+  // The report last sent to the administration (scope + period), so «✓ أُرسل» shows only for that one.
+  const [sentKey, setSentKey] = useState("");
 
   const [pFrom, pTo] =
     period === "day"
@@ -175,6 +178,30 @@ export default function Reports() {
     navigator.clipboard?.writeText(whatsapp);
   }
 
+  // ملاحظة 5: the halaqa's report goes to the centre's administration, inside the app, in one tap.
+  async function sendToAdmin() {
+    if (!navigator.onLine) return showToast("الإرسال للإدارة يحتاج اتصالًا بالإنترنت");
+    if (!rows.length) return showToast("لا يوجد طلاب في هذا التقرير");
+    setToAdmin("busy");
+    const studentCircle = scope === "student" ? (s.get("students", studentId)?.circle_id ?? null) : null;
+    const { error } = await supabase.from("circle_reports").insert({
+      circle_id: circleId ?? studentCircle,
+      scope_label: scopeLabel,
+      kind: period === "day" ? "DAILY" : period === "month" ? "MONTHLY" : "RANGE",
+      period_from: pFrom,
+      period_to: pTo,
+      body: whatsapp,
+      sent_by_name: profile.name,
+    });
+    if (error) {
+      setToAdmin("idle");
+      return showToast(error.message);
+    }
+    setToAdmin("idle");
+    setSentKey(`${scopeLabel}|${pFrom}|${pTo}`);
+    showToast("أُرسل التقرير إلى الإدارة ✓");
+  }
+
   function csv() {
     const header = ["الطالب", ...chosen.map((t) => t.label)];
     const lines = [header, ...rows.map((r) => [r.student.name, ...chosen.map((t) => r.cells[t.id]?.text ?? "")])];
@@ -192,8 +219,8 @@ export default function Reports() {
       <div className="card no-print">
         <div className="title">
           <h3>📊 التقارير</h3>
-          <button className={sending ? "on" : ""} aria-pressed={sending} onClick={() => setSending(true)}>
-            📤 إرسال تقارير الحلقة
+          <button onClick={sendToAdmin} disabled={toAdmin === "busy" || loading}>
+            {toAdmin === "busy" ? "جارٍ الإرسال…" : sentKey === `${scopeLabel}|${pFrom}|${pTo}` ? "✓ أُرسل للإدارة" : "إرسال للإدارة"}
           </button>
         </div>
         <div className="formgrid compact">
@@ -269,7 +296,14 @@ export default function Reports() {
         </div>
       </div>
 
-      {sending && (
+      {center.guardian_whatsapp && !sending && (
+        <p className="no-print small">
+          <button className="link" onClick={() => setSending(true)}>
+            إرسال التقارير لأولياء الأمور عبر واتساب
+          </button>
+        </p>
+      )}
+      {sending && center.guardian_whatsapp && (
         <div className="no-print">
           <SendReports onClose={() => setSending(false)} />
         </div>

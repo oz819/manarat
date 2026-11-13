@@ -254,6 +254,7 @@ function AddStudent({
   onCancel: () => void;
 }) {
   const s = useStore();
+  const { center, tracks } = useApp();
   const circles = s.all("circles").filter((c) => c.active);
   const books = s.all("arabic_books").filter((b) => b.active);
   const [name, setName] = useState("");
@@ -308,7 +309,7 @@ function AddStudent({
           ))}
         </select>
       </div>
-      <div>
+      {tracks.has("ARABIC") && <div>
         <label>كتاب العربية (اختياري)</label>
         <select value={bookId} onChange={(e) => setBookId(e.target.value)}>
           <option value="">بدون</option>
@@ -318,11 +319,13 @@ function AddStudent({
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label>رقم واتساب ولي الأمر (اختياري)</label>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" />
-      </div>
+      </div>}
+      {center.guardian_whatsapp && (
+        <div>
+          <label>رقم واتساب ولي الأمر (اختياري)</label>
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" />
+        </div>
+      )}
       <div className="row-actions" style={{ alignSelf: "end" }}>
         <button type="submit">حفظ الطالب</button>
         <button type="button" className="secondary" onClick={onCancel}>

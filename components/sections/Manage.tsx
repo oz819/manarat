@@ -13,6 +13,8 @@ import Registrations from "@/components/Registrations";
 import ExportExcel from "@/components/ExportExcel";
 import CenterProfile from "@/components/center/CenterProfile";
 import CenterTracks from "@/components/center/CenterTracks";
+import ReportsInbox from "@/components/center/ReportsInbox";
+import GuardianReportsSetting from "@/components/center/GuardianReportsSetting";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
 import DevCredit from "@/components/landing/DevCredit";
@@ -26,8 +28,10 @@ export default function Manage() {
         صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
         الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
       </div>
+      <ReportsInbox />
       <CenterProfile />
       <CenterTracks />
+      <GuardianReportsSetting />
       <Registrations />
       <Invites />
       <Teachers />

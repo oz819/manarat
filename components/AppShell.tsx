@@ -218,7 +218,7 @@ export default function AppShell() {
     if (!ctx || id === ctx.center?.id) return;
     if (navigator.onLine) await store.sync();
     if (store.status.pending + store.status.failed > 0) {
-      showToast("في تغييرات لم تُرسل بعد. اتصل بالإنترنت وانتظر حتى تُرسل ثم بدّل المركز");
+      showToast("بعض التعديلات محفوظة على الجهاز ولم تُحفظ في الحساب بعد. اتصل بالإنترنت وانتظر «تم الحفظ ✓» ثم بدّل المركز");
       return;
     }
     const { error } = await supabase.rpc("switch_center", { p_center_id: id });
@@ -232,7 +232,7 @@ export default function AppShell() {
     const unsent = store.status.pending + store.status.failed;
     if (unsent > 0) {
       const ok = confirm(
-        `لديك ${unsent} تغيير لم يُرسل بعد إلى الخادم. تسجيل الخروج الآن يحذفها من هذا الجهاز نهائيًا.\n\nهل تريد تجاهلها وتسجيل الخروج؟`
+        `لديك ${unsent} تعديل محفوظ على هذا الجهاز ولم يُحفظ في الحساب بعد. تسجيل الخروج الآن يحذفه نهائيًا.\n\nهل تريد تسجيل الخروج رغم ذلك؟`
       );
       if (!ok) return;
     }

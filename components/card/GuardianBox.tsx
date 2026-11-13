@@ -74,7 +74,7 @@ export default function GuardianBox({ studentId, onEdit }: { studentId: string; 
           )}
         </div>
       ) : (
-        <span className="small muted">الرابط يظهر بعد أول مزامنة مع الإنترنت.</span>
+        <span className="small muted">يظهر الرابط بعد حفظ الطالب في الحساب (عند الاتصال بالإنترنت).</span>
       )}
     </div>
   );

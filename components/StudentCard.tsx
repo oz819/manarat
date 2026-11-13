@@ -120,7 +120,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
                 <span className="muted">سجلاته قبل كل نقل تبقى محسوبة على حلقته القديمة.</span>
               </details>
             )}
-            {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>تغييرات لم تُرسل بعد</span>}
+            {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>لم يُحفظ في الحساب بعد</span>}
           </div>
           <button className={`secondary${editing ? " on" : ""}`} aria-pressed={editing} onClick={() => setEditing(true)}>
             ✏️ تعديل الطالب

@@ -42,7 +42,7 @@ export const ICONS: Record<string, string> = {
 export const FEATURES: Feature[] = [
   { i: "mic", c: "teacher", ar: ["التسميع اليومي", "حفظ ومراجعة وتلاوة آيةً بآية، بتقدير لكل طالب بضغطة."], en: ["Daily recitation", "Memorization, revision and recitation, verse by verse, graded in one tap."] },
   { i: "cal", c: "teacher", ar: ["الحضور والغياب", "تفقّد الحلقة بثوانٍ."], en: ["Attendance", "Take the circle's roll in seconds."] },
-  { i: "wifi", c: "teacher", ar: ["يعمل بدون إنترنت", "سجّل كل شيء، ويتزامن عند عودة الاتصال."], en: ["Works offline", "Record everything; it syncs when you're back online."] },
+  { i: "wifi", c: "teacher", ar: ["يعمل بدون إنترنت", "سجّل كل شيء، ويُحفظ في حسابك عند عودة الاتصال."], en: ["Works offline", "Record everything; it syncs when you're back online."] },
   { i: "map", c: "teacher", ar: ["خريطة الحفظ", "أين وصل كل طالب في الأجزاء والسور."], en: ["Memorization map", "Where each student is, juz' by juz'."] },
   { i: "ear", c: "teacher", ar: ["التلقين", "حلقات التلقين للصغار، بمتابعة السور المحفوظة سماعًا."], en: ["Talqeen", "Listening circles for young children, tracking what they learn by ear."] },
   { i: "link", c: "parent", ar: ["رابط وليّ الأمر", "رابط خاص يتابع فيه الأهل حفظ أبنائهم."], en: ["Parent link", "A private link where parents follow their child."] },

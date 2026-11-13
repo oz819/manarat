@@ -201,7 +201,7 @@ export default function Students({
                 <li key={st.id} onClick={() => open(st.id)}>
                   <div>
                     <b>{st.name}</b>
-                    {unsynced.has(st.id) && <span className="dot" title="تغييرات لم تُرسل" />}
+                    {unsynced.has(st.id) && <span className="dot" title="محفوظ على الجهاز، سيُحفظ في الحساب عند الاتصال" />}
                     <div className="small muted">
                       {s.get("circles", st.circle_id)?.name ?? "—"}
                       {hifz && ` · حفظ: ${mushaf.formatRange(entryRange(hifz))}`}

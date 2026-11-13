@@ -455,3 +455,12 @@
 .mn-in p{margin:0 0 8px;color:var(--muted);font-size:14.5px}
 .mn-in .mn-btn{width:100%}
 .mn .mn-in-out,.mn .mn-in-out:hover{background:none;border:0;box-shadow:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-weight:500;padding:6px}
+
+/* Phone: the mushaf scene shows as a band between the title and the sign-in card (it was hidden
+   under the card and the desktop's side shading). */
+@media (max-width:900px){
+  .mn-gate-bg{inset:0 0 auto 0;height:640px;background-position:84% 100%}
+  .mn-gate-bg .mn-hero-video{object-position:84% 100%}
+  .mn .mn-gate::before,.mn[dir=ltr] .mn-gate::before{background:linear-gradient(180deg,rgba(13,19,48,.8) 0,rgba(13,19,48,.45) 250px,rgba(13,19,48,0) 350px,rgba(13,19,48,0) 540px,#0d1330 640px)}
+  .mn-gate-card{margin-top:190px}
+}

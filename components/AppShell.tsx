@@ -386,12 +386,20 @@ export default function AppShell() {
       )}
 
       <main>
-        {page !== "students" && (
+        {page !== "students" ? (
           <div className="back-row no-print">
             <button type="button" className="link back-btn" onClick={() => setPage("students")}>
               → رجوع
             </button>
           </div>
+        ) : (
+          !view.studentId && (
+            <div className="back-row no-print">
+              <Link href="/" className="link back-btn">
+                → رجوع إلى الرئيسية
+              </Link>
+            </div>
+          )
         )}
         <div className="no-print">
           <InstallHint />

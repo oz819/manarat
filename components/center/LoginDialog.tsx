@@ -47,7 +47,7 @@ export default function LoginDialog({
   }, [onClose]);
 
   function done() {
-    router.replace(next);
+    router.push(next); // push, not replace: the phone's back button returns to the landing
     router.refresh();
   }
 
@@ -159,7 +159,7 @@ export default function LoginDialog({
         <form onSubmit={sendCode}>
           <div className="field">
             <label htmlFor="lg-email2">البريد الإلكتروني</label>
-            <input id="lg-email2" type="email" name="email" defaultValue={email} required autoFocus autoComplete="email" dir="ltr" />
+            <input id="lg-email2" type="email" name="email" defaultValue={email} required autoFocus={!!onClose} autoComplete="email" dir="ltr" />
           </div>
           <button type="submit" className="btn-block" disabled={loading}>
             {loading ? "جارٍ الإرسال..." : "إرسال كود الدخول"}

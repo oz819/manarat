@@ -333,7 +333,7 @@ export default function AppShell() {
           </div>
           <div className="userbox">
             <span>
-              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : "محفّظ"}
+              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : profile.default_filter === "s:FEMALE" ? "محفّظة" : "محفّظ"}
             </span>
             <div className="userbox-actions">
               {ctx && ctx.centers.filter((c) => c.active).length > 1 && (
@@ -425,9 +425,9 @@ function gregorianToday(): string {
   }
 }
 
+// The Islamic greeting at every hour of the day.
 function greeting(): string {
-  const h = new Date().getHours();
-  return h < 12 ? "صباح الخير" : "مساء الخير";
+  return "السلام عليكم ورحمة الله";
 }
 
 // Today's date in the Umm al-Qura Hijri calendar, e.g. "١٦ ربيع الآخر ١٤٤٨ هـ".

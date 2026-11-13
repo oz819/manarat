@@ -29,7 +29,7 @@ export default function Invites() {
 
   const link = (t: string) => `${location.origin}/invite/${t}`;
   const message = (inv: Invite) =>
-    `السلام عليكم${inv.name ? ` ${inv.name}` : ""}،\nدعوة للانضمام إلى ${center.name} على منصة منارات ${inv.role === "ADMIN" ? "مديرًا" : "معلّمًا"}.\nافتح الرابط وادخل ببريدك ${inv.email}:\n${link(inv.token)}`;
+    `السلام عليكم ورحمة الله${inv.name ? ` ${inv.name}` : ""}،\nدعوة للانضمام إلى ${center.name} على منصة منارات ${inv.role === "ADMIN" ? "مديرًا" : "معلّمًا"}.\nافتح الرابط وادخل ببريدك ${inv.email}:\n${link(inv.token)}`;
 
   async function create(e: React.FormEvent) {
     e.preventDefault();

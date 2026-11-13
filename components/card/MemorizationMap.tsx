@@ -37,7 +37,7 @@ export default function MemorizationMap({
   const percent = mushaf.total ? Math.round((memorized / mushaf.total) * 1000) / 10 : 0;
   const month = today.slice(0, 7);
   const coverSince = (from: string) => mushaf.coverage(hifz.filter((e) => e.entry_date >= from).map(entryRange).filter((r): r is QuranRange => !!r));
-  const monthAyat = coverSince(`${month}-01`);
+  const monthRanges = hifz.filter((e) => e.entry_date >= `${month}-01`).map(entryRange).filter((r): r is QuranRange => !!r);
   const weekAyat = coverSince(weekStartOf(today, settings.weekStart));
   const full = juz.filter((j) => j.percent === 100).length;
 
@@ -47,11 +47,11 @@ export default function MemorizationMap({
         <div className="stat">
           <span className="muted">الإنجاز من المصحف</span>
           <b>{percent}%</b>
-          <span className="small muted">{memorized} آية</span>
+          <span className="small muted">{memorized ? mushaf.describeSurahs(ranges) : "لا شيء بعد"}</span>
         </div>
         <div className="stat">
           <span className="muted">حفظ هذا الشهر</span>
-          <b>{monthAyat} آية</b>
+          <b className="surah-sum">{mushaf.describeSurahs(monthRanges)}</b>
         </div>
         <div className="stat">
           <span className="muted">أجزاء كاملة</span>

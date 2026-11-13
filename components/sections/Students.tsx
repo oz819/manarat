@@ -443,7 +443,7 @@ function Insights({ students, open }: { students: Student[]; open: (id: string) 
   const stars = useMemo(
     () =>
       students
-        .map((st) => ({ st, ayahs: monthHifz(mushaf, quranBy.get(st.id), month) }))
+        .map((st) => ({ st, ...monthHifz(mushaf, quranBy.get(st.id), month) }))
         .filter((x) => x.ayahs > 0)
         .sort((a, b) => b.ayahs - a.ayahs)
         .slice(0, 5),
@@ -458,14 +458,14 @@ function Insights({ students, open }: { students: Student[]; open: (id: string) 
       {stars.length > 0 && (
         <div className="card insight star-card">
           <h3>🏆 نجوم الحفظ هذا الشهر</h3>
-          <p className="muted">بعدد الآيات المحفوظة</p>
+          <p className="muted">بما حفظوه هذا الشهر</p>
           <ul className="insight-list">
-            {stars.map(({ st, ayahs }, i) => (
+            {stars.map(({ st, text }, i) => (
               <li key={st.id} onClick={() => open(st.id)}>
                 <span>
                   <span className="medal">{medals[i] ?? `${i + 1}.`}</span> {st.name}
                 </span>
-                <span className="badge excellent">{ayahs} آية</span>
+                <span className="badge excellent">{text}</span>
               </li>
             ))}
           </ul>
@@ -475,12 +475,13 @@ function Insights({ students, open }: { students: Student[]; open: (id: string) 
   );
 }
 
-function monthHifz(mushaf: Mushaf, entries: QuranEntry[] | undefined, month: string): number {
+function monthHifz(mushaf: Mushaf, entries: QuranEntry[] | undefined, month: string): { ayahs: number; text: string } {
   const ranges = (entries ?? [])
     .filter((e) => e.track === "HIFZ" && e.entry_date.startsWith(month))
     .map(entryRange)
     .filter((r): r is QuranRange => !!r);
-  return ranges.length ? mushaf.coverage(ranges) : 0;
+  // Ranked by ayahs, shown in surahs (ملاحظة 7).
+  return ranges.length ? { ayahs: mushaf.coverage(ranges), text: mushaf.describeSurahs(ranges) } : { ayahs: 0, text: "" };
 }
 
 // Sets the book a student is studying now. Reuses the existing enrollment row for that book

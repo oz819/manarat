@@ -11,7 +11,7 @@ import { useStore } from "@/lib/offline/store";
 import { useRankingSettings } from "@/lib/rankingSettings";
 import { periodRange } from "@/lib/ranking";
 import { SECTION_LABEL, type Section } from "@/lib/filter";
-import { entryRange, type QuranRange } from "@/lib/quran";
+import { ayahCount, entryRange, surahCount, type QuranRange } from "@/lib/quran";
 import { addDays, todayStr, type Attendance, type Circle } from "@/lib/types";
 
 // 📈 اللوحة (admin): the centre at a glance, within the fixed filter. Everything is computed on
@@ -39,16 +39,20 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
       .map((c) => {
         const mine = students.filter((st) => st.circle_id === c.id);
         let ayahs = 0;
+        let fullSurahs = 0;
         const att: Attendance[] = [];
         for (const st of everyone) {
           const ranges = (quranBy.get(st.id) ?? [])
             .filter((e) => e.track === "HIFZ" && !e.deleted_at && e.entry_date >= month.from && e.entry_date <= today && circleOn(st.id, e.entry_date) === c.id)
             .map(entryRange)
             .filter((r): r is QuranRange => !!r);
-          if (ranges.length) ayahs += mushaf.coverage(ranges);
+          if (ranges.length) {
+            ayahs += mushaf.coverage(ranges);
+            for (const [no, n] of mushaf.bySurah(ranges)) if (n >= mushaf.ayahCount(no)) fullSurahs++;
+          }
           for (const a of attBy.get(st.id) ?? []) if (circleOn(st.id, a.att_date) === c.id) att.push(a);
         }
-        return { circle: c, count: mine.length, ayahs, week: rate(att, week.from, today), month: rate(att, month.from, today) };
+        return { circle: c, count: mine.length, ayahs, fullSurahs, week: rate(att, week.from, today), month: rate(att, month.from, today) };
       })
       .filter((x) => x.count > 0 || x.ayahs > 0);
   }, [scopedCircles, students, everyone, circleOn, quranBy, attBy, mushaf, month.from, week.from, today]);
@@ -158,7 +162,7 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
                     {x.circle.section && <span className="muted"> · {SECTION_LABEL[x.circle.section as Section]}</span>}
                   </td>
                   <td>{x.count}</td>
-                  <td>{x.ayahs}</td>
+                  <td>{x.ayahs === 0 ? "—" : x.fullSurahs ? `${surahCount(x.fullSurahs)} كاملة` : ayahCount(x.ayahs)}</td>
                   <td>{pct(x.week)}</td>
                   <td>{pct(x.month)}</td>
                 </tr>

@@ -337,3 +337,6 @@ td.row-actions button.link { padding: 4px 2px; }
 .inbox-row { width: 100%; display: grid; gap: 2px; text-align: start; background: none; border: 0; box-shadow: none; color: var(--text); padding: 10px 12px; border-radius: 0; }
 .inbox-row:hover { background: var(--surface-2); }
 .inbox-body { margin: 0; padding: 10px 12px; border-top: 1px solid var(--line); white-space: pre-wrap; font: inherit; font-size: var(--fs-md); background: var(--surface-2); }
+
+/* الحفظ بالسور (ملاحظة 7): "سورة الكهف كاملة + 20 آية من مريم" is longer than a number */
+.surah-sum { font-size: var(--fs-lg) !important; line-height: 1.5; }

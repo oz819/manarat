@@ -80,7 +80,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
           <span className="muted">المحفوظ من القرآن</span>
           <b>{percent}%</b>
           <span className="small muted">
-            {memorized} آية{fullJuz ? ` · ${fullJuz} ${fullJuz <= 10 ? "أجزاء" : "جزءًا"} كاملة` : ""}
+            {memorized ? mushaf.describeSurahs(ranges) : "لا شيء بعد"}{fullJuz ? ` · ${fullJuz} ${fullJuz <= 10 ? "أجزاء" : "جزءًا"} كاملة` : ""}
           </span>
           <div className="progress">
             <i style={{ width: `${Math.min(100, percent)}%` }} />
@@ -88,7 +88,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
         </div>
         <div className="card stat">
           <span className="muted">حفظ هذا الشهر</span>
-          <b>{mushaf.coverage(monthRanges)} آية</b>
+          <b className="surah-sum">{mushaf.describeSurahs(monthRanges)}</b>
         </div>
         <div className="card stat">
           <span className="muted">نسبة الحضور (آخر 30 يومًا)</span>

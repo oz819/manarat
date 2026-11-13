@@ -1,6 +1,6 @@
-// The demo's starting point: the login accounts and two empty centres — no circles, no students, no
-// records. Whoever tries the demo adds their own circles and students (or registers a new centre),
-// exactly like a real centre on its first day. Nothing here is real.
+// Made-up data for the public demo: «مركز النور» with circles for boys and girls (الذكور والإناث) and
+// students with a little history, and a second centre in Doha so the isolation between centres can be
+// tried. Nothing here is real. (The real database starts empty: see the baseline migration.)
 
 export const DEMO_PASSWORD = "demo1234";
 export const DEMO_CODE = "123456";
@@ -16,6 +16,9 @@ export const DEMO_USERS = {
 const DOHA = "00000000-0000-4000-8000-00000000d0a1";
 const NOOR = "00000000-0000-4000-8000-00000000a001";
 
+const boys = ["أحمد", "محمد", "عمر", "يوسف", "خالد", "حمزة", "أنس", "زيد", "معاذ", "إبراهيم", "عبد الله", "سليمان", "مصعب", "بلال", "طارق"];
+const girls = ["مريم", "فاطمة", "سارة", "آمنة", "رقية", "هاجر", "سمية", "أسماء", "زينب", "حفصة", "نور", "جنى", "لين", "رهف", "تسنيم"];
+const families = ["الخطيب", "الحسن", "السيد", "العلي", "الأحمد", "النجار", "الشامي", "يوسف", "حمدان", "سليمان"];
 const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
 
 export function seedSql(): string {
@@ -25,10 +28,10 @@ export function seedSql(): string {
     ${Object.values(u).map((x) => `(${q(x.id)}, ${q(x.email)}, jsonb_build_object('name', ${q(x.name)}))`).join(",\n    ")};`);
   out.push(`insert into public.centers (id, slug, name, country, city, about, contact_email, palette, status, plan, onboarded, owner_id, extra_notes)
     values (${q(NOOR)}, 'noor', 'مركز النور لتحفيظ القرآن (تجريبي)', 'الأردن', 'عمّان',
-      'مركز تجريبي على منصة منارات لتجربة المنصة.', 'info@noor.demo', 'navy', 'ACTIVE', 'FREE', false, ${q(u.admin.id)},
+      'مركز تجريبي على منصة منارات لتجربة المنصة.', 'info@noor.demo', 'navy', 'ACTIVE', 'FREE', true, ${q(u.admin.id)},
       'هذه نسخة تجريبية. ادخل بالبريد admin@demo.com وكلمة المرور demo1234 (أو الرمز 123456).'),
     (${q(DOHA)}, 'doha', 'مركز الدوحة لتحفيظ القرآن (تجريبي)', 'قطر', 'الدوحة',
-      'مركز تجريبي ثانٍ لتجربة عزل البيانات: لا يرى أي مركز بيانات غيره.', 'info@doha.demo', 'navy', 'ACTIVE', 'FREE', false, ${q(u.doha.id)}, null);
+      'مركز تجريبي ثانٍ لتجربة عزل البيانات: لا يرى أي مركز بيانات غيره.', 'info@doha.demo', 'navy', 'ACTIVE', 'FREE', true, ${q(u.doha.id)}, null);
     insert into public.ranking_settings (center_id) values (${q(NOOR)}), (${q(DOHA)});`);
   out.push(`insert into public.app_users (id, name, current_center_id) values
     (${q(u.admin.id)}, ${q(u.admin.name)}, ${q(NOOR)}), (${q(u.teacher.id)}, ${q(u.teacher.name)}, ${q(NOOR)}),
@@ -37,9 +40,42 @@ export function seedSql(): string {
   out.push(`insert into public.platform_admins (user_id) values (${q(u.super.id)});`);
   out.push(`insert into public.memberships (user_id, center_id, name, role, is_owner, default_filter) values
     (${q(u.admin.id)}, ${q(NOOR)}, ${q(u.admin.name)}, 'ADMIN', true, null),
-    (${q(u.teacher.id)}, ${q(NOOR)}, ${q(u.teacher.name)}, 'TEACHER', false, null),
+    (${q(u.teacher.id)}, ${q(NOOR)}, ${q(u.teacher.name)}, 'TEACHER', false, 's:FEMALE'),
     (${q(u.doha.id)}, ${q(DOHA)}, ${q(u.doha.name)}, 'ADMIN', true, null),
     (${q(u.both.id)}, ${q(NOOR)}, ${q(u.both.name)}, 'TEACHER', false, null),
     (${q(u.both.id)}, ${q(DOHA)}, ${q(u.both.name)}, 'TEACHER', false, null);`);
+  // مركز النور: three circles and thirty students with a little history; Doha: one circle.
+  const C = (n: number) => `c0000000-0000-4000-8000-00000000000${n}`;
+  out.push(`insert into public.circles (id, name, section, center_id) values
+    (${q(C(1))}, 'حلقة أبي بكر الصدّيق', 'MALE', ${q(NOOR)}), (${q(C(2))}, 'حلقة عمر بن الخطاب – متقدم', 'MALE', ${q(NOOR)}),
+    (${q(C(3))}, 'حلقة خديجة أم المؤمنين', 'FEMALE', ${q(NOOR)}), (${q(C(4))}, 'حلقة الفجر', 'MALE', ${q(DOHA)});`);
+  const students: string[] = [];
+  const entries: string[] = [];
+  const att: string[] = [];
+  for (let i = 0; i < 30; i++) {
+    const boy = i < 15;
+    const id = `50000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
+    const circle = boy ? (i < 10 ? C(1) : C(2)) : C(3);
+    students.push(`(${q(id)}, ${q(`${boy ? boys[i] : girls[i - 15]} ${families[i % 10]}`)}, ${q(circle)}, ${q(NOOR)}, ${q("0991" + String(100000 + i))})`);
+    const surah = 114 - (i % 12);
+    for (let d = 1; d <= 6; d++) {
+      entries.push(`(${q(id)}, current_date - ${d * 2}, 'HIFZ', ${surah - d}, 1, ${surah - d}, 5, ${q(["ممتاز", "جيد جدًا", "جيد"][(i + d) % 3])}, ${q(NOOR)})`);
+      att.push(`(${q(id)}, current_date - ${d}, ${q((i + d) % 7 === 0 ? "ABSENT" : "PRESENT")}, ${q(NOOR)})`);
+    }
+  }
+  for (let i = 0; i < 8; i++) {
+    const id = `5000d000-0000-4000-8000-${String(i).padStart(12, "0")}`;
+    students.push(`(${q(id)}, ${q(`${boys[(i + 5) % 15]} ${["الكواري", "المري", "الهاجري", "السليطي"][i % 4]}`)}, ${q(C(4))}, ${q(DOHA)}, null)`);
+    entries.push(`(${q(id)}, current_date - 1, 'HIFZ', 78, 1, 78, 10, 'ممتاز', ${q(DOHA)})`);
+  }
+  out.push(`insert into public.students (id, name, circle_id, center_id, guardian_phone) values ${students.join(",\n")};`);
+  out.push(`set app.migrating = 'on';
+    insert into public.quran_entries (student_id, entry_date, track, from_surah_no, from_ayah, to_surah_no, to_ayah, quality, center_id) values ${entries.join(",\n")};
+    insert into public.attendance (student_id, att_date, status, center_id) values ${att.join(",\n")};
+    reset app.migrating;`);
+  out.push(`insert into public.registration_requests (student_name, age, section, guardian_name, guardian_phone, center_id) values
+    ('طالب جديد من النموذج', 9, 'MALE', 'أبو محمد', '0990000001', ${q(NOOR)}),
+    ('طالبة جديدة', 11, 'FEMALE', 'أم سارة', '0990000002', ${q(NOOR)});`);
+  out.push(`update public.ranking_settings set honor_enabled = true where center_id = ${q(NOOR)};`);
   return out.join("\n");
 }

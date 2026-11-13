@@ -9,9 +9,7 @@ import { formatPhone, guardianMessage, guardianUrl, sinceLabel, waLink } from "@
 // (copy / send on WhatsApp), when they last opened it, and — admin only — a new link.
 export default function GuardianBox({ studentId, onEdit }: { studentId: string; onEdit: () => void }) {
   const s = useStore();
-  const { supabase, profile, showToast, center } = useApp();
-  // ملاحظة 5: without «إرسال التقارير لأولياء الأمور» the card doesn't ask for the guardian's number.
-  const whatsapp = !!center.guardian_whatsapp;
+  const { supabase, profile, showToast } = useApp();
   const student = s.get("students", studentId)!;
   const link = s.get("guardian_links", studentId);
   const phone = student.guardian_phone;
@@ -44,10 +42,8 @@ export default function GuardianBox({ studentId, onEdit }: { studentId: string; 
   return (
     <div className="guardian-box">
       <div>
-        {whatsapp && <span className="muted">ولي الأمر: </span>}
-        {!whatsapp ? (
-          <span className="muted">رابط متابعة وليّ الأمر</span>
-        ) : student.guardian_name || phone ? (
+        <span className="muted">ولي الأمر: </span>
+        {student.guardian_name || phone ? (
           <b>
             {student.guardian_name ?? ""}
             {phone && (
@@ -68,11 +64,9 @@ export default function GuardianBox({ studentId, onEdit }: { studentId: string; 
           <button className="secondary" onClick={copy}>
             🔗 نسخ رابط ولي الأمر
           </button>
-          {whatsapp && (
-            <a className="btn secondary" href={waLink(guardianMessage(student.name, link.token), phone)} target="_blank" rel="noreferrer">
-              إرسال على واتساب
-            </a>
-          )}
+          <a className="btn secondary" href={waLink(guardianMessage(student.name, link.token), phone)} target="_blank" rel="noreferrer">
+            إرسال على واتساب
+          </a>
           {profile.role === "ADMIN" && (
             <button className="link danger-link" onClick={rotate}>
               رابط جديد

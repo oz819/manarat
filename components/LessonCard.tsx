@@ -105,9 +105,9 @@ export default function LessonCard({ circles }: { circles: Circle[] }) {
             onKeyDown={(e) => e.key === "Enter" && save()}
           />
           <div className="row-actions">
-            <button className="secondary" onClick={save}>حفظ الدرس</button>
+            <button onClick={save}>حفظ الدرس</button>
             {lesson && (
-              <button className="link" onClick={() => setDraft(null)}>
+              <button className="secondary" onClick={() => setDraft(null)}>
                 إلغاء
               </button>
             )}

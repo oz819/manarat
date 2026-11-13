@@ -5,8 +5,7 @@ import { useApp } from "@/components/AppContext";
 import { usePersistentState } from "@/lib/usePersistentState";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import RangePicker from "@/components/RangePicker";
-import FilterBar, { useScope } from "@/components/FilterBar";
-import ScreenHead from "@/components/ScreenHead";
+import { useScope } from "@/components/FilterBar";
 import { store, newId, useStore } from "@/lib/offline/store";
 import type { QuranRange } from "@/lib/quran";
 import { todayStr, type TalqeenSession } from "@/lib/types";
@@ -16,8 +15,7 @@ type Tick = { checked: boolean; notes: string };
 // Talqeen session (spec §5.2): record a passage once for everyone present.
 export default function Talqeen() {
   const s = useStore();
-  const { mushaf, showToast, tracks } = useApp();
-  const L = tracks.label("TALQEEN"); // the centre may call it something else, e.g. «التسميع»
+  const { mushaf, showToast } = useApp();
   // A session is for one halaqa: offer the ones the shared filter covers.
   const circles = useScope().scopedCircles;
   const [savedCircleId, setCircleId] = usePersistentState("talqeen.circle", "");
@@ -86,7 +84,7 @@ export default function Talqeen() {
       },
       ticked.map((st) => ({ student_id: st.id, notes: effectiveTicks[st.id].notes.trim() || null }))
     );
-    showToast(`تم حفظ ${L} لـ ${ticked.length} طالب`);
+    showToast(`تم حفظ التلقين لـ ${ticked.length} طالب`);
     resetForm();
   }
 
@@ -115,10 +113,8 @@ export default function Talqeen() {
 
   return (
     <section>
-      <ScreenHead title={L} text={`سجّل جلسة ${L} لطلاب الحلقة: ما سمعوه اليوم، ومن حضر.`} />
-      <FilterBar />
       <div className="card">
-        <h3>جلسة {L}</h3>
+        <h3>🎙️ جلسة تلقين</h3>
         <div className="formgrid compact">
           <div>
             <label>الحلقة</label>
@@ -157,8 +153,8 @@ export default function Talqeen() {
                 <button className="link" onClick={() => openSession(t)}>
                   {mushaf.formatRange({ from: { surah: t.from_surah_no, ayah: t.from_ayah }, to: { surah: t.to_surah_no, ayah: t.to_ayah } })}
                 </button>
-                <button className="link danger-link" onClick={() => removeSession(t)}>
-                  حذف
+                <button className="link danger-link" onClick={() => removeSession(t)} title="حذف">
+                  ✕
                 </button>
               </span>
             ))}
@@ -216,7 +212,7 @@ export default function Talqeen() {
           <p className="muted">لا يوجد طلاب في هذه الحلقة.</p>
         )}
         <button onClick={save} style={{ marginTop: 10, width: "100%" }}>
-          {sessionId ? "حفظ تعديل الجلسة" : `حفظ ${L}`}
+          {sessionId ? "حفظ تعديل الجلسة" : "حفظ التلقين"}
         </button>
         {error && <p className="error-text">{error}</p>}
       </div>

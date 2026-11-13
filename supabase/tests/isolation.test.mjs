@@ -278,7 +278,7 @@ async function main() {
   console.log("مسارات المتابعة المفعّلة (ملاحظة 4)");
   const ctxTracks = async (uid) => (await one(db, uid, "select public.my_context() c")).c.center;
   const cB = await ctxTracks(OWNER_B);
-  ok(JSON.stringify(cB.enabled_tracks) === '["HIFZ","MURAJAA"]' && cB.talqeen_label === null, "الافتراضي لأي مركز: الحفظ + المراجعة");
+  ok(JSON.stringify(cB.enabled_tracks) === '["HIFZ","MURAJAA","TILAWA","TALQEEN","ARABIC","TARBIYA","EXAMS"]' && cB.talqeen_label === null, "الافتراضي لأي مركز: كل المسارات (مثل مضايا)");
   ok(!!(await fails(db, OWNER_B, `update public.centers set enabled_tracks = '{MURAJAA}' where id = '${B}'`)), "الحفظ لا يُطفأ");
   ok(!!(await fails(db, OWNER_B, `update public.centers set enabled_tracks = '{HIFZ,SOMETHING}' where id = '${B}'`)), "مسار غير معروف مرفوض");
   ok(!!(await fails(db, OWNER_B, `update public.centers set talqeen_label = 'x' where id = '${B}'`)), "اسم التلقين من حرفين على الأقل");
@@ -286,6 +286,9 @@ async function main() {
   await as(db, OWNER_B, `insert into public.quran_entries (student_id, track, from_surah_no, from_ayah, to_surah_no, to_ayah) values
     ('${U(210)}', 'TALQEEN', 114, 1, 114, 6), ('${U(210)}', 'HIFZ', 113, 1, 113, 5)`);
   let gB = (await one(db, null, "select public.guardian_view($1) v", [tokenB])).v;
+  ok(gB.recent.some((r) => r.track === "TALQEEN") && gB.recent.some((r) => r.track === "HIFZ"), "افتراضيًا رابط وليّ الأمر يعرض كل المسارات");
+  await as(db, OWNER_B, `update public.centers set enabled_tracks = '{HIFZ,MURAJAA}' where id = '${B}'`);
+  gB = (await one(db, null, "select public.guardian_view($1) v", [tokenB])).v;
   ok(gB.recent.every((r) => r.track !== "TALQEEN") && gB.recent.some((r) => r.track === "HIFZ"), "رابط وليّ الأمر لا يعرض مسارًا غير مفعّل");
   ok(gB.exams.length === 0 && JSON.stringify(gB.center.enabled_tracks) === '["HIFZ","MURAJAA"]', "ولا الاختبارات ما لم تُفعَّل");
   await as(db, OWNER_B, `update public.centers set enabled_tracks = '{HIFZ,MURAJAA,TALQEEN,EXAMS}', talqeen_label = 'التسميع' where id = '${B}'`);
@@ -293,7 +296,7 @@ async function main() {
   ok(cB2.enabled_tracks.includes("TALQEEN") && cB2.talqeen_label === "التسميع", "المدير يفعّل التلقين ويسمّيه «التسميع»");
   gB = (await one(db, null, "select public.guardian_view($1) v", [tokenB])).v;
   ok(gB.recent.some((r) => r.track === "TALQEEN") && gB.center.talqeen_label === "التسميع", "وبعد التفعيل يظهر في رابط وليّ الأمر");
-  ok(JSON.stringify((await ctxTracks(ADMIN)).enabled_tracks) === '["HIFZ","MURAJAA"]', "إعداد مركز لا يغيّر مركزًا آخر");
+  ok(JSON.stringify((await ctxTracks(ADMIN)).enabled_tracks) === '["HIFZ","MURAJAA","TILAWA","TALQEEN","ARABIC","TARBIYA","EXAMS"]', "إعداد مركز لا يغيّر مركزًا آخر");
   ok((await as(db, ADMIN, `update public.centers set enabled_tracks = '{HIFZ}' where id = '${B}'`)).affectedRows === 0, "ولا يغيّره مدير مركز آخر");
 
   console.log("تقارير الحلقات للإدارة (ملاحظة 5)");

@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
-import MoreMenu from "@/components/MoreMenu";
-import ScreenHead from "@/components/ScreenHead";
 import { usePersistentState } from "@/lib/usePersistentState";
 import ProgressRing from "@/components/ProgressRing";
-import FilterBar, { useScope } from "@/components/FilterBar";
+import { useScope } from "@/components/FilterBar";
 import { useHistoryScope } from "@/components/ranking/useHistoryScope";
 import type { CircleOn } from "@/lib/transfers";
 import SendReports from "@/components/SendReports";
@@ -28,7 +26,7 @@ import {
 } from "@/lib/types";
 
 type TrackKey = QuranTrack | "ARABIC" | "TARBIYA" | "ATTENDANCE" | "LESSON";
-const ALL_REPORT_TRACKS: { id: TrackKey; label: string }[] = [
+const TRACKS: { id: TrackKey; label: string }[] = [
   { id: "HIFZ", label: "الحفظ" },
   { id: "TILAWA", label: "التلاوة" },
   { id: "MURAJAA", label: "المراجعة" },
@@ -57,11 +55,7 @@ type Row = { student: Student; cells: Partial<Record<TrackKey, Cell>> };
 // offline it falls back to this device's local copy and says so.
 export default function Reports() {
   const s = useStore();
-  const { supabase, mushaf, tracks: centreTracks, center, profile, showToast } = useApp();
-  // Only the centre's enabled tracks (ملاحظة 4), with its own name for التلقين; الحضور and الدرس always.
-  const TRACKS = ALL_REPORT_TRACKS.filter((t) => t.id === "ATTENDANCE" || t.id === "LESSON" || centreTracks.has(t.id)).map((t) =>
-    t.id === "TALQEEN" ? { ...t, label: centreTracks.label("TALQEEN") } : t
-  );
+  const { supabase, mushaf } = useApp();
   // Who the report covers: the students in the shared filter (section / halaqa / all), or one of them.
   const { filter, inScope, label: filterName } = useScope();
   const allStudents = s
@@ -84,9 +78,6 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
-  const [toAdmin, setToAdmin] = useState<"idle" | "busy">("idle");
-  // The report last sent to the administration (scope + period), so «✓ أُرسل» shows only for that one.
-  const [sentKey, setSentKey] = useState("");
 
   const [pFrom, pTo] =
     period === "day"
@@ -180,30 +171,6 @@ export default function Reports() {
     navigator.clipboard?.writeText(whatsapp);
   }
 
-  // ملاحظة 5: the halaqa's report goes to the centre's administration, inside the app, in one tap.
-  async function sendToAdmin() {
-    if (!navigator.onLine) return showToast("الإرسال للإدارة يحتاج اتصالًا بالإنترنت");
-    if (!rows.length) return showToast("لا يوجد طلاب في هذا التقرير");
-    setToAdmin("busy");
-    const studentCircle = scope === "student" ? (s.get("students", studentId)?.circle_id ?? null) : null;
-    const { error } = await supabase.from("circle_reports").insert({
-      circle_id: circleId ?? studentCircle,
-      scope_label: scopeLabel,
-      kind: period === "day" ? "DAILY" : period === "month" ? "MONTHLY" : "RANGE",
-      period_from: pFrom,
-      period_to: pTo,
-      body: whatsapp,
-      sent_by_name: profile.name,
-    });
-    if (error) {
-      setToAdmin("idle");
-      return showToast(error.message);
-    }
-    setToAdmin("idle");
-    setSentKey(`${scopeLabel}|${pFrom}|${pTo}`);
-    showToast("أُرسل التقرير إلى الإدارة ✓");
-  }
-
   function csv() {
     const header = ["الطالب", ...chosen.map((t) => t.label)];
     const lines = [header, ...rows.map((r) => [r.student.name, ...chosen.map((t) => r.cells[t.id]?.text ?? "")])];
@@ -218,19 +185,13 @@ export default function Reports() {
 
   return (
     <section>
-      <ScreenHead
-        title="التقارير"
-        text="اختر الحلقة والفترة، ثم أرسل تقرير الحلقة إلى الإدارة."
-        action={
-          <button className="no-print" onClick={sendToAdmin} disabled={toAdmin === "busy" || loading}>
-            {toAdmin === "busy" ? "جارٍ الإرسال…" : sentKey === `${scopeLabel}|${pFrom}|${pTo}` ? "✓ أُرسل للإدارة" : "إرسال للإدارة"}
-          </button>
-        }
-      />
-      <div className="no-print">
-        <FilterBar />
-      </div>
       <div className="card no-print">
+        <div className="title">
+          <h3>📊 التقارير</h3>
+          <button className={sending ? "on" : ""} aria-pressed={sending} onClick={() => setSending(true)}>
+            📤 إرسال تقارير الحلقة
+          </button>
+        </div>
         <div className="formgrid compact">
           <div>
             <label>النطاق</label>
@@ -304,14 +265,7 @@ export default function Reports() {
         </div>
       </div>
 
-      {center.guardian_whatsapp && !sending && (
-        <p className="no-print small">
-          <button className="link" onClick={() => setSending(true)}>
-            إرسال التقارير لأولياء الأمور عبر واتساب
-          </button>
-        </p>
-      )}
-      {sending && center.guardian_whatsapp && (
+      {sending && (
         <div className="no-print">
           <SendReports onClose={() => setSending(false)} />
         </div>
@@ -330,14 +284,16 @@ export default function Reports() {
           <h3>
             {scopeLabel} — {periodLabel}
           </h3>
-          <div className="no-print">
-            <MoreMenu
-              items={[
-                { label: "نسخ نص التقرير", onClick: () => { copy(); showToast("تم نسخ نص التقرير"); } },
-                { label: "طباعة أو حفظ PDF", onClick: () => window.print() },
-                { label: "تنزيل ملف CSV", onClick: csv },
-              ]}
-            />
+          <div className="row-actions no-print">
+            <button className="secondary" onClick={copy}>
+              نسخ لواتساب
+            </button>
+            <button className="secondary" onClick={() => window.print()}>
+              طباعة / PDF
+            </button>
+            <button className="secondary" onClick={csv}>
+              CSV
+            </button>
           </div>
         </div>
         {filtered && <SummaryRings data={filtered} studentCount={students.length} />}

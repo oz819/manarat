@@ -7,7 +7,7 @@ import RangePicker from "@/components/RangePicker";
 import { entryRange, type Mushaf, type QuranRange } from "@/lib/quran";
 import { byNewest, latestOfTrack } from "@/lib/progress";
 import { store, newId } from "@/lib/offline/store";
-import { QUALITIES, TRACK_LABEL, addDays, todayStr, type QuranEntry, type QuranTrack } from "@/lib/types";
+import { QUALITIES, TRACK_LABEL, todayStr, type QuranEntry, type QuranTrack } from "@/lib/types";
 
 /** Prefill from the last entry (spec §5.1): hifz/tilawa continue after it, muraja'a repeats it. */
 function suggest(mushaf: Mushaf, track: QuranTrack, last: QuranEntry | undefined): QuranRange {
@@ -23,15 +23,12 @@ export default function QuranTrackSection({
   track,
   entries,
   prefill,
-  compact = false,
 }: {
   studentId: string;
   track: Exclude<QuranTrack, "TALQEEN">;
   entries: QuranEntry[];
   /** A range to start the form on (e.g. a suggested review) instead of the usual guess. */
   prefill?: QuranRange | null;
-  /** The card's main «تسميع اليوم» box: today's date, the note behind a link, a short history. */
-  compact?: boolean;
 }) {
   const { mushaf, showToast, profile } = useApp();
   const mine = entries.filter((e) => e.track === track).sort(byNewest((e) => e.entry_date));
@@ -44,7 +41,6 @@ export default function QuranTrackSection({
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [showAll, setShowAll] = useState(false);
-  const [withNote, setWithNote] = useState(false);
 
   function reset(prefillFrom?: QuranEntry) {
     setEditingId(null);
@@ -52,7 +48,6 @@ export default function QuranTrackSection({
     setDate(todayStr());
     setQuality("");
     setNotes("");
-    setWithNote(false);
     setError("");
   }
 
@@ -63,7 +58,6 @@ export default function QuranTrackSection({
     setDate(e.entry_date);
     setQuality(e.quality ?? "");
     setNotes(e.notes ?? "");
-    setWithNote(!!e.notes);
     setError("");
   }
 
@@ -107,23 +101,17 @@ export default function QuranTrackSection({
     showToast("تم الحذف");
   }
 
-  const SHOWN = compact ? 3 : 5;
-  const visible = showAll ? mine : mine.slice(0, SHOWN);
-  // Buttons say what will happen: «حفظ التسميع»، «حفظ المراجعة»، «حفظ التلاوة».
-  const saveLabel = track === "HIFZ" ? "حفظ التسميع" : `حفظ ${TRACK_LABEL[track]}`;
-  const showDate = !compact || editingId !== null || date !== todayStr();
+  const visible = showAll ? mine : mine.slice(0, 5);
 
   return (
     <div className="track">
       <div className="entry-form">
         <RangePicker mushaf={mushaf} value={range} onChange={setRange} />
         <div className="formgrid compact">
-          {showDate && (
-            <div>
-              <label>التاريخ</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-          )}
+          <div>
+            <label>التاريخ</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </div>
           <div>
             <label>التقدير</label>
             <select value={quality} onChange={(e) => setQuality(e.target.value)}>
@@ -133,28 +121,16 @@ export default function QuranTrackSection({
               ))}
             </select>
           </div>
-          {(!compact || withNote) && (
-            <div className="wide">
-              <label>ملاحظة</label>
-              <input value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </div>
-          )}
+          <div className="wide">
+            <label>ملاحظة</label>
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </div>
         </div>
         <div className="row-actions">
-          <button onClick={save}>{editingId ? "حفظ التعديل" : saveLabel}</button>
+          <button onClick={save}>{editingId ? "حفظ التعديل" : `إضافة ${TRACK_LABEL[track]}`}</button>
           {editingId && (
-            <button className="link" onClick={() => reset()}>
+            <button className="secondary" onClick={() => reset()}>
               إلغاء
-            </button>
-          )}
-          {compact && !withNote && (
-            <button className="link" onClick={() => setWithNote(true)}>
-              إضافة ملاحظة
-            </button>
-          )}
-          {compact && !showDate && (
-            <button className="link" onClick={() => setDate(addDays(todayStr(), -1))}>
-              تسجيل ليوم سابق
             </button>
           )}
           <span className="muted">{mushaf.length(range) > 0 && `${mushaf.length(range)} آية`}</span>
@@ -185,7 +161,7 @@ export default function QuranTrackSection({
               </div>
             </li>
           ))}
-          {mine.length > SHOWN && (
+          {mine.length > 5 && (
             <li>
               <button className="link" onClick={() => setShowAll((s) => !s)}>
                 {showAll ? "عرض أقل" : `عرض الكل (${mine.length})`}
@@ -194,7 +170,7 @@ export default function QuranTrackSection({
           )}
         </ul>
       ) : (
-        <p className="muted">{compact ? "لم يُسجَّل له تسميع بعد." : "لا توجد إدخالات بعد."}</p>
+        <p className="muted">لا توجد إدخالات بعد.</p>
       )}
     </div>
   );

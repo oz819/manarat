@@ -25,7 +25,7 @@ type View = {
   lessons: { lesson_date: string; title: string }[];
   exams?: { exam_date: string; kind: string; juz_no: number | null; surah_no: number | null; score: number; passed: boolean }[];
   goal?: { weekly_ayahs: number; done: number } | null;
-  center?: { name: string; slug: string; logo_url: string | null; palette: "indigo" | "navy" | "plum" | "slate"; primary_color: string | null; enabled_tracks?: string[]; talqeen_label?: string | null };
+  center?: { name: string; slug: string; logo_url: string | null; palette: "indigo" | "navy" | "plum" | "slate"; primary_color: string | null };
 };
 
 export default async function GuardianPage({ params }: PageProps<"/p/[token]">) {
@@ -80,7 +80,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
           <span className="muted">المحفوظ من القرآن</span>
           <b>{percent}%</b>
           <span className="small muted">
-            {memorized ? mushaf.describeSurahs(ranges) : "لا شيء بعد"}{fullJuz ? ` · ${fullJuz} ${fullJuz <= 10 ? "أجزاء" : "جزءًا"} كاملة` : ""}
+            {memorized} آية{fullJuz ? ` · ${fullJuz} ${fullJuz <= 10 ? "أجزاء" : "جزءًا"} كاملة` : ""}
           </span>
           <div className="progress">
             <i style={{ width: `${Math.min(100, percent)}%` }} />
@@ -88,7 +88,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
         </div>
         <div className="card stat">
           <span className="muted">حفظ هذا الشهر</span>
-          <b className="surah-sum">{mushaf.describeSurahs(monthRanges)}</b>
+          <b>{mushaf.coverage(monthRanges)} آية</b>
         </div>
         <div className="card stat">
           <span className="muted">نسبة الحضور (آخر 30 يومًا)</span>
@@ -154,7 +154,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
                     .filter((e) => e.entry_date === d)
                     .map((e, i) => (
                       <div key={i}>
-                        {e.track === "TALQEEN" && v.center?.talqeen_label ? v.center.talqeen_label : TRACK_LABEL[e.track]}: {mushaf.formatRange(entryRange(e))}
+                        {TRACK_LABEL[e.track]}: {mushaf.formatRange(entryRange(e))}
                         {e.quality && <span className="muted"> ({e.quality})</span>}
                       </div>
                     ))}

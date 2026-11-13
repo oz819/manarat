@@ -14,40 +14,50 @@ import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_DISABLED_MESSAGE, NOT_REGISTERED_MESSA
 import { AppContext } from "@/components/AppContext";
 import Students from "@/components/sections/Students";
 import Talqeen from "@/components/sections/Talqeen";
-import Daily from "@/components/sections/Daily";
 import Reports from "@/components/sections/Reports";
+import Ranking from "@/components/sections/Ranking";
 import Manage from "@/components/sections/Manage";
+import Trash from "@/components/sections/Trash";
+import Dashboard from "@/components/sections/Dashboard";
+import AuditLog from "@/components/sections/AuditLog";
 import ConfirmDialogHost from "@/components/ConfirmDialog";
 import SyncBadge from "@/components/SyncBadge";
 import SlidingIndicator from "@/components/SlidingIndicator";
 import InstallHint from "@/components/InstallHint";
+import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
-import AccountMenu from "@/components/AccountMenu";
+import PushToggle from "@/components/PushToggle";
 import { applyPalette, type MyContext } from "@/lib/center";
 import { tracksOf } from "@/lib/tracks";
 
-type Page = "students" | "daily" | "talqeen" | "reports" | "manage";
+type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "manage" | "trash" | "audit";
 
-// The top bar: three items for a teacher (four for an admin). المتفوقون، اللوحة، سجل المحذوفات and
-// سجل التعديلات are sections inside «الإدارة». التلقين appears only when the centre has enabled it.
 const NAV: { id: Page; label: string }[] = [
   { id: "students", label: "الطلاب" },
-  { id: "daily", label: "التسميع اليومي" },
   { id: "talqeen", label: "التلقين" },
   { id: "reports", label: "التقارير" },
+  { id: "ranking", label: "المتفوقون" },
 ];
 
-const ADMIN_NAV: { id: Page; label: string }[] = [{ id: "manage", label: "الإدارة" }];
-const PAGES = new Set<Page>(["students", "daily", "talqeen", "reports", "manage"]);
+const ADMIN_NAV: { id: Page; label: string }[] = [
+  { id: "dashboard", label: "اللوحة" },
+  { id: "manage", label: "الإدارة" },
+  { id: "trash", label: "سجل المحذوفات" },
+  { id: "audit", label: "سجل التعديلات" },
+];
+const PAGES = new Set<Page>(["students", "talqeen", "reports", "ranking", "dashboard", "manage", "trash", "audit"]);
 
 // Stroke icons for the tab bar (24px grid).
 const NAV_ICON: Record<Page, string> = {
   students: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
-  daily: "M4 5h16v16H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4",
   talqeen: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
   reports: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  ranking: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z",
+  dashboard: "M4 4h6v8H4zM14 4h6v5h-6zM14 13h6v7h-6zM4 16h6v4H4z",
   manage: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
+  trash: "M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3",
+  audit: "M8 4h8v3H8zM6 5H5v16h14V5h-1M9 12h6M9 16h4",
 };
 
 function NavButton({ id, label, active, onClick }: { id: Page; label: string; active: boolean; onClick: () => void }) {
@@ -317,55 +327,84 @@ export default function AppShell() {
                 <span className="hijri">
                   {greeting()} · {hijriToday()}
                 </span>
+                <span className="gregorian">{gregorianToday()}</span>
               </div>
             </div>
           </div>
-          <div className="header-actions">
-            {/* Saved ✓ is the normal state and stays inside the account menu; anything else shows here. */}
-            {(s.status.pending > 0 || s.status.failed > 0 || s.status.authProblem || !s.status.online) && <SyncBadge />}
-            <AccountMenu profile={profile} ctx={ctx!} onSwitch={switchCenter} onLogout={logout} />
-            <Link href="/" className="home-btn">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" />
-              </svg>
-              الرئيسية
-            </Link>
-            <button type="button" className="logout-btn" onClick={logout}>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
-              </svg>
-              خروج
-            </button>
+          <div className="userbox">
+            <span>
+              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : "محفّظ"}
+            </span>
+            <div className="userbox-actions">
+              {ctx && ctx.centers.filter((c) => c.active).length > 1 && (
+                <select className="center-switch" aria-label="المركز" value={ctx.center?.id} onChange={(e) => switchCenter(e.target.value)}>
+                  {ctx.centers.filter((c) => c.active).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {ctx?.is_platform_admin && (
+                <Link href="/super" className="btn ghost" style={{ padding: "5px 10px", fontSize: 12 }}>
+                  المنصة
+                </Link>
+              )}
+              <SyncBadge />
+              <PushToggle />
+              <Link href="/" className="home-btn">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" />
+                </svg>
+                الرئيسية
+              </Link>
+              <button className="logout" onClick={logout}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
+                </svg>
+                خروج
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <nav className="no-print sliding">
         <SlidingIndicator active={page} />
-        {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).filter((n) => n.id !== "talqeen" || tracks.has("TALQEEN")).map((n) => (
-          <NavButton key={n.id} id={n.id} label={n.id === "talqeen" ? tracks.label("TALQEEN") : n.label} active={page === n.id} onClick={() => setPage(n.id)} />
+        {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
+          <NavButton key={n.id} id={n.id} label={n.label} active={page === n.id} onClick={() => setPage(n.id)} />
         ))}
       </nav>
 
-      {/* While the centre has no students, the welcome steps on «الطلاب» say the same thing. */}
-      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && s.all("students").length > 0 && <SetupBanner centerId={ctx.center.id} />}
+      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && (
+        <div className="plan-banner no-print">
+          <span>أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.</span>
+          <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
+            إكمال الإعداد
+          </Link>
+        </div>
+      )}
 
       <main>
-        {(page !== "students" || view.studentId) && (
+        {page !== "students" && (
           <div className="back-row no-print">
-            <button type="button" className="link back-btn" onClick={() => (view.studentId ? closeStudent() : setPage("students"))}>
+            <button type="button" className="link back-btn" onClick={() => setPage("students")}>
               → رجوع
             </button>
           </div>
         )}
         <div className="no-print">
           <InstallHint />
+          {((page === "students" && !view.studentId) || page === "talqeen" || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
         </div>
         {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
-        {page === "daily" && <Daily onOpen={openStudent} />}
-        {page === "talqeen" && tracks.has("TALQEEN") && <Talqeen />}
+        {page === "talqeen" && <Talqeen />}
         {page === "reports" && <Reports />}
-        {page === "manage" && profile.role === "ADMIN" && <Manage openStudent={openStudent} />}
+        {page === "ranking" && <Ranking />}
+        {page === "dashboard" && profile.role === "ADMIN" && <Dashboard openStudent={openStudent} openManage={() => setPage("manage")} />}
+        {page === "manage" && profile.role === "ADMIN" && <Manage />}
+        {page === "trash" && profile.role === "ADMIN" && <Trash />}
+        {page === "audit" && profile.role === "ADMIN" && <AuditLog />}
       </main>
 
       <Toast text={toast} />
@@ -374,9 +413,21 @@ export default function AppShell() {
   );
 }
 
-// The same greeting at every hour of the day.
+// e.g. "الخميس، ٨ تشرين الأول ٢٠٢٦ م" — ar-SY gives the Levantine month names.
+function gregorianToday(): string {
+  try {
+    return (
+      new Intl.DateTimeFormat("ar-SY", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()) +
+      " م"
+    );
+  } catch {
+    return "";
+  }
+}
+
 function greeting(): string {
-  return "السلام عليكم";
+  const h = new Date().getHours();
+  return h < 12 ? "صباح الخير" : "مساء الخير";
 }
 
 // Today's date in the Umm al-Qura Hijri calendar, e.g. "١٦ ربيع الآخر ١٤٤٨ هـ".
@@ -388,35 +439,3 @@ function hijriToday(): string {
   }
 }
 
-const seenThisLoad: Record<string, boolean> = {};
-
-// «أكمل إعداد مركزك»: for the admin only, shown once, and closed for good («إغلاق»).
-function SetupBanner({ centerId }: { centerId: string }) {
-  const key = `setupBannerSeen:${centerId}`;
-  // Decided once per page load (the component may mount twice in development).
-  const [show, setShow] = useState(() => {
-    if (!(key in seenThisLoad)) {
-      try {
-        seenThisLoad[key] = localStorage.getItem(key) === "1";
-        localStorage.setItem(key, "1");
-      } catch {
-        seenThisLoad[key] = true;
-      }
-    }
-    return !seenThisLoad[key];
-  });
-  if (!show) return null;
-  return (
-    <div className="plan-banner no-print">
-      <span>أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.</span>
-      <span className="row-actions">
-        <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
-          إكمال الإعداد
-        </Link>
-        <button type="button" className="link" onClick={() => setShow(false)}>
-          إغلاق
-        </button>
-      </span>
-    </div>
-  );
-}

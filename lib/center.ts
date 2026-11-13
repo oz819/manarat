@@ -91,9 +91,15 @@ export function slugify(s: string): string {
     .slice(0, 40);
 }
 
+/** One letter for a centre without a logo: «مركز النور» → «ن» (not the «ا» of «ال», which reads like an I). */
 export function initials(name: string): string {
-  const w = name.replace(/^(مركز|المركز|جمعية|دار)\s+/, "").trim();
-  return w.slice(0, 1) || "م";
+  const w = name
+    .trim()
+    .replace(/^(مركز|المركز|جمعية|الجمعية|دار|معهد|المعهد|حلقات)\s+/, "")
+    .replace(/^(تحفيظ|لتحفيظ)\s+/, "")
+    .trim();
+  const first = (w.split(/\s+/)[0] ?? "").replace(/^(ال|لل)(?=[\u0600-\u06FF]{2})/, "");
+  return first.slice(0, 1) || "م";
 }
 
 export function whatsappLink(n: string | null | undefined): string | null {

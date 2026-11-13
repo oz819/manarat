@@ -14,30 +14,33 @@ import ExamsSection from "@/components/card/ExamsSection";
 import { takeCardIntent } from "@/lib/cardIntent";
 import SlidingIndicator from "@/components/SlidingIndicator";
 import { store, useStore } from "@/lib/offline/store";
-import { byNewest, studentProgress } from "@/lib/progress";
+import { byNewest, latestOfTrack } from "@/lib/progress";
 import { normalizePhone } from "@/lib/guardian";
 import { entryRange, type QuranRange } from "@/lib/quran";
 import type { TrackKey } from "@/lib/tracks";
 import { ATTENDANCE_LABEL, QUALITIES, todayStr, type AttendanceStatus, type QuranEntry } from "@/lib/types";
 
-type Section = "HIFZ" | "TILAWA" | "MURAJAA" | "TALQEEN" | "ARABIC" | "TARBIYA" | "MAP" | "EXAMS";
+type Section = "MURAJAA" | "TILAWA" | "TALQEEN" | "ARABIC" | "TARBIYA" | "EXAMS" | "MAP";
 
-// Which centre track each tab belongs to (ملاحظة 4: tabs of tracks the centre hasn't enabled are hidden).
+// The tabs under the main box: only the tracks the centre has enabled (ملاحظة 4), plus the map.
 const SECTION_TRACK: Partial<Record<Section, TrackKey>> = { TILAWA: "TILAWA", MURAJAA: "MURAJAA", TALQEEN: "TALQEEN", ARABIC: "ARABIC", TARBIYA: "TARBIYA", EXAMS: "EXAMS" };
 
 const SECTIONS: { id: Section; label: string }[] = [
-  { id: "HIFZ", label: "الحفظ" },
-  { id: "TILAWA", label: "التلاوة" },
   { id: "MURAJAA", label: "المراجعة" },
+  { id: "TILAWA", label: "التلاوة" },
   { id: "TALQEEN", label: "التلقين" },
   { id: "ARABIC", label: "العربية" },
   { id: "TARBIYA", label: "التربية" },
-  { id: "MAP", label: "🗺️ الخريطة" },
-  { id: "EXAMS", label: "📝 الاختبارات" },
+  { id: "EXAMS", label: "الاختبارات" },
+  { id: "MAP", label: "خريطة الحفظ" },
 ];
 
-const STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT"];
+// حاضر / متأخر / غائب (an excused absence recorded before still shows, on the «غائب» chip).
+const STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "ABSENT"];
 
+// بطاقة الطالب, in the order a teacher uses it: today's attendance at the top, then one box for today's
+// recitation (from surah/ayah to surah/ayah and the grade), then the other enabled tracks as a few
+// tabs, and the parents' link as a small link at the end.
 export default function StudentCard({ studentId, onClose }: { studentId: string; onClose: () => void }) {
   const s = useStore();
   const { mushaf, profile, showToast, tracks } = useApp();
@@ -46,10 +49,9 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
   );
   // Opened from «جاهزون للاختبار»: straight to the exams tab on that juz'.
   const [intent] = useState(() => takeCardIntent(studentId));
-  const [section, setSection] = useState<Section>(
-    intent?.tab && (!SECTION_TRACK[intent.tab as Section] || tracks.has(SECTION_TRACK[intent.tab as Section]!)) ? intent.tab : "HIFZ"
-  );
+  const [section, setSection] = useState<Section | null>(intent?.tab && tracks.has("EXAMS") ? intent.tab : null);
   const [editing, setEditing] = useState(false);
+  const [guardian, setGuardian] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   // A suggested review chosen from the map: opens the review form on that range.
   const [prefill, setPrefill] = useState<{ range: QuranRange; n: number } | null>(null);
@@ -72,12 +74,6 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
   const edu = s.byStudent("edu_notes").get(studentId) ?? [];
   const enrollments = s.byStudent("student_arabic_enrollments").get(studentId) ?? [];
   const att = s.get("attendance", `${studentId}|${today}`);
-  const books = s.lookup("arabic_books");
-  const lastFinished = enrollments
-    .filter((e) => !e.deleted_at && e.finished_on)
-    .sort((a, b) => b.finished_on!.localeCompare(a.finished_on!))
-    .map((e) => books.get(e.book_id)?.title)[0];
-  const p = studentProgress({ mushaf, quran, arabic, enrollments, books, edu, attendanceToday: att });
   const unsynced = s.unsyncedStudents().has(studentId);
   const circle = s.get("circles", student.circle_id);
   const moves = s
@@ -85,10 +81,11 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
     .filter((t) => t.student_id === studentId && !t.deleted_at)
     .sort((a, b) => b.transfer_date.localeCompare(a.transfer_date));
   const status = att && !att.deleted_at ? (att.status as AttendanceStatus) : null;
+  const lastHifz = latestOfTrack(quran, "HIFZ");
 
   function review(range: QuranRange) {
     setPrefill({ range, n: (prefill?.n ?? 0) + 1 });
-    setSection("MURAJAA");
+    setSection(tracks.has("MURAJAA") ? "MURAJAA" : null);
   }
 
   async function loadHistory() {
@@ -104,7 +101,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
   }
 
   return (
-    <section>
+    <section className="student-card">
       <div className="card student-head">
         <div className="title">
           <div>
@@ -115,124 +112,123 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
               {student.name} {!student.active && <span className="badge redo">مؤرشف</span>}
             </h2>
             <span className="muted">{circle?.name ?? "—"}</span>
-            {moves.length > 0 && (
-              <details className="moves small">
-                <summary>سجل الحلقات ({moves.length})</summary>
-                <ul>
-                  {moves.map((t) => (
-                    <li key={t.id}>
-                      {t.transfer_date}: من «{s.get("circles", t.from_circle_id ?? "")?.name ?? "—"}» إلى «
-                      {s.get("circles", t.to_circle_id ?? "")?.name ?? "—"}»
-                    </li>
-                  ))}
-                </ul>
-                <span className="muted">سجلاته قبل كل نقل تبقى محسوبة على حلقته القديمة.</span>
-              </details>
-            )}
             {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>لم يُحفظ في الحساب بعد</span>}
           </div>
-          <button className={`secondary${editing ? " on" : ""}`} aria-pressed={editing} onClick={() => setEditing(true)}>
-            ✏️ تعديل الطالب
+          <button className="link" aria-pressed={editing} onClick={() => setEditing(true)}>
+            تعديل الطالب
           </button>
         </div>
 
         {editing && (
-          <Panel title="✏️ تعديل بيانات الطالب" onClose={() => setEditing(false)} className="panel-inset">
+          <Panel title="تعديل بيانات الطالب" onClose={() => setEditing(false)} className="panel-inset">
             <EditStudent studentId={studentId} isAdmin={profile.role === "ADMIN"} onDone={() => setEditing(false)} onDeleted={onClose} />
           </Panel>
         )}
 
         <div className="att-row">
-          <span className="muted">حضور اليوم:</span>
-          {STATUSES.map((st) => (
+          <span className="muted">الحضور اليوم:</span>
+          {STATUSES.map((st) => {
+            const on = status === st || (st === "ABSENT" && status === "EXCUSED");
+            return (
+              <button
+                key={st}
+                className={on ? `chip on ${(status ?? st).toLowerCase()}` : "chip"}
+                onClick={() => store.setAttendance(studentId, today, on ? null : st)}
+              >
+                {st === "ABSENT" && status === "EXCUSED" ? ATTENDANCE_LABEL.EXCUSED : ATTENDANCE_LABEL[st]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="card today-box">
+        <div className="title">
+          <h3>تسميع اليوم</h3>
+          {lastHifz && (
+            <span className="muted small">
+              آخر تسميع: {mushaf.formatRange(entryRange(lastHifz))} · {lastHifz.entry_date}
+            </span>
+          )}
+        </div>
+        <QuranTrackSection key={`${studentId}-HIFZ`} studentId={studentId} track="HIFZ" entries={quran} compact />
+      </div>
+
+      {sections.length > 0 && (
+        <div className="tabs sliding card-tabs" role="tablist" aria-label="باقي المتابعة">
+          <SlidingIndicator active={section ?? ""} />
+          {sections.map((sec) => (
             <button
-              key={st}
-              className={status === st ? `chip on ${st.toLowerCase()}` : "chip"}
-              onClick={() => store.setAttendance(studentId, today, status === st ? null : st)}
+              key={sec.id}
+              role="tab"
+              aria-selected={section === sec.id}
+              className={section === sec.id ? "active" : ""}
+              onClick={() => {
+                setPrefill(null);
+                setSection(section === sec.id ? null : sec.id);
+              }}
             >
-              {ATTENDANCE_LABEL[st]}
+              {sec.label}
             </button>
           ))}
         </div>
+      )}
 
-        <div className="positions">
-          <Pos label="الحفظ" value={p.hifz ? mushaf.formatRange(p.hifz.range) : null} extra={p.hifz?.percent != null ? `${p.hifz.percent}% محفوظ` : undefined} date={p.hifz?.entry.entry_date} />
-          {tracks.has("TILAWA") && <Pos label="التلاوة" value={p.tilawa ? mushaf.formatRange(p.tilawa.range) : null} extra={p.tilawa?.percent != null ? `${p.tilawa.percent}%` : undefined} date={p.tilawa?.entry.entry_date} />}
-          {tracks.has("MURAJAA") && <Pos label="المراجعة" value={p.murajaa ? mushaf.formatRange(p.murajaa.range) : null} date={p.murajaa?.entry.entry_date} />}
-          {tracks.has("TALQEEN") && <Pos label={tracks.label("TALQEEN")} value={p.talqeen ? mushaf.formatRange(p.talqeen.range) : null} date={p.talqeen?.entry.entry_date} />}
-          {tracks.has("ARABIC") && <Pos
-            label="العربية"
-            value={p.arabic ? `${p.arabic.book.title} — ص ${p.arabic.page}` : lastFinished ? `✅ أنهى ${lastFinished}` : null}
-            extra={p.arabic ? `${p.arabic.percent}%` : undefined}
-          />}
-          {tracks.has("TARBIYA") && <Pos label="آخر ملاحظة تربوية" value={p.lastTarbiya ?? null} />}
+      {section && (
+        <div className="card">
+          {section === "MURAJAA" && !prefill && (
+            <details className="review-box">
+              <summary>مراجعة اليوم المقترحة</summary>
+              <ReviewSuggestions entries={quran} onReview={review} />
+            </details>
+          )}
+          {(section === "TILAWA" || section === "MURAJAA") && (
+            <QuranTrackSection
+              key={`${studentId}-${section}-${section === "MURAJAA" ? (prefill?.n ?? 0) : 0}`}
+              studentId={studentId}
+              track={section}
+              entries={quran}
+              prefill={section === "MURAJAA" ? prefill?.range : null}
+            />
+          )}
+          {section === "MAP" && <MemorizationMap studentId={studentId} entries={quran} onReview={review} />}
+          {section === "EXAMS" && (
+            <ExamsSection key={studentId} studentId={studentId} exams={s.byStudent("exams").get(studentId) ?? []} initialJuz={intent?.juz} />
+          )}
+          {section === "TALQEEN" && <TalqeenList entries={quran.filter((e) => e.track === "TALQEEN")} />}
+          {section === "ARABIC" && <ArabicSection key={studentId} studentId={studentId} enrollments={enrollments} entries={arabic} />}
+          {section === "TARBIYA" && <TarbiyaSection key={studentId} studentId={studentId} notes={edu} />}
         </div>
+      )}
 
-        <GuardianBox studentId={studentId} onEdit={() => setEditing(true)} />
-      </div>
-
-      <div className="tabs sliding">
-        <SlidingIndicator active={section} />
-        {sections.map((sec) => (
-          <button
-            key={sec.id}
-            className={section === sec.id ? "active" : ""}
-            onClick={() => {
-              setPrefill(null);
-              setSection(sec.id);
-            }}
-          >
-            {sec.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="card">
-        {section === "MURAJAA" && !prefill && (
-          <details className="review-box">
-            <summary>🔁 مراجعة اليوم المقترحة</summary>
-            <ReviewSuggestions entries={quran} onReview={review} />
+      <div className="card-foot">
+        <button className="link" aria-expanded={guardian} onClick={() => setGuardian((g) => !g)}>
+          رابط وليّ الأمر
+        </button>
+        <button className="link" onClick={loadHistory} disabled={loadingHistory}>
+          {loadingHistory ? "جارٍ التحميل..." : "السجل الأقدم"}
+        </button>
+        {moves.length > 0 && (
+          <details className="moves small">
+            <summary>سجل الحلقات ({moves.length})</summary>
+            <ul>
+              {moves.map((t) => (
+                <li key={t.id}>
+                  {t.transfer_date}: من «{s.get("circles", t.from_circle_id ?? "")?.name ?? "—"}» إلى «
+                  {s.get("circles", t.to_circle_id ?? "")?.name ?? "—"}»
+                </li>
+              ))}
+            </ul>
+            <span className="muted">سجلاته قبل كل نقل تبقى محسوبة على حلقته القديمة.</span>
           </details>
         )}
-        {(section === "HIFZ" || section === "TILAWA" || section === "MURAJAA") && (
-          <QuranTrackSection
-            key={`${studentId}-${section}-${section === "MURAJAA" ? (prefill?.n ?? 0) : 0}`}
-            studentId={studentId}
-            track={section}
-            entries={quran}
-            prefill={section === "MURAJAA" ? prefill?.range : null}
-          />
-        )}
-        {section === "MAP" && <MemorizationMap studentId={studentId} entries={quran} onReview={review} />}
-        {section === "EXAMS" && (
-          <ExamsSection key={studentId} studentId={studentId} exams={s.byStudent("exams").get(studentId) ?? []} initialJuz={intent?.juz} />
-        )}
-        {section === "TALQEEN" && <TalqeenList entries={quran.filter((e) => e.track === "TALQEEN")} />}
-        {section === "ARABIC" && <ArabicSection key={studentId} studentId={studentId} enrollments={enrollments} entries={arabic} />}
-        {section === "TARBIYA" && <TarbiyaSection key={studentId} studentId={studentId} notes={edu} />}
-        <div style={{ marginTop: 12 }}>
-          <button className="link" onClick={loadHistory} disabled={loadingHistory}>
-            {loadingHistory ? "جارٍ التحميل..." : "تحميل السجل الأقدم من الخادم"}
-          </button>
-        </div>
       </div>
-    </section>
-  );
-}
-
-function Pos({ label, value, extra, date }: { label: string; value: string | null; extra?: string; date?: string }) {
-  return (
-    <div className="pos-tile">
-      <span className="muted">{label}</span>
-      <b>{value ?? "—"}</b>
-      {(extra || date) && (
-        <span className="small muted">
-          {extra}
-          {extra && date ? " · " : ""}
-          {date}
-        </span>
+      {guardian && (
+        <div className="card">
+          <GuardianBox studentId={studentId} onEdit={() => setEditing(true)} />
+        </div>
       )}
-    </div>
+    </section>
   );
 }
 

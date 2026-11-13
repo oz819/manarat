@@ -398,3 +398,9 @@ td.row-actions button.link { padding: 4px 2px; }
 .account .account-link.danger-link:hover:not(:disabled) { color: var(--danger); }
 button.sync-badge:hover:not(:disabled) { filter: brightness(.97); background-color: inherit; }
 .sync-badge.ok:hover:not(:disabled) { background: #dff1e7; }
+
+/* بطاقة الطالب المبسّطة */
+.today-box .title { flex-wrap: wrap; gap: 4px 12px; }
+.card-tabs { margin: 4px 0 10px; }
+.card-foot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 4px 4px 12px; font-size: var(--fs-md); }
+.card-foot .moves { flex-basis: 100%; }

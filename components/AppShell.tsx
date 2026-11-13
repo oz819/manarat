@@ -366,9 +366,9 @@ function gregorianToday(): string {
   }
 }
 
+// The same greeting at every hour of the day.
 function greeting(): string {
-  const h = new Date().getHours();
-  return h < 12 ? "صباح الخير" : "مساء الخير";
+  return "السلام عليكم";
 }
 
 // Today's date in the Umm al-Qura Hijri calendar, e.g. "١٦ ربيع الآخر ١٤٤٨ هـ".

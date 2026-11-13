@@ -14,12 +14,9 @@ import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_DISABLED_MESSAGE, NOT_REGISTERED_MESSA
 import { AppContext } from "@/components/AppContext";
 import Students from "@/components/sections/Students";
 import Talqeen from "@/components/sections/Talqeen";
+import Daily from "@/components/sections/Daily";
 import Reports from "@/components/sections/Reports";
-import Ranking from "@/components/sections/Ranking";
 import Manage from "@/components/sections/Manage";
-import Trash from "@/components/sections/Trash";
-import Dashboard from "@/components/sections/Dashboard";
-import AuditLog from "@/components/sections/AuditLog";
 import ConfirmDialogHost from "@/components/ConfirmDialog";
 import SyncBadge from "@/components/SyncBadge";
 import SlidingIndicator from "@/components/SlidingIndicator";
@@ -31,32 +28,27 @@ import PushToggle from "@/components/PushToggle";
 import { applyPalette, type MyContext } from "@/lib/center";
 import { tracksOf } from "@/lib/tracks";
 
-type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "manage" | "trash" | "audit";
+type Page = "students" | "daily" | "talqeen" | "reports" | "manage";
 
+// The top bar: three items for a teacher (four for an admin). المتفوقون، اللوحة، سجل المحذوفات and
+// سجل التعديلات are sections inside «الإدارة». التلقين appears only when the centre has enabled it.
 const NAV: { id: Page; label: string }[] = [
   { id: "students", label: "الطلاب" },
+  { id: "daily", label: "التسميع اليومي" },
   { id: "talqeen", label: "التلقين" },
   { id: "reports", label: "التقارير" },
-  { id: "ranking", label: "المتفوقون" },
 ];
 
-const ADMIN_NAV: { id: Page; label: string }[] = [
-  { id: "dashboard", label: "اللوحة" },
-  { id: "manage", label: "الإدارة" },
-  { id: "trash", label: "سجل المحذوفات" },
-  { id: "audit", label: "سجل التعديلات" },
-];
+const ADMIN_NAV: { id: Page; label: string }[] = [{ id: "manage", label: "الإدارة" }];
+const PAGES = new Set<Page>(["students", "daily", "talqeen", "reports", "manage"]);
 
 // Stroke icons for the tab bar (24px grid).
 const NAV_ICON: Record<Page, string> = {
   students: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
+  daily: "M4 5h16v16H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4",
   talqeen: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
   reports: "M4 20V10M10 20V4M16 20v-7M22 20H2",
-  ranking: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z",
-  dashboard: "M4 4h6v8H4zM14 4h6v5h-6zM14 13h6v7h-6zM4 16h6v4H4z",
   manage: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
-  trash: "M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3",
-  audit: "M8 4h8v3H8zM6 5H5v16h14V5h-1M9 12h6M9 16h4",
 };
 
 function NavButton({ id, label, active, onClick }: { id: Page; label: string; active: boolean; onClick: () => void }) {
@@ -204,9 +196,12 @@ export default function AppShell() {
 
   useEffect(() => {
     const current = (history.state as { view?: View } | null)?.view;
-    if (current) setView(current);
+    if (current && PAGES.has(current.page)) setView(current);
     else history.replaceState({ ...history.state, view: HOME }, "");
-    const onPop = (e: PopStateEvent) => setView((e.state as { view?: View } | null)?.view ?? HOME);
+    const onPop = (e: PopStateEvent) => {
+      const v = (e.state as { view?: View } | null)?.view;
+      setView(v && PAGES.has(v.page) ? v : HOME);
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
@@ -378,16 +373,13 @@ export default function AppShell() {
       <main>
         <div className="no-print">
           <InstallHint />
-          {((page === "students" && !view.studentId) || page === "talqeen" || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
+          {((page === "students" && !view.studentId) || page === "daily" || page === "talqeen" || page === "reports") && <FilterBar />}
         </div>
         {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
+        {page === "daily" && <Daily onOpen={openStudent} />}
         {page === "talqeen" && tracks.has("TALQEEN") && <Talqeen />}
         {page === "reports" && <Reports />}
-        {page === "ranking" && <Ranking />}
-        {page === "dashboard" && profile.role === "ADMIN" && <Dashboard openStudent={openStudent} openManage={() => setPage("manage")} />}
-        {page === "manage" && profile.role === "ADMIN" && <Manage />}
-        {page === "trash" && profile.role === "ADMIN" && <Trash />}
-        {page === "audit" && profile.role === "ADMIN" && <AuditLog />}
+        {page === "manage" && profile.role === "ADMIN" && <Manage openStudent={openStudent} />}
       </main>
 
       <Toast text={toast} />

@@ -19,17 +19,64 @@ import GuardianReportsSetting from "@/components/center/GuardianReportsSetting";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
 import DevCredit from "@/components/landing/DevCredit";
+import ScreenHead from "@/components/ScreenHead";
+import FilterBar from "@/components/FilterBar";
+import Dashboard from "@/components/sections/Dashboard";
+import Ranking from "@/components/sections/Ranking";
+import Trash from "@/components/sections/Trash";
+import AuditLog from "@/components/sections/AuditLog";
+import { usePersistentState } from "@/lib/usePersistentState";
+
+type Sub = "overview" | "ranking" | "settings" | "trash" | "audit";
+const SUBS: [Sub, string][] = [
+  ["overview", "نظرة عامة"],
+  ["ranking", "المتفوقون"],
+  ["settings", "المركز والإعدادات"],
+  ["trash", "سجل المحذوفات"],
+  ["audit", "سجل التعديلات"],
+];
+
+// الإدارة (admins only). What used to be separate tabs in the top bar (اللوحة، المتفوقون، سجل المحذوفات،
+// سجل التعديلات) are sections of this one page, so the bar keeps three or four items.
+export default function Manage({ openStudent }: { openStudent: (id: string) => void }) {
+  const [saved, setSub] = usePersistentState<Sub>("manage.sub", "overview");
+  const sub = SUBS.some(([id]) => id === saved) ? saved : "overview";
+  return (
+    <section>
+      <ScreenHead title="الإدارة" text="تابع مركزك، واقرأ تقارير الحلقات، وأدِر الحلقات والمعلّمين والإعدادات." />
+      <div className="subnav no-print" role="tablist" aria-label="أقسام الإدارة">
+        {SUBS.map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={sub === id} className={`chip${sub === id ? " on" : ""}`} onClick={() => setSub(id)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {sub === "overview" && (
+        <>
+          <FilterBar />
+          <ReportsInbox />
+          <Dashboard openStudent={openStudent} openManage={() => setSub("settings")} />
+        </>
+      )}
+      {sub === "ranking" && (
+        <>
+          <FilterBar />
+          <Ranking />
+        </>
+      )}
+      {sub === "settings" && <Settings />}
+      {sub === "trash" && <Trash />}
+      {sub === "audit" && <AuditLog />}
+    </section>
+  );
+}
 
 // Admin-only actions (spec §5.4). These need a connection: they write straight to Supabase
 // (RLS re-checks is_admin()) and then refresh the local copy.
-export default function Manage() {
+function Settings() {
   return (
-    <section>
-      <div className="card notice">
-        صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
-        الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
-      </div>
-      <ReportsInbox />
+    <>
+      <p className="muted small">هذه الإعدادات تحتاج اتصالًا بالإنترنت.</p>
       <CenterProfile />
       <CenterTracks />
       <GuardianReportsSetting />
@@ -43,7 +90,7 @@ export default function Manage() {
       <HonorSettings />
       <ExportExcel />
       <DevCredit />
-    </section>
+    </>
   );
 }
 

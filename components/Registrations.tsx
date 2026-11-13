@@ -58,7 +58,7 @@ export default function Registrations() {
       setOpen(!v);
       return setError(error.message);
     }
-    showToast(v ? "صار نموذج التسجيل يستقبل الطلبات" : "تم إغلاق نموذج التسجيل");
+    showToast(v ? "أصبح نموذج التسجيل يستقبل الطلبات" : "تم إغلاق نموذج التسجيل");
   }
 
   async function load() {

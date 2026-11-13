@@ -128,7 +128,7 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
         )}
         <div className="send-progress">
           <b>
-            انبعت {sentCount} من {students.length}
+            أُرسل {sentCount} من {students.length}
           </b>
           <div className="progress">
             <i style={{ width: `${students.length ? Math.round((sentCount / students.length) * 100) : 0}%` }} />
@@ -199,7 +199,7 @@ function SendRow({ student, message, sent, onMark }: { student: Student; message
         <div className="row-actions">
           {sent ? (
             <>
-              <span className="badge excellent">✓ انبعتت</span>
+              <span className="badge excellent">✓ أُرسلت</span>
               <button className="link" onClick={() => onMark(false)}>
                 تراجع
               </button>

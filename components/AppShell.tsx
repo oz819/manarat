@@ -24,7 +24,7 @@ import InstallHint from "@/components/InstallHint";
 import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
-import PushToggle from "@/components/PushToggle";
+import AccountMenu from "@/components/AccountMenu";
 import { applyPalette, type MyContext } from "@/lib/center";
 import { tracksOf } from "@/lib/tracks";
 
@@ -313,43 +313,18 @@ export default function AppShell() {
           <div className="brand-row">
             <CenterMark name={ctx?.center?.name ?? "منارات"} logo={ctx?.center?.logo_url} />
             <div className="brand-text">
-              <h1>{ctx?.center?.name ?? "حلقات القرآن"}</h1>
+              <h1>{ctx?.center?.name ?? "منارات"}</h1>
               <div className="dates">
                 <span className="hijri">
                   {greeting()} · {hijriToday()}
                 </span>
-                <span className="gregorian">{gregorianToday()}</span>
               </div>
             </div>
           </div>
-          <div className="userbox">
-            <span>
-              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : "محفّظ"}
-            </span>
-            <div className="userbox-actions">
-              {ctx && ctx.centers.filter((c) => c.active).length > 1 && (
-                <select className="center-switch" aria-label="المركز" value={ctx.center?.id} onChange={(e) => switchCenter(e.target.value)}>
-                  {ctx.centers.filter((c) => c.active).map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {ctx?.is_platform_admin && (
-                <Link href="/super" className="btn ghost" style={{ padding: "5px 10px", fontSize: 12 }}>
-                  المنصة
-                </Link>
-              )}
-              <SyncBadge />
-              <PushToggle />
-              <button className="logout" onClick={logout}>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
-                </svg>
-                خروج
-              </button>
-            </div>
+          <div className="header-actions">
+            {/* Saved ✓ is the normal state and stays inside the account menu; anything else shows here. */}
+            {(s.status.pending > 0 || s.status.failed > 0 || s.status.authProblem || !s.status.online) && <SyncBadge />}
+            <AccountMenu profile={profile} ctx={ctx!} onSwitch={switchCenter} onLogout={logout} />
           </div>
         </div>
       </header>
@@ -361,14 +336,7 @@ export default function AppShell() {
         ))}
       </nav>
 
-      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && (
-        <div className="plan-banner no-print">
-          <span>أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.</span>
-          <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
-            إكمال الإعداد
-          </Link>
-        </div>
-      )}
+      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && <SetupBanner centerId={ctx.center.id} />}
 
       <main>
         <div className="no-print">
@@ -388,18 +356,6 @@ export default function AppShell() {
   );
 }
 
-// e.g. "الخميس، ٨ تشرين الأول ٢٠٢٦ م" — ar-SY gives the Levantine month names.
-function gregorianToday(): string {
-  try {
-    return (
-      new Intl.DateTimeFormat("ar-SY", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()) +
-      " م"
-    );
-  } catch {
-    return "";
-  }
-}
-
 // The same greeting at every hour of the day.
 function greeting(): string {
   return "السلام عليكم";
@@ -412,4 +368,37 @@ function hijriToday(): string {
   } catch {
     return "";
   }
+}
+
+const seenThisLoad: Record<string, boolean> = {};
+
+// «أكمل إعداد مركزك»: for the admin only, shown once, and closed for good («إغلاق»).
+function SetupBanner({ centerId }: { centerId: string }) {
+  const key = `setupBannerSeen:${centerId}`;
+  // Decided once per page load (the component may mount twice in development).
+  const [show, setShow] = useState(() => {
+    if (!(key in seenThisLoad)) {
+      try {
+        seenThisLoad[key] = localStorage.getItem(key) === "1";
+        localStorage.setItem(key, "1");
+      } catch {
+        seenThisLoad[key] = true;
+      }
+    }
+    return !seenThisLoad[key];
+  });
+  if (!show) return null;
+  return (
+    <div className="plan-banner no-print">
+      <span>أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.</span>
+      <span className="row-actions">
+        <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
+          إكمال الإعداد
+        </Link>
+        <button type="button" className="link" onClick={() => setShow(false)}>
+          إغلاق
+        </button>
+      </span>
+    </div>
+  );
 }

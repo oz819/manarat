@@ -29,7 +29,7 @@ export default function PushToggle() {
 
   return (
     <button type="button" className="logout" onClick={toggle} title={on ? "إيقاف الإشعارات" : "تفعيل الإشعارات"} aria-pressed={on}>
-      {on ? "🔔" : "🔕"}
+      {on ? "🔔 مفعّلة" : "🔕 تفعيل"}
     </button>
   );
 }

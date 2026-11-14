@@ -8,11 +8,11 @@ const SIZES = [48, 72, 96, 128, 144, 152, 192, 384, 512];
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const center = await centerForHost().catch(() => null);
-  const name = center?.name ?? "منارات — منصة مراكز تحفيظ القرآن";
+  const name = center?.name ?? "تلاوة — منصة مراكز تحفيظ القرآن";
   return {
     id: "/",
     name,
-    short_name: center ? center.name.slice(0, 18) : "منارات",
+    short_name: center ? center.name.slice(0, 18) : "تلاوة",
     description: "متابعة الحفظ والتلاوة والمراجعة والحضور — تعمل بدون إنترنت",
     lang: "ar",
     dir: "rtl",

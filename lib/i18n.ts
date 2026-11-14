@@ -5,7 +5,7 @@
 export type Locale = "ar" | "en";
 
 const ar = {
-  "platform.name": "منصة منارات",
+  "platform.name": "منصة تلاوة",
   "platform.tagline": "إدارة مراكز وحلقات تحفيظ القرآن الكريم",
   "platform.lead": "سجّل مركزك في دقائق، أضف المعلّمين والطلاب، وتابع الحفظ والتلاوة والحضور والتقارير لأولياء الأمور — من الجوال، وحتى بدون إنترنت.",
   "platform.cta": "سجّل مركزك مجانًا",
@@ -43,7 +43,7 @@ const ar = {
 export type Key = keyof typeof ar;
 
 const en: Record<Key, string> = {
-  "platform.name": "Manarat",
+  "platform.name": "Tilawa",
   "platform.tagline": "Run Quran memorization centers and circles",
   "platform.lead": "Register your center in minutes, add teachers and students, and track memorization, recitation, attendance and parent reports — on any phone, even offline.",
   "platform.cta": "Register your center — free",

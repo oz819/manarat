@@ -10,7 +10,7 @@ import { slugify } from "@/lib/center";
 import { FEATURES, T, Icon, ManaratMark, Ring, amiri, display, type Locale } from "@/components/landing/manarat";
 import "@/app/landing.css";
 
-// منارات — /about: what the platform is, kept short. Intro with the two phones, six features,
+// تلاوة — /about: what the platform is, kept short. Intro with the two phones, six features,
 // how to start, the memorization map and "register your centre". Sign-in lives on /login.
 export default function PlatformAbout() {
   const [locale, setLocale] = useState<Locale>("ar");

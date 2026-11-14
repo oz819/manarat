@@ -11,7 +11,7 @@ import { useReveal } from "@/components/landing/useReveal";
 import { T, Icon, ManaratMark, amiri, display, type Locale } from "@/components/landing/manarat";
 import "@/app/landing.css";
 
-// منارات — the platform's address. First screen: the living night scene (the mushaf's pages turning,
+// تلاوة — the platform's address. First screen: the living night scene (the mushaf's pages turning,
 // lanterns swaying) behind the sign-in form. Scrolling down shows the whole platform page (AboutBody).
 // The developer's Instagram is pinned at the bottom from the first moment.
 export default function PlatformLanding() {

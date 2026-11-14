@@ -261,7 +261,7 @@ export default function AppShell() {
     return (
       <div className="login">
         <div className="loginbox">
-          <h1>منارات</h1>
+          <h1>تلاوة</h1>
           <p className="center">{blockedMessage}</p>
           <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/")}>
             العودة إلى الصفحة الرئيسية
@@ -290,9 +290,9 @@ export default function AppShell() {
       <header className="no-print">
         <div className="headerrow">
           <div className="brand-row">
-            <CenterMark name={ctx?.center?.name ?? "منارات"} logo={ctx?.center?.logo_url} />
+            <CenterMark name={ctx?.center?.name ?? "تلاوة"} logo={ctx?.center?.logo_url} />
             <div className="brand-text">
-              <h1>{ctx?.center?.name ?? "منارات"}</h1>
+              <h1>{ctx?.center?.name ?? "تلاوة"}</h1>
               <div className="dates">
                 <span className="hijri">
                   {greeting()} · {hijriToday()}

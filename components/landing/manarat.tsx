@@ -1,4 +1,4 @@
-// منارات — shared pieces of the platform pages (/login gate and /about): fonts, icons, the mark,
+// تلاوة — shared pieces of the platform pages (/login gate and /about): fonts, icons, the mark,
 // copy in Arabic and English. Kept apart from the pages so both stay small.
 import { Alexandria, Amiri } from "next/font/google";
 
@@ -61,8 +61,8 @@ export const FEATURES: Feature[] = [
 export const T = {
   ar: {
     dir: "rtl",
-    brand: "منارات",
-    latin: "MANARAT",
+    brand: "تلاوة",
+    latin: "TILAWA",
     nav: [["#top", "الرئيسية"], ["#how", "كيف تبدأ"], ["#features", "المزايا"], ["#map", "خريطة الحفظ"], ["#about", "عن المنصة"]],
     menu: "القائمة",
     login: "دخول",
@@ -73,7 +73,7 @@ export const T = {
     enter: "الدخول إلى التطبيق",
     signOut: "تسجيل الخروج",
     gateNew: "مركزك غير مسجّل؟",
-    gateAbout: "تعرّف على منارات",
+    gateAbout: "تعرّف على تلاوة",
     aboutLead: "منصّة مجانية لمراكز تحفيظ القرآن: سجّل مركزك في دقيقة، أضف حلقاتك وطلابك ومعلّميك، وتابع الحفظ والحضور وتقارير الأهل، من الجوال وحتى بدون إنترنت.",
     back: "تسجيل الدخول",
     hadith: "«خَيْرُكُم مَنْ تَعَلَّمَ القُرْآنَ وَعَلَّمَهُ»",
@@ -88,7 +88,7 @@ export const T = {
     boardFeat: "مميزات المنصة",
     six: ["mic", "map", "wifi", "link", "medal", "chart"],
     sysTitle: "مخطط النظام",
-    root: ["المنصة الرئيسية", "(منارات)"],
+    root: ["المنصة الرئيسية", "(تلاوة)"],
     kids: [["user", "صاحب المركز", "(الموقع)"], ["users", "المعلّم", "(التطبيق)"], ["link", "وليّ الأمر", "(رابط خاص)"], ["grid", "إدارة المنصة", "(لوحة المراكز)"]],
     cloud: "بنية سحابية آمنة · عزل تام بين المراكز",
     idTitle: "الهوية البصرية",
@@ -111,16 +111,16 @@ export const T = {
     mapText: "كل جزء يحفظه الطالب يضيء على خريطته. وليّ الأمر يتابعها من رابطه الخاص، والمعلّم يعرف من يحتاج مراجعة.",
     sample: "مثال توضيحي",
     ayah: "﴿وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا﴾",
-    joinTitle: "ابدأ مع منارات اليوم",
+    joinTitle: "ابدأ مع تلاوة اليوم",
     joinText: "مجانية بالكامل، بلا فترة تجربة ولا حدّ لعدد الطلاب.",
     find: "لديك رابط مركزك؟",
     go: "اذهب",
-    footer: "منارات · منصة مراكز تحفيظ القرآن",
+    footer: "تلاوة · منصة مراكز تحفيظ القرآن",
   },
   en: {
     dir: "ltr",
-    brand: "Manarat",
-    latin: "منارات",
+    brand: "Tilawa",
+    latin: "تلاوة",
     nav: [["#top", "Home"], ["#how", "How it works"], ["#features", "Features"], ["#map", "Progress map"], ["#about", "The platform"]],
     menu: "Menu",
     login: "Sign in",
@@ -131,7 +131,7 @@ export const T = {
     enter: "Open the app",
     signOut: "Sign out",
     gateNew: "Centre not registered yet?",
-    gateAbout: "About Manarat",
+    gateAbout: "About Tilawa",
     aboutLead: "A free platform for Qur'an memorization centres: register in a minute, add your circles, students and teachers, and follow memorization, attendance and parent reports, on any phone, even offline.",
     back: "Sign in",
     hadith: "“The best of you are those who learn the Qur'an and teach it.”",
@@ -145,7 +145,7 @@ export const T = {
     boardFeat: "Platform features",
     six: ["mic", "map", "wifi", "link", "medal", "chart"],
     sysTitle: "How it fits together",
-    root: ["The platform", "(Manarat)"],
+    root: ["The platform", "(Tilawa)"],
     kids: [["user", "Centre owner", "(web)"], ["users", "Teacher", "(app)"], ["link", "Parent", "(private link)"], ["grid", "Platform admin", "(centres panel)"]],
     cloud: "Secure cloud · full isolation between centres",
     idTitle: "Visual identity",
@@ -168,11 +168,11 @@ export const T = {
     mapText: "Every juz' a student memorizes lights up on their map. Parents follow it from their own link; teachers see who needs revision.",
     sample: "Example",
     ayah: "“And recite the Qur'an with measured recitation.”",
-    joinTitle: "Start with Manarat today",
+    joinTitle: "Start with Tilawa today",
     joinText: "Completely free — no trial period and no limit on students.",
     find: "Have your centre's link?",
     go: "Go",
-    footer: "Manarat · a platform for Qur'an centres",
+    footer: "Tilawa · a platform for Qur'an centres",
   },
 } as const;
 
@@ -184,7 +184,7 @@ export function Icon({ name, className }: { name: string; className?: string }) 
   );
 }
 
-/** The منارات mark: a lamp-niche arch with a star over an open book, in gold. */
+/** The تلاوة mark: a lamp-niche arch with a star over an open book, in gold. */
 export function ManaratMark({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 64 64" aria-hidden="true">

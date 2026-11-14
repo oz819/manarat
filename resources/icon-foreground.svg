@@ -1,5 +1,5 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <!-- منارات: navy background, gold lamp-niche + star + open book -->
+  <!-- تلاوة: navy background, gold lamp-niche + star + open book -->
   <svg x="270" y="270" width="484" height="484" viewBox="0 0 64 64">
   <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F8DFAE"/><stop offset=".55" stop-color="#E3B062"/><stop offset="1" stop-color="#B97F2E"/></linearGradient></defs>
   <path d="M32 3c3 6 9 9 14 14 6 6 8 13 8 21v9H44v-9c0-5-2-9-5-12-3-2-5-5-7-8-2 3-4 6-7 8-3 3-5 7-5 12v9H10v-9c0-8 2-15 8-21 5-5 11-8 14-14z" fill="none" stroke="url(#g)" stroke-width="3.2" stroke-linejoin="round"/>

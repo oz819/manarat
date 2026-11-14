@@ -34,7 +34,7 @@ export default function Welcome({ onAddStudent }: { onAddStudent: () => void }) 
 
   return (
     <div className="card welcome">
-      <h3>مرحبًا بك في منارات</h3>
+      <h3>مرحبًا بك في تلاوة</h3>
       <p className="muted">ثلاث خطوات ويصبح مركزك جاهزًا:</p>
       <ol className="welcome-steps">
         {steps.map((st, i) => (

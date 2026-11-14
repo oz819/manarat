@@ -1,4 +1,4 @@
-/* منارات — the platform landing: navy + gold on a soft lilac page. Everything is scoped to .mn so
+/* تلاوة — the platform landing: navy + gold on a soft lilac page. Everything is scoped to .mn so
    the app's own theme (globals.css / theme.css) stays untouched behind the sign-in. */
 .mn{
   --navy:#1B2550;--navy-d:#121A3D;--navy-l:#2A3670;

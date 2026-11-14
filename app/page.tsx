@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const center = await centerForHost();
-  return { title: center ? center.name : "منصة منارات — إدارة مراكز تحفيظ القرآن", robots: { index: false, follow: false } };
+  return { title: center ? center.name : "منصة تلاوة — إدارة مراكز تحفيظ القرآن", robots: { index: false, follow: false } };
 }
 
 export default async function HomePage() {

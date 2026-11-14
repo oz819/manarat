@@ -28,7 +28,7 @@ export function seedSql(): string {
     ${Object.values(u).map((x) => `(${q(x.id)}, ${q(x.email)}, jsonb_build_object('name', ${q(x.name)}))`).join(",\n    ")};`);
   out.push(`insert into public.centers (id, slug, name, country, city, about, contact_email, palette, status, plan, onboarded, owner_id, extra_notes)
     values (${q(NOOR)}, 'noor', 'مركز النور لتحفيظ القرآن (تجريبي)', 'الأردن', 'عمّان',
-      'مركز تجريبي على منصة منارات لتجربة المنصة.', 'info@noor.demo', 'navy', 'ACTIVE', 'FREE', true, ${q(u.admin.id)},
+      'مركز تجريبي على منصة تلاوة لتجربة المنصة.', 'info@noor.demo', 'navy', 'ACTIVE', 'FREE', true, ${q(u.admin.id)},
       'هذه نسخة تجريبية. ادخل بالبريد admin@demo.com وكلمة المرور demo1234 (أو الرمز 123456).'),
     (${q(DOHA)}, 'doha', 'مركز الدوحة لتحفيظ القرآن (تجريبي)', 'قطر', 'الدوحة',
       'مركز تجريبي ثانٍ لتجربة عزل البيانات: لا يرى أي مركز بيانات غيره.', 'info@doha.demo', 'navy', 'ACTIVE', 'FREE', true, ${q(u.doha.id)}, null);

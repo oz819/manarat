@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 export const UI_THEMES = [
   { id: "navy", label: "الكحلي الملكي (الافتراضي)", swatch: "linear-gradient(135deg,#1e3a8a 50%,#f0f5ff 50%)" },
   { id: "madaya", label: "مضايا", swatch: "linear-gradient(135deg,#0d3b33 50%,#f3f6f2 50%)" },
-  { id: "center", label: "ألوان المركز", swatch: "linear-gradient(135deg,#1b2550 50%,#f7f8fa 50%)" },
+  { id: "center", label: "ألوان المركز", swatch: "#1b2550" },
   { id: "gold", label: "الذهبي الدافئ", swatch: "linear-gradient(135deg,#b45309 50%,#fffbeb 50%)" },
 ] as const;
 export const UI_FONTS = [
@@ -122,7 +122,6 @@ export default function Appearance() {
               />
             ))}
           </div>
-          <div className="ap-name">{UI_THEMES.find((t) => t.id === prefs.theme)?.label}</div>
 
           <div className="ap-title">الخط</div>
           <div className="ap-row">

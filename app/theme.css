@@ -355,3 +355,48 @@ td.row-actions button.link { padding: 4px 2px; }
   nav { flex-wrap: wrap; overflow-x: visible; justify-content: center; gap: 4px; padding: 8px 6px; }
   nav > button { padding: 7px 10px; font-size: 13px; gap: 5px; }
 }
+.audit-search{width:100%;margin:10px 0 4px}
+.range input[aria-invalid]{border-color:var(--danger);background:var(--danger-soft)} .range-hint{flex-basis:100%;margin:4px 0 0}
+
+/* ---------------------------------------------------------------- «المظهر»: colours, font, size (per device)
+   Set on <html> by components/Appearance.tsx. !important so they win over a centre's own colour,
+   which is written inline on <html>. «الافتراضي» sets nothing and keeps the centre's colours. */
+:root[data-ui-theme="white"] { --bg: #ffffff !important; --surface: #f8fafc !important; --surface-2: #f1f5f9 !important; --line: #e8edf3 !important; --line-strong: #d6dde6 !important; }
+:root[data-ui-theme="navy"] { --bg: #f0f5ff !important; --surface: #ffffff !important; --surface-2: #e9f0fd !important; --line: #dbe4f5 !important; --line-strong: #c3d0ea !important;
+  --accent: #1e3a8a !important; --accent-strong: #0f172a !important; --accent-soft: #e3eafb !important; --accent-2: #c48b38 !important; --accent-2-soft: #f8f0e1 !important; --on-accent: #ffffff !important; }
+:root[data-ui-theme="gold"] { --bg: #fffbeb !important; --surface: #fffdf6 !important; --surface-2: #fdf3d7 !important; --line: #f1e3bd !important; --line-strong: #e4cf98 !important;
+  --accent: #b45309 !important; --accent-strong: #92400e !important; --accent-soft: #fdf0d5 !important; --accent-2: #d97706 !important; --accent-2-soft: #fef3c7 !important; --on-accent: #ffffff !important; }
+:root[data-ui-theme="emerald"] { --bg: #f0faf5 !important; --surface: #ffffff !important; --surface-2: #e6f5ee !important; --line: #d3ebe0 !important; --line-strong: #b8dccb !important;
+  --accent: #047857 !important; --accent-strong: #065f46 !important; --accent-soft: #e2f4ec !important; --accent-2: #b8925a !important; --accent-2-soft: #f7f0e5 !important; --on-accent: #ffffff !important; }
+:root[data-ui-theme="dark"] { --accent: #9db4e6 !important; --accent-strong: #c3d2f3 !important; --accent-soft: #1f2840 !important; --accent-2: #e0bd6a !important; --accent-2-soft: #2e2719 !important; --on-accent: #0e1116 !important; }
+:root[data-ui-theme="navy"] .app-bg > header { background: #0f172a; border-color: #0f172a; }
+:root[data-ui-theme="navy"] .app-bg > header h1,
+:root[data-ui-theme="navy"] .app-bg > header .dates,
+:root[data-ui-theme="navy"] .app-bg > header .userbox > span { color: #ffffff; }
+:root[data-ui-theme="navy"] .app-bg > header .dates span,
+:root[data-ui-theme="navy"] .app-bg > header .userbox > span { opacity: .85; }
+
+:root[data-font="cairo"] .app-bg { font-family: var(--font-cairo), Tahoma, sans-serif; }
+:root[data-font="tajawal"] .app-bg { font-family: var(--font-tajawal), Tahoma, sans-serif; }
+:root[data-font="amiri"] .app-bg { font-family: var(--font-amiri-ui), "Traditional Arabic", serif; }
+:root[data-font] .app-bg h1, :root[data-font] .app-bg h2, :root[data-font] .app-bg h3, :root[data-font] .app-bg h4,
+:root[data-font] .app-bg input, :root[data-font] .app-bg select, :root[data-font] .app-bg textarea, :root[data-font] .app-bg button { font-family: inherit; }
+/* Text size: zoom scales the whole app evenly, so nothing overflows (all current browsers). */
+:root[data-fs="sm"] .app-bg { zoom: .9; }
+:root[data-fs="lg"] .app-bg { zoom: 1.15; }
+
+.appearance { position: relative; }
+.appearance-btn { padding: 5px 10px; font-size: 12px; white-space: nowrap; }
+.appearance-pop { position: absolute; top: calc(100% + 6px); inset-inline-end: 0; z-index: 60; width: 270px; padding: 12px 14px 14px; border-radius: var(--r-lg); background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-2); text-align: start; }
+.ap-title { font-size: var(--fs-sm); font-weight: 700; color: var(--muted); margin: 8px 0 6px; }
+.ap-title:first-child { margin-top: 0; }
+.ap-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.ap-swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 2px solid var(--line-strong); box-shadow: inset 0 0 0 2px var(--surface); }
+.ap-swatch.on { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--surface), 0 0 0 2px var(--accent); }
+.ap-name { font-size: var(--fs-xs); color: var(--muted); margin-top: 4px; }
+.ap-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 6px; }
+.ap-chip { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); padding: 6px 4px; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.ap-chip small { font-size: 10px; color: var(--muted); font-family: system-ui, sans-serif; font-weight: 500; }
+.ap-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.ap-chip.size-sm { font-size: 12px; } .ap-chip.size-lg { font-size: 15px; }
+@media (max-width: 520px) { .appearance-pop { position: fixed; top: 70px; inset-inline: 12px; width: auto; } }

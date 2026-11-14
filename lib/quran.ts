@@ -67,12 +67,13 @@ export class Mushaf {
 
   formatRange(r: QuranRange | null): string {
     if (!r) return "—";
+    // One surah: «البقرة (1 - 15)»; across surahs: «من البقرة (آية 284) إلى آل عمران (آية 10)».
     if (r.from.surah === r.to.surah) {
       return r.from.ayah === r.to.ayah
-        ? `${this.name(r.from.surah)} ${r.from.ayah}`
-        : `${this.name(r.from.surah)} ${r.from.ayah}–${r.to.ayah}`;
+        ? `${this.name(r.from.surah)} (${r.from.ayah})`
+        : `${this.name(r.from.surah)} (${r.from.ayah} - ${r.to.ayah})`;
     }
-    return `${this.name(r.from.surah)} ${r.from.ayah} ← ${this.name(r.to.surah)} ${r.to.ayah}`;
+    return `من ${this.name(r.from.surah)} (آية ${r.from.ayah}) إلى ${this.name(r.to.surah)} (آية ${r.to.ayah})`;
   }
 
   /** Distinct ayahs covered by a set of ranges (overlaps counted once). */

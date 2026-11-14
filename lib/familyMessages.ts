@@ -53,7 +53,7 @@ export function dayLines(
       .filter((e) => e.track === track && !e.deleted_at)
       .sort((a, b) => a.created_at.localeCompare(b.created_at));
     if (list.length) {
-      lines.push(`${TRACK_LABEL[track]}: ${list.map((e) => `${mushaf.formatRange(entryRange(e))}${e.quality ? ` (${e.quality})` : ""}`).join("، ")}`);
+      lines.push(`${TRACK_LABEL[track]}: ${list.map((e) => `${mushaf.formatRange(entryRange(e))}${e.quality ? ` — ${e.quality}` : ""}`).join("، ")}`);
     }
   }
   const status = attendance && !attendance.deleted_at ? (attendance.status as AttendanceStatus) : null;

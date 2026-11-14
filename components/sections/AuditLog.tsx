@@ -101,6 +101,8 @@ export default function AuditLog() {
   const [busy, setBusy] = useState(false);
   const [actor, setActor] = useState("");
   const [table, setTable] = useState("");
+  const [act, setAct] = useState("");
+  const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const staff = s.all("profiles").sort((a, b) => a.name.localeCompare(b.name, "ar"));
@@ -113,6 +115,7 @@ export default function AuditLog() {
       let q = supabase.from("audit_log").select("*").order("at", { ascending: false }).order("id", { ascending: false });
       if (actor) q = q.eq("actor", actor);
       if (table) q = q.eq("table_name", table);
+      if (act) q = q.eq("action", act);
       if (from) q = q.gte("at", new Date(`${from}T00:00:00`).toISOString());
       if (to) q = q.lte("at", new Date(`${to}T23:59:59.999`).toISOString());
       const { data, error } = await q.range(offset, offset + PAGE - 1);
@@ -121,7 +124,7 @@ export default function AuditLog() {
       setRows((prev) => (offset ? [...prev, ...(data ?? [])] : (data ?? [])));
       setMore((data ?? []).length === PAGE);
     },
-    [supabase, actor, table, from, to]
+    [supabase, actor, table, act, from, to]
   );
   useEffect(() => {
     load(0);
@@ -178,6 +181,17 @@ export default function AuditLog() {
     return all.length ? [all.join("، ")] : [];
   };
 
+  // The search box looks through what each row shows (subject, changes, who), in the rows loaded so far.
+  const needle = search.trim().toLowerCase();
+  const shown = needle
+    ? rows.filter((r) =>
+        [ACTION[r.action]?.label, TABLE_LABEL[r.table_name], subject(r), ...lines(r), (r.actor && s.get("profiles", r.actor)?.name) || "النظام"]
+          .join(" ")
+          .toLowerCase()
+          .includes(needle)
+      )
+    : rows;
+
   return (
     <section>
       <div className="card audit">
@@ -200,6 +214,14 @@ export default function AuditLog() {
               </option>
             ))}
           </select>
+          <select aria-label="نوع العملية" value={act} onChange={(e) => setAct(e.target.value)}>
+            <option value="">كل العمليات</option>
+            {Object.entries(ACTION).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v.label}
+              </option>
+            ))}
+          </select>
           <label>
             من
             <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
@@ -209,10 +231,18 @@ export default function AuditLog() {
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </label>
         </div>
+        <input
+          type="search"
+          className="audit-search"
+          placeholder="ابحث في السجل: اسم طالب، حلقة، مستخدم، سورة…"
+          aria-label="بحث في سجل التعديلات"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         {error && <p className="error-text">{error}</p>}
-        {!busy && !error && !rows.length && <p className="muted">لا توجد تعديلات بهذا الفرز.</p>}
+        {!busy && !error && !shown.length && <p className="muted">لا توجد تعديلات بهذا الفرز.</p>}
         <ul className="audit-list">
-          {rows.map((r) => {
+          {shown.map((r) => {
             const a = ACTION[r.action] ?? { label: r.action, cls: "" };
             const ls = lines(r);
             return (

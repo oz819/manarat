@@ -33,7 +33,7 @@ export async function GET() {
   return NextResponse.json({ emails });
 }
 
-// Add a teacher: a new login with a password, or — when the email already has a login (e.g. a
+// Add a teacher (or a second admin, role "ADMIN"): a new login with a password, or — when the email already has a login (e.g. a
 // teacher of another centre too) — just a membership in this centre, keeping their password.
 export async function POST(request: Request) {
   const admin = await requireAdmin();
@@ -43,6 +43,7 @@ export async function POST(request: Request) {
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body?.password === "string" ? body.password : "";
+  const role = body?.role === "ADMIN" ? "ADMIN" : "TEACHER";
   if (!name || !email || name.length > 100) {
     return NextResponse.json({ error: "أكمل بيانات المحفظ" }, { status: 400 });
   }
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
   const { error: userErr } = await sb.from("app_users").upsert({ id: userId, name }, { onConflict: "id", ignoreDuplicates: true });
   const { error: memErr } = userErr
     ? { error: userErr }
-    : await sb.from("memberships").insert({ user_id: userId, center_id: admin.centerId, name, role: "TEACHER", active: true });
+    : await sb.from("memberships").insert({ user_id: userId, center_id: admin.centerId, name, role, active: true });
   if (memErr) {
     // Don't leave a half-made login behind.
     if (created) await sb.auth.admin.deleteUser(userId);

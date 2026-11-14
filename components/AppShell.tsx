@@ -28,6 +28,7 @@ import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
 import PushToggle from "@/components/PushToggle";
+import Appearance from "@/components/Appearance";
 import { applyPalette, type MyContext } from "@/lib/center";
 import { tracksOf } from "@/lib/tracks";
 
@@ -352,6 +353,7 @@ export default function AppShell() {
               )}
               <SyncBadge />
               <PushToggle />
+              <Appearance />
               <Link href="/" className="home-btn">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" />

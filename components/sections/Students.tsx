@@ -5,6 +5,7 @@ import { useApp } from "@/components/AppContext";
 import StudentCard from "@/components/StudentCard";
 import { useScope } from "@/components/FilterBar";
 import LessonCard from "@/components/LessonCard";
+import Talqeen from "@/components/sections/Talqeen";
 import SendReports from "@/components/SendReports";
 import Panel from "@/components/Panel";
 import AbsenceAlerts from "@/components/AbsenceAlerts";
@@ -112,6 +113,8 @@ export default function Students({
       </div>
 
       <LessonCard circles={scopedCircles} />
+
+      <TalqeenCard />
 
       <Insights students={active} open={open} />
 
@@ -431,6 +434,21 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
 
 // Two on-device insights from the locally synced window: students absent on their last few
 // recorded days (تنبيه الغياب, with a message to the family), and this month's top memorizers.
+// جلسة التلقين (من آية إلى آية) for a whole halaqa, folded until the teacher opens it.
+function TalqeenCard() {
+  const { tracks } = useApp();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="card talqeen-fold">
+      <button type="button" className="fold-head" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <h3>🎙️ جلسة {tracks.label("TALQEEN")}</h3>
+        <span className="muted">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <Talqeen embedded />}
+    </div>
+  );
+}
+
 function Insights({ students, open }: { students: Student[]; open: (id: string) => void }) {
   const s = useStore();
   const { mushaf } = useApp();

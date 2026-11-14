@@ -13,7 +13,6 @@ import { getMeta, setMeta } from "@/lib/offline/idb";
 import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_DISABLED_MESSAGE, NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import { AppContext } from "@/components/AppContext";
 import Students from "@/components/sections/Students";
-import Talqeen from "@/components/sections/Talqeen";
 import Reports from "@/components/sections/Reports";
 import Ranking from "@/components/sections/Ranking";
 import Manage from "@/components/sections/Manage";
@@ -35,7 +34,6 @@ type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "mana
 
 const NAV: { id: Page; label: string }[] = [
   { id: "students", label: "👨‍🎓 الطلاب" },
-  { id: "talqeen", label: "🎙️ التلقين" },
   { id: "reports", label: "📊 التقارير" },
   { id: "ranking", label: "⭐ المتفوقون" },
 ];
@@ -48,7 +46,10 @@ const ADMIN_NAV: { id: Page; label: string }[] = [
   { id: "trash", label: "🗑️ سجل المحذوفات" },
   { id: "dashboard", label: "📈 اللوحة" },
 ];
+// «talqeen» stays a known page so old links and saved history don't break; its session form now
+// lives in «الطلاب», so opening it lands there.
 const PAGES = new Set<Page>(["students", "talqeen", "reports", "ranking", "dashboard", "manage", "trash", "audit"]);
+const landing = (v: View): View => (v.page === "talqeen" ? { ...v, page: "students" } : v);
 
 type CachedProfile = { userId: string; profile: Profile; centerId?: string; ctx?: MyContext };
 
@@ -177,17 +178,18 @@ export default function AppShell() {
 
   useEffect(() => {
     const current = (history.state as { view?: View } | null)?.view;
-    if (current && PAGES.has(current.page)) setView(current);
+    if (current && PAGES.has(current.page)) setView(landing(current));
     else history.replaceState({ ...history.state, view: HOME }, "");
     const onPop = (e: PopStateEvent) => {
       const v = (e.state as { view?: View } | null)?.view;
-      setView(v && PAGES.has(v.page) ? v : HOME);
+      setView(v && PAGES.has(v.page) ? landing(v) : HOME);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  function go(next: View) {
+  function go(to: View) {
+    const next = landing(to);
     if (next.page === view.page && next.studentId === view.studentId) return;
     setView(next);
     history.pushState({ view: next }, "");
@@ -367,10 +369,9 @@ export default function AppShell() {
         )}
         <div className="no-print">
           <InstallHint />
-          {((page === "students" && !view.studentId) || page === "talqeen" || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
+          {((page === "students" && !view.studentId) || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
         </div>
         {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
-        {page === "talqeen" && <Talqeen />}
         {page === "reports" && <Reports />}
         {page === "ranking" && <Ranking />}
         {page === "dashboard" && profile.role === "ADMIN" && <Dashboard openStudent={openStudent} openManage={() => setPage("manage")} />}

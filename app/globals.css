@@ -510,3 +510,9 @@ button.juz-cell{padding:0;cursor:pointer}
 .moves{margin-top:4px}
 .moves ul{margin:4px 0;padding-inline-start:18px;line-height:1.8}
 
+
+/* جلسة التلقين inside «الطلاب»: a card that folds open on its title */
+.card.talqeen-fold>button.fold-head{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;background:none;color:inherit;padding:0;border:0;box-shadow:none;text-align:start;transform:none}
+.card.talqeen-fold>button.fold-head h3{margin:0}
+.card.talqeen-fold>section{margin-top:10px}
+.card.talqeen-fold .card{box-shadow:none;margin:10px 0 0}

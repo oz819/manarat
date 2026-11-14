@@ -228,13 +228,17 @@ function Pos({ label, value, extra, date }: { label: string; value: string | nul
 }
 
 function TalqeenList({ entries }: { entries: QuranEntry[] }) {
-  const { mushaf, showToast } = useApp();
+  const { mushaf, showToast, tracks } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quality, setQuality] = useState("");
   const [notes, setNotes] = useState("");
   const list = [...entries].sort(byNewest((e) => e.entry_date));
 
-  if (!list.length) return <p className="muted">لا توجد جلسات تلقين لهذا الطالب. تُسجَّل من شاشة «التلقين».</p>;
+  if (!list.length) return (
+      <p className="muted">
+        لا توجد جلسات {tracks.label("TALQEEN")} لهذا الطالب. تُسجَّل من بطاقة «جلسة {tracks.label("TALQEEN")}» في صفحة «الطلاب».
+      </p>
+    );
 
   return (
     <ul className="history">

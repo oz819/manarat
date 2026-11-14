@@ -176,3 +176,10 @@ export function useFilter(): [Filter, (f: Filter) => void] {
   const value = useSyncExternalStore(filterStore.subscribe, filterStore.get, () => "all");
   return [value, (f) => filterStore.set(f)];
 }
+
+/** «محفّظة» for a teacher who opens on the girls' section or on a girls' circle, else «محفّظ». */
+export function teacherTitle(defaultFilter: string | null | undefined, circles: Pick<Circle, "id" | "section">[]): string {
+  const f = defaultFilter ?? "";
+  const female = f === "s:FEMALE" || (f.startsWith("c:") && circles.find((c) => c.id === f.slice(2))?.section === "FEMALE");
+  return female ? "محفّظة" : "محفّظ";
+}

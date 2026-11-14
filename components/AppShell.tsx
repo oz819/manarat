@@ -8,7 +8,7 @@ import type { Profile, Role } from "@/lib/types";
 import { Mushaf } from "@/lib/quran";
 import { SURAHS } from "@/lib/surahs";
 import { store, useStore } from "@/lib/offline/store";
-import { filterStore } from "@/lib/filter";
+import { filterStore, teacherTitle } from "@/lib/filter";
 import { getMeta, setMeta } from "@/lib/offline/idb";
 import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_DISABLED_MESSAGE, NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import { AppContext } from "@/components/AppContext";
@@ -334,7 +334,7 @@ export default function AppShell() {
           </div>
           <div className="userbox">
             <span>
-              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : profile.default_filter === "s:FEMALE" ? "محفّظة" : "محفّظ"}
+              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : teacherTitle(profile.default_filter, s.all("circles"))}
             </span>
             <div className="userbox-actions">
               {ctx && ctx.centers.filter((c) => c.active).length > 1 && (

@@ -8,7 +8,7 @@ import CircleForm from "@/components/CircleForm";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { adminSoftDelete } from "@/lib/adminDelete";
 import { PROFILE_COLUMNS, store, useStore } from "@/lib/offline/store";
-import { SECTIONS, SECTION_LABEL, effectiveFilter, filterLabel, filterOptions } from "@/lib/filter";
+import { SECTIONS, SECTION_LABEL, effectiveFilter, filterLabel, filterOptions, teacherTitle } from "@/lib/filter";
 import CenterSettings, { HonorSettings } from "@/components/CenterSettings";
 import Registrations from "@/components/Registrations";
 import ExportExcel from "@/components/ExportExcel";
@@ -255,7 +255,7 @@ function Teachers() {
                   <td className="small" dir="ltr" style={{ textAlign: "right" }}>
                     {emails[p.id] ?? "—"}
                   </td>
-                  <td>{p.role === "ADMIN" ? "مدير" : "محفّظ"}</td>
+                  <td>{p.role === "ADMIN" ? "مدير" : teacherTitle(p.default_filter, circles)}</td>
                   <td>{p.active ? "مفعّل" : "معطّل"}</td>
                   <td className="row-actions">
                     {p.id !== profile.id && (

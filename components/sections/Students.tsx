@@ -39,7 +39,7 @@ export default function Students({
   onClose: () => void;
 }) {
   const s = useStore();
-  const { mushaf, showToast, profile } = useApp();
+  const { mushaf, showToast, profile, tracks } = useApp();
   const [query, setQuery] = useState("");
   // Typing stays responsive on long lists: the filtered list re-renders at lower priority.
   const deferredQuery = useDeferredValue(query);
@@ -114,7 +114,7 @@ export default function Students({
 
       <LessonCard circles={scopedCircles} />
 
-      <TalqeenCard />
+      {tracks.has("TALQEEN") && <TalqeenCard />}
 
       <Insights students={active} open={open} />
 

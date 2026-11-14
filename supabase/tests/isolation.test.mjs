@@ -298,6 +298,20 @@ async function main() {
   ok(gB.recent.some((r) => r.track === "TALQEEN") && gB.center.talqeen_label === "التسميع", "وبعد التفعيل يظهر في رابط وليّ الأمر");
   ok(JSON.stringify((await ctxTracks(ADMIN)).enabled_tracks) === '["HIFZ","MURAJAA","TILAWA","TALQEEN","ARABIC","TARBIYA","EXAMS"]', "إعداد مركز لا يغيّر مركزًا آخر");
   ok((await as(db, ADMIN, `update public.centers set enabled_tracks = '{HIFZ}' where id = '${B}'`)).affectedRows === 0, "ولا يغيّره مدير مركز آخر");
+  // «قسم التلقين» in الإدارة: the switch takes TALQEEN out and puts it back, leaving the other tracks as they are.
+  await as(db, OWNER_B, `update public.centers set enabled_tracks = '{HIFZ,MURAJAA,EXAMS}' where id = '${B}'`);
+  const offB = await ctxTracks(OWNER_B);
+  gB = (await one(db, null, "select public.guardian_view($1) v", [tokenB])).v;
+  const hiddenOff = gB.recent.every((r) => r.track !== "TALQEEN");
+  await as(db, OWNER_B, `update public.centers set enabled_tracks = '{HIFZ,MURAJAA,TALQEEN,EXAMS}' where id = '${B}'`);
+  const backB = await ctxTracks(OWNER_B);
+  gB = (await one(db, null, "select public.guardian_view($1) v", [tokenB])).v;
+  ok(
+    JSON.stringify(offB.enabled_tracks) === '["HIFZ","MURAJAA","EXAMS"]' && hiddenOff &&
+      JSON.stringify(backB.enabled_tracks) === '["HIFZ","MURAJAA","TALQEEN","EXAMS"]' && backB.talqeen_label === "التسميع" &&
+      gB.recent.some((r) => r.track === "TALQEEN"),
+    "صاحب المركز يزيل التلقين ثم يعيده، وتبقى باقي المسارات واسمه وما سُجّل فيه"
+  );
 
   console.log("تقارير الحلقات للإدارة (ملاحظة 5)");
   const rep = (who, circle) => as(db, who, `insert into public.circle_reports (circle_id, scope_label, period_from, period_to, body, sent_by_name)

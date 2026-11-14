@@ -13,6 +13,7 @@ import CenterSettings, { HonorSettings } from "@/components/CenterSettings";
 import Registrations from "@/components/Registrations";
 import ExportExcel from "@/components/ExportExcel";
 import CenterProfile from "@/components/center/CenterProfile";
+import { TalqeenSetting } from "@/components/center/CenterTracks";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
 import DevCredit from "@/components/landing/DevCredit";
@@ -32,6 +33,7 @@ export default function Manage() {
       <Halaqat />
       <ArabicBooks />
       <CenterSettings />
+      <TalqeenSetting />
       <HonorSettings />
       <ExportExcel />
       <CenterProfile />

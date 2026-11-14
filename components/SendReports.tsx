@@ -22,7 +22,7 @@ type Show = "all" | "unsent" | "nophone";
 // device), so the teacher sees where they got to. Also the month's summary (ملخص الشهر).
 export default function SendReports({ onClose }: { onClose: () => void }) {
   const s = useStore();
-  const { mushaf, supabase } = useApp();
+  const { mushaf, supabase, tracks } = useApp();
   const { inScope, label } = useScope();
   const settings = useRankingSettings(supabase);
   const [mode, setMode] = useState<Mode>("DAILY");
@@ -72,7 +72,8 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
         mushaf,
         (quranBy.get(st.id) ?? []).filter((e) => e.entry_date === date),
         s.get("attendance", `${st.id}|${date}`),
-        s.get("circle_lessons", `${st.circle_id}|${date}`)
+        s.get("circle_lessons", `${st.circle_id}|${date}`),
+        tracks
       );
       return dailyMessage(st, date, lines, token, female(st));
     }

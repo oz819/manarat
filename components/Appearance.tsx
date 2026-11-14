@@ -3,19 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 
 // «المظهر» in the app header: colours, font and text size. Per device (localStorage), applied as
-// attributes on <html>. The default, «مضايا», is the Madaya centre's own look (app/madaya.css);
-// «ألوان المركز» is the platform look in the centre's chosen colours (app/theme.css).
+// attributes on <html>. The default is «الكحلي الملكي» in Cairo; «مضايا» is the Madaya centre's own look
+// (app/madaya.css); «ألوان المركز» is the platform look in the centre's chosen colours (app/theme.css).
+// Each swatch shows what the theme looks like: its main colour on its light page background.
 
 export const UI_THEMES = [
-  { id: "madaya", label: "مضايا (الافتراضي)", swatch: "linear-gradient(135deg,#0d3b33 50%,#b88716 50%)" },
-  { id: "center", label: "ألوان المركز", swatch: "linear-gradient(135deg,#1b2550 50%,#c48b38 50%)" },
-  { id: "navy", label: "الكحلي الملكي", swatch: "#1e3a8a" },
-  { id: "gold", label: "الذهبي الدافئ", swatch: "#b45309" },
+  { id: "navy", label: "الكحلي الملكي (الافتراضي)", swatch: "linear-gradient(135deg,#1e3a8a 50%,#f0f5ff 50%)" },
+  { id: "madaya", label: "مضايا", swatch: "linear-gradient(135deg,#0d3b33 50%,#f3f6f2 50%)" },
+  { id: "center", label: "ألوان المركز", swatch: "linear-gradient(135deg,#1b2550 50%,#f7f8fa 50%)" },
+  { id: "gold", label: "الذهبي الدافئ", swatch: "linear-gradient(135deg,#b45309 50%,#fffbeb 50%)" },
 ] as const;
 export const UI_FONTS = [
-  { id: "plex", label: "الافتراضي", css: "Tahoma" },
+  { id: "cairo", label: "Cairo (الافتراضي)", css: "var(--font-cairo)" },
+  { id: "plex", label: "Tahoma", css: "Tahoma" },
   { id: "ibm", label: "IBM Plex", css: "var(--font-body)" },
-  { id: "cairo", label: "Cairo", css: "var(--font-cairo)" },
   { id: "tajawal", label: "Tajawal", css: "var(--font-tajawal)" },
   { id: "amiri", label: "Amiri", css: "var(--font-amiri-ui)" },
 ] as const;
@@ -27,7 +28,7 @@ export const UI_SIZES = [
 
 type Prefs = { theme: string; font: string; size: string };
 const KEY = "manarat:appearance";
-const DEFAULTS: Prefs = { theme: "madaya", font: "plex", size: "md" };
+const DEFAULTS: Prefs = { theme: "navy", font: "cairo", size: "md" };
 
 function read(): Prefs {
   try {

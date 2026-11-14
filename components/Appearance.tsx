@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 
 // «المظهر» in the app header: colours, font and text size. Per device (localStorage), applied as
-// attributes on <html> that app/theme.css turns into its CSS variables. «الافتراضي» keeps the
-// centre's own colours exactly as they are.
+// attributes on <html>. The default, «مضايا», is the Madaya centre's own look (app/madaya.css);
+// «ألوان المركز» is the platform look in the centre's chosen colours (app/theme.css).
 
 export const UI_THEMES = [
-  { id: "default", label: "الافتراضي", swatch: "linear-gradient(135deg,#1b2550 50%,#c48b38 50%)" },
+  { id: "madaya", label: "مضايا (الافتراضي)", swatch: "linear-gradient(135deg,#0d3b33 50%,#b88716 50%)" },
+  { id: "center", label: "ألوان المركز", swatch: "linear-gradient(135deg,#1b2550 50%,#c48b38 50%)" },
   { id: "white", label: "الأبيض النقي", swatch: "#ffffff" },
   { id: "navy", label: "الكحلي الملكي", swatch: "#1e3a8a" },
   { id: "gold", label: "الذهبي الدافئ", swatch: "#b45309" },
@@ -15,7 +16,8 @@ export const UI_THEMES = [
   { id: "dark", label: "الوضع الليلي", swatch: "#0e1116" },
 ] as const;
 export const UI_FONTS = [
-  { id: "plex", label: "IBM Plex", css: "var(--font-body)" },
+  { id: "plex", label: "الافتراضي", css: "Tahoma" },
+  { id: "ibm", label: "IBM Plex", css: "var(--font-body)" },
   { id: "cairo", label: "Cairo", css: "var(--font-cairo)" },
   { id: "tajawal", label: "Tajawal", css: "var(--font-tajawal)" },
   { id: "amiri", label: "Amiri", css: "var(--font-amiri-ui)" },
@@ -28,7 +30,7 @@ export const UI_SIZES = [
 
 type Prefs = { theme: string; font: string; size: string };
 const KEY = "manarat:appearance";
-const DEFAULTS: Prefs = { theme: "default", font: "plex", size: "md" };
+const DEFAULTS: Prefs = { theme: "madaya", font: "plex", size: "md" };
 
 function read(): Prefs {
   try {
@@ -45,7 +47,7 @@ function read(): Prefs {
 
 function apply(p: Prefs) {
   const root = document.documentElement;
-  if (p.theme === "default") {
+  if (p.theme === "center") {
     delete root.dataset.uiTheme;
     delete root.dataset.theme; // back to the device's light/dark setting
   } else {

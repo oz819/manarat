@@ -1,5 +1,6 @@
 import AppShell from "@/components/AppShell";
 import { appFonts } from "@/lib/appFonts";
+import "../madaya.css";
 
 export default function Home() {
   return (

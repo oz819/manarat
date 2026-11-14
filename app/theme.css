@@ -376,6 +376,7 @@ td.row-actions button.link { padding: 4px 2px; }
 :root[data-ui-theme="navy"] .app-bg > header .dates span,
 :root[data-ui-theme="navy"] .app-bg > header .userbox > span { opacity: .85; }
 
+:root[data-font="ibm"] .app-bg { font-family: var(--font-body), Tahoma, sans-serif; }
 :root[data-font="cairo"] .app-bg { font-family: var(--font-cairo), Tahoma, sans-serif; }
 :root[data-font="tajawal"] .app-bg { font-family: var(--font-tajawal), Tahoma, sans-serif; }
 :root[data-font="amiri"] .app-bg { font-family: var(--font-amiri-ui), "Traditional Arabic", serif; }
@@ -394,7 +395,7 @@ td.row-actions button.link { padding: 4px 2px; }
 .ap-swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 2px solid var(--line-strong); box-shadow: inset 0 0 0 2px var(--surface); }
 .ap-swatch.on { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--surface), 0 0 0 2px var(--accent); }
 .ap-name { font-size: var(--fs-xs); color: var(--muted); margin-top: 4px; }
-.ap-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 6px; }
+.ap-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; }
 .ap-chip { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); padding: 6px 4px; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 1px; }
 .ap-chip small { font-size: 10px; color: var(--muted); font-family: system-ui, sans-serif; font-weight: 500; }
 .ap-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }

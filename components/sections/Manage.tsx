@@ -26,16 +26,17 @@ export default function Manage() {
         صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
         الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
       </div>
-      <CenterProfile />
+      {/* Same order as the Madaya centre; what a multi-centre platform adds comes after. */}
       <Registrations />
-      <Invites />
       <Teachers />
       <Halaqat />
-      <ImportStudents />
       <ArabicBooks />
       <CenterSettings />
       <HonorSettings />
       <ExportExcel />
+      <CenterProfile />
+      <Invites />
+      <ImportStudents />
       <DevCredit />
     </section>
   );

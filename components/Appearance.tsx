@@ -9,11 +9,8 @@ import { useEffect, useRef, useState } from "react";
 export const UI_THEMES = [
   { id: "madaya", label: "مضايا (الافتراضي)", swatch: "linear-gradient(135deg,#0d3b33 50%,#b88716 50%)" },
   { id: "center", label: "ألوان المركز", swatch: "linear-gradient(135deg,#1b2550 50%,#c48b38 50%)" },
-  { id: "white", label: "الأبيض النقي", swatch: "#ffffff" },
   { id: "navy", label: "الكحلي الملكي", swatch: "#1e3a8a" },
   { id: "gold", label: "الذهبي الدافئ", swatch: "#b45309" },
-  { id: "emerald", label: "الأخضر الزمردي", swatch: "#047857" },
-  { id: "dark", label: "الوضع الليلي", swatch: "#0e1116" },
 ] as const;
 export const UI_FONTS = [
   { id: "plex", label: "الافتراضي", css: "Tahoma" },
@@ -52,7 +49,7 @@ function apply(p: Prefs) {
     delete root.dataset.theme; // back to the device's light/dark setting
   } else {
     root.dataset.uiTheme = p.theme;
-    root.dataset.theme = p.theme === "dark" ? "dark" : "light";
+    root.dataset.theme = "light"; // the other themes are light-only, even on a dark-mode device
   }
   if (p.font === "plex") delete root.dataset.font;
   else root.dataset.font = p.font;

@@ -56,12 +56,6 @@
   :root:not([data-theme="light"])[data-palette="plum"], :root:not([data-theme="light"]) [data-palette="plum"] { --accent: #e3a3d2; --accent-strong: #f0c6e4; --accent-soft: #352234; --accent-2: #dcb995; }
   :root:not([data-theme="light"])[data-palette="slate"], :root:not([data-theme="light"]) [data-palette="slate"] { --accent: #b6c2d4; --accent-strong: #dbe3ee; --accent-soft: #252b35; --accent-2: #9aa3b2; }
 }
-:root[data-theme="dark"] {
-  --bg: #0e1116; --surface: #161a21; --surface-2: #1d222b; --line: #2a303b; --line-strong: #3a4250;
-  --text: #e8eaf0; --muted: #9aa3b2; --danger: #ef6b5b; --danger-soft: #3a1f1c; --warn: #f0c050; --warn-soft: #332a12; --info-soft: #1b2436;
-  --accent: #9db4e6; --accent-strong: #c3d2f3; --accent-soft: #1f2840; --accent-2: #e0bd6a; --accent-2-soft: #2e2719; --on-accent: #0e1116;
-  color-scheme: dark;
-}
 
 /* ---------------------------------------------------------------- base */
 html, body { font-family: var(--font-sans); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
@@ -361,14 +355,10 @@ td.row-actions button.link { padding: 4px 2px; }
 /* ---------------------------------------------------------------- «المظهر»: colours, font, size (per device)
    Set on <html> by components/Appearance.tsx. !important so they win over a centre's own colour,
    which is written inline on <html>. «الافتراضي» sets nothing and keeps the centre's colours. */
-:root[data-ui-theme="white"] { --bg: #ffffff !important; --surface: #f8fafc !important; --surface-2: #f1f5f9 !important; --line: #e8edf3 !important; --line-strong: #d6dde6 !important; }
 :root[data-ui-theme="navy"] { --bg: #f0f5ff !important; --surface: #ffffff !important; --surface-2: #e9f0fd !important; --line: #dbe4f5 !important; --line-strong: #c3d0ea !important;
   --accent: #1e3a8a !important; --accent-strong: #0f172a !important; --accent-soft: #e3eafb !important; --accent-2: #c48b38 !important; --accent-2-soft: #f8f0e1 !important; --on-accent: #ffffff !important; }
 :root[data-ui-theme="gold"] { --bg: #fffbeb !important; --surface: #fffdf6 !important; --surface-2: #fdf3d7 !important; --line: #f1e3bd !important; --line-strong: #e4cf98 !important;
   --accent: #b45309 !important; --accent-strong: #92400e !important; --accent-soft: #fdf0d5 !important; --accent-2: #d97706 !important; --accent-2-soft: #fef3c7 !important; --on-accent: #ffffff !important; }
-:root[data-ui-theme="emerald"] { --bg: #f0faf5 !important; --surface: #ffffff !important; --surface-2: #e6f5ee !important; --line: #d3ebe0 !important; --line-strong: #b8dccb !important;
-  --accent: #047857 !important; --accent-strong: #065f46 !important; --accent-soft: #e2f4ec !important; --accent-2: #b8925a !important; --accent-2-soft: #f7f0e5 !important; --on-accent: #ffffff !important; }
-:root[data-ui-theme="dark"] { --accent: #9db4e6 !important; --accent-strong: #c3d2f3 !important; --accent-soft: #1f2840 !important; --accent-2: #e0bd6a !important; --accent-2-soft: #2e2719 !important; --on-accent: #0e1116 !important; }
 :root[data-ui-theme="navy"] .app-bg > header { background: #0f172a; border-color: #0f172a; }
 :root[data-ui-theme="navy"] .app-bg > header h1,
 :root[data-ui-theme="navy"] .app-bg > header .dates,

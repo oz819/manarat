@@ -40,11 +40,13 @@ const NAV: { id: Page; label: string }[] = [
   { id: "ranking", label: "⭐ المتفوقون" },
 ];
 
+// Admins and the centre's owner only: the database keeps these out of a teacher's reach.
+// «الإدارة» and the two logs come right after «المتفوقون»; «اللوحة» last.
 const ADMIN_NAV: { id: Page; label: string }[] = [
-  { id: "dashboard", label: "📈 اللوحة" },
   { id: "manage", label: "⚙️ الإدارة" },
-  { id: "trash", label: "🗑️ سجل المحذوفات" },
   { id: "audit", label: "📜 سجل التعديلات" },
+  { id: "trash", label: "🗑️ سجل المحذوفات" },
+  { id: "dashboard", label: "📈 اللوحة" },
 ];
 const PAGES = new Set<Page>(["students", "talqeen", "reports", "ranking", "dashboard", "manage", "trash", "audit"]);
 

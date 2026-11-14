@@ -4,25 +4,28 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import PasswordInput from "@/components/PasswordInput";
 import DevCredit from "@/components/landing/DevCredit";
 import { GeoStar } from "@/components/center/Geo";
 import { SLUG_RE, applyPalette, slugify, type PendingCenter } from "@/lib/center";
 import { dirOf, t, type Key, type Locale } from "@/lib/i18n";
 
-// سجّل مركزك: the owner's account (email + password) and the centre's basics. After the email is
-// confirmed, /onboarding creates the centre with these details and the owner becomes its admin.
+// سجّل مركزك: the owner's email and the centre's basics. There is no password: a 6-digit code is
+// emailed (signInWithOtp, creating the login if it is new) and typed in here; then /onboarding creates
+// the centre with these details and the owner becomes its admin. The details are also saved on the
+// login itself, so a link-style email (/auth/confirm?next=/onboarding) leads to the same place.
 export default function SignupPage() {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [locale, setLocale] = useState<Locale>("ar");
   const tr = (k: Key) => t(locale, k);
-  const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: "", password: "", confirm: "", website: "" });
+  const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: "", website: "" });
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugTaken, setSlugTaken] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  // After the code is sent: what was submitted (the centre's details) and the code typed so far.
+  const [sent, setSent] = useState<{ email: string; pending: PendingCenter } | null>(null);
+  const [code, setCode] = useState("");
   const [host, setHost] = useState("");
   useEffect(() => setHost(location.host), []);
 
@@ -52,37 +55,53 @@ export default function SignupPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (f.website) return setSent(true); // a bot filled the hidden field
+    const pending: PendingCenter = { name: f.name.trim(), slug: f.slug, country: f.country.trim(), city: f.city.trim(), owner: f.owner.trim() };
+    const email = f.email.trim();
+    if (f.website) return setSent({ email, pending }); // a bot filled the hidden field: no email is sent
     if (f.name.trim().length < 2) return setError("اكتب اسم المركز");
     if (!SLUG_RE.test(f.slug)) return setError(`${tr("signup.slug")}: ${tr("signup.slugHint")} (3–40)`);
     if (slugTaken) return setError("هذا الرابط مستخدم، اختر غيره");
     if (f.owner.trim().length < 2) return setError("اكتب اسمك");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) return setError("اكتب بريدًا صحيحًا");
-    if (f.password.length < 8) return setError("كلمة المرور 8 أحرف على الأقل");
-    if (f.password !== f.confirm) return setError("كلمتا المرور غير متطابقتين");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError("اكتب بريدًا صحيحًا");
     setBusy(true);
-    const pending: PendingCenter = { name: f.name.trim(), slug: f.slug, country: f.country.trim(), city: f.city.trim(), owner: f.owner.trim() };
-    const { data, error } = await supabase.auth.signUp({
-      email: f.email.trim(),
-      password: f.password,
-      options: { emailRedirectTo: `${location.origin}/auth/confirm?next=/onboarding`, data: { name: pending.owner, pending_center: pending } },
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${location.origin}/auth/confirm?next=/onboarding`,
+        data: { name: pending.owner, pending_center: pending },
+      },
     });
     setBusy(false);
     if (error) {
       return setError(
-        error.code === "user_already_exists"
-          ? "لهذا البريد حساب من قبل. ادخل به ثم أنشئ مركزك."
-          : error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
-            ? "محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة."
-            : error.code === "weak_password"
-              ? "كلمة المرور ضعيفة، اختر أطول"
-              : error.code === "signup_disabled"
-                ? "التسجيل مغلق حاليًا."
-                : error.message
+        error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
+          ? "محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة."
+          : error.code === "signup_disabled" || error.code === "otp_disabled"
+            ? "التسجيل مغلق حاليًا."
+            : error.code === "unexpected_failure"
+              ? "تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا."
+              : error.message
       );
     }
-    if (data.session) router.replace("/onboarding");
-    else setSent(true);
+    setCode("");
+    setSent({ email, pending });
+  }
+
+  async function verify(e: React.FormEvent) {
+    e.preventDefault();
+    if (!sent) return;
+    setError("");
+    setBusy(true);
+    const { error } = await supabase.auth.verifyOtp({ email: sent.email, token: code.trim(), type: "email" });
+    if (error) {
+      setBusy(false);
+      return setError(error.code === "otp_expired" ? "الكود غير صحيح أو منتهي الصلاحية." : `تعذّر تأكيد الكود (${error.code ?? error.status}).`);
+    }
+    // An email that already had a login keeps its old details; save this centre on it so the
+    // wizard opens with them filled in.
+    await supabase.auth.updateUser({ data: { pending_center: sent.pending } });
+    router.replace("/onboarding?new=1");
   }
 
   return (
@@ -104,7 +123,33 @@ export default function SignupPage() {
           <p className="ob-sub">{tr("signup.sub")}</p>
 
           {sent ? (
-            <div className="notice" style={{ marginTop: 16 }}>{tr("signup.check")}</div>
+            <form onSubmit={verify}>
+              <div className="notice" style={{ marginTop: 16 }}>
+                {tr("signup.check")} <b dir="ltr">{sent.email}</b>
+              </div>
+              <div className="field">
+                <label htmlFor="s-code">{tr("signup.code")}</label>
+                <input
+                  id="s-code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  className="otp-input"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  required
+                  autoFocus
+                />
+              </div>
+              <button type="submit" className="btn-block" disabled={busy || code.length !== 6}>
+                {busy ? "..." : tr("signup.verify")}
+              </button>
+              <button type="button" className="secondary btn-block" style={{ marginTop: 8 }} onClick={() => { setSent(null); setCode(""); setError(""); }} disabled={busy}>
+                {tr("signup.back")}
+              </button>
+              {error && <p className="error-text">{error}</p>}
+            </form>
           ) : (
             <form onSubmit={submit} noValidate>
               <div className="field">
@@ -147,21 +192,6 @@ export default function SignupPage() {
               <div className="field">
                 <label htmlFor="s-email">{tr("signup.email")}</label>
                 <input id="s-email" type="email" dir="ltr" value={f.email} onChange={set("email")} autoComplete="email" />
-              </div>
-              <div className="field">
-                <label htmlFor="s-pass">{tr("signup.password")}</label>
-                <PasswordInput id="s-pass" value={f.password} onChange={set("password")} autoComplete="new-password" />
-              </div>
-              <div className="field">
-                <label htmlFor="s-pass2">{locale === "ar" ? "تأكيد كلمة المرور" : "Confirm password"}</label>
-                <PasswordInput id="s-pass2" value={f.confirm} onChange={set("confirm")} autoComplete="new-password" />
-                {f.confirm && (
-                  <p className={`pw-match${f.confirm === f.password ? " ok" : " error-text"}`}>
-                    {f.confirm === f.password
-                      ? locale === "ar" ? "✓ متطابقتان" : "✓ They match"
-                      : locale === "ar" ? "كلمتا المرور غير متطابقتين" : "The passwords don't match"}
-                  </p>
-                )}
               </div>
               {/* Spam trap: hidden from people, filled by bots. */}
               <input name="website" value={f.website} onChange={set("website")} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hp-field" />

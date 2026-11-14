@@ -2,8 +2,7 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
-// Landing point for every link Supabase Auth emails out (account confirmation, password
-// recovery, email change). Establishes the session, then forwards to `next`.
+// Landing point for every link Supabase Auth emails out (account confirmation, email change). Establishes the session, then forwards to `next`.
 //
 // Two link shapes are accepted on purpose, because which one arrives depends on how the email
 // templates are configured in the Supabase dashboard:

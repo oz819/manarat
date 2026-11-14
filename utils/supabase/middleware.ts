@@ -45,18 +45,9 @@ export async function updateSession(request: NextRequest) {
   // everyone sees first — signed-in people get a button into the app there.
   const needsSession = pathname === "/app" || pathname.startsWith("/app/") || pathname.startsWith("/onboarding") || pathname.startsWith("/super");
 
-  // Reachable without a session; a signed-in visitor is sent to the app instead.
-  const isSignedOutRoute = pathname.startsWith("/forgot-password");
-
   if (!user && needsSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
-
-  if (user && isSignedOutRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 

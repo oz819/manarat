@@ -19,7 +19,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=demo-anon-key SUPABASE_SERVICE_ROLE_KEY=dem
 npx next dev
 ```
 
-الدخول: `admin@demo.com` بكلمة المرور `demo1234` (أو الرمز `123456`).
+الدخول: `admin@demo.com` بكود الدخول `123456` (لا توجد كلمات مرور: الدخول بكود يصل إلى البريد فقط).
 
 ## الاختبارات
 

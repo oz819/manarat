@@ -33,10 +33,12 @@ const ar = {
   "signup.city": "المدينة",
   "signup.you": "اسمك",
   "signup.email": "البريد الإلكتروني",
-  "signup.password": "كلمة المرور (8 أحرف على الأقل)",
   "signup.submit": "إنشاء الحساب",
   "signup.have": "لديك حساب؟",
-  "signup.check": "أرسلنا رابط تأكيد إلى بريدك. افتحه لإكمال إعداد مركزك.",
+  "signup.check": "أرسلنا كود دخول من 6 أرقام إلى بريدك، فاكتبه هنا لإكمال إعداد مركزك. تفقّد الرسائل غير المرغوبة أيضًا.",
+  "signup.code": "كود الدخول",
+  "signup.verify": "تأكيد ومتابعة",
+  "signup.back": "تعديل البيانات",
   "lang.switch": "English",
 } as const;
 
@@ -71,10 +73,12 @@ const en: Record<Key, string> = {
   "signup.city": "City",
   "signup.you": "Your name",
   "signup.email": "Email",
-  "signup.password": "Password (8+ characters)",
   "signup.submit": "Create account",
   "signup.have": "Already have an account?",
-  "signup.check": "We sent a confirmation link to your email. Open it to finish setting up your center.",
+  "signup.check": "We sent a 6-digit sign-in code to your email. Type it here to finish setting up your center. Check your spam folder too.",
+  "signup.code": "Sign-in code",
+  "signup.verify": "Confirm and continue",
+  "signup.back": "Edit details",
   "lang.switch": "العربية",
 };
 

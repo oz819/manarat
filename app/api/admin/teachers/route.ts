@@ -33,8 +33,9 @@ export async function GET() {
   return NextResponse.json({ emails });
 }
 
-// Add a teacher (or a second admin, role "ADMIN"): a new login with a password, or — when the email already has a login (e.g. a
-// teacher of another centre too) — just a membership in this centre, keeping their password.
+// Add a teacher (or a second admin, role "ADMIN"): a new login, or — when the email already has a login (e.g. a teacher of
+// another centre too) — just a membership in this centre. There is no password: the login is created with the email already
+// confirmed, and the person signs in with the 6-digit code emailed to them.
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin.ok) return NextResponse.json({ error: admin.error }, { status: admin.status });
@@ -42,7 +43,6 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
-  const password = typeof body?.password === "string" ? body.password : "";
   const role = body?.role === "ADMIN" ? "ADMIN" : "TEACHER";
   if (!name || !email || name.length > 100) {
     return NextResponse.json({ error: "أكمل بيانات المحفظ" }, { status: 400 });
@@ -55,8 +55,7 @@ export async function POST(request: Request) {
   let userId = existingId as string | null;
   let created = false;
   if (!userId) {
-    if (password.length < 8) return NextResponse.json({ error: "كلمة المرور 8 أحرف على الأقل" }, { status: 400 });
-    const { data, error } = await sb.auth.admin.createUser({ email, password, email_confirm: true });
+    const { data, error } = await sb.auth.admin.createUser({ email, email_confirm: true });
     if (error || !data.user) return NextResponse.json({ error: error?.message || "تعذّر إنشاء الحساب" }, { status: 400 });
     userId = data.user.id;
     created = true;

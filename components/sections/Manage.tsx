@@ -3,7 +3,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import Panel from "@/components/Panel";
-import PasswordInput from "@/components/PasswordInput";
 import CircleForm from "@/components/CircleForm";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { adminSoftDelete } from "@/lib/adminDelete";
@@ -49,16 +48,11 @@ function Teachers() {
   const { supabase, profile, showToast } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [newRole, setNewRole] = useState<"TEACHER" | "ADMIN">("TEACHER");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [editId, setEditId] = useState<string | null>(null);
-  // A new password for one member: a small form (with confirm and 👁) instead of the browser's prompt().
-  const [pwFor, setPwFor] = useState<{ id: string; name: string } | null>(null);
-  const [pw1, setPw1] = useState("");
-  const [pw2, setPw2] = useState("");
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editFilter, setEditFilter] = useState("all");
@@ -90,13 +84,12 @@ function Teachers() {
       const res = await fetch("/api/admin/teachers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password, role: newRole }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), role: newRole }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setError(data.error || "تعذّر إضافة المحفّظ");
       setName("");
       setEmail("");
-      setPassword("");
       setNewRole("TEACHER");
       await refresh();
       showToast(newRole === "ADMIN" ? "تمت إضافة المدير" : "تمت إضافة المحفّظ");
@@ -178,34 +171,12 @@ function Teachers() {
     showToast(`تم حذف «${personName}» — تجده في سجل المحذوفات`);
   }
 
-  async function resetPassword(e: React.FormEvent) {
-    e.preventDefault();
-    if (!pwFor) return;
-    setError("");
-    if (pw1.length < 8) return setError("كلمة المرور 8 أحرف على الأقل");
-    if (pw1 !== pw2) return setError("كلمتا المرور غير متطابقتين");
-    const id = pwFor.id;
-    const pw = pw1;
-    const res = await fetch(`/api/admin/teachers/${id}/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: pw }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return setError(data.error || "تعذّر تغيير كلمة المرور");
-    setPwFor(null);
-    setPw1("");
-    setPw2("");
-    showToast("تم تغيير كلمة المرور");
-  }
-
   return (
     <div className="card">
       <h3>👥 المحفّظون والمدراء</h3>
       <div className="formgrid compact">
         <input placeholder="الاسم" value={name} onChange={(e) => setName(e.target.value)} />
         <input placeholder="البريد الإلكتروني" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <PasswordInput placeholder="كلمة المرور (8 أحرف+)" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
         <select aria-label="الصلاحية" value={newRole} onChange={(e) => setNewRole(e.target.value === "ADMIN" ? "ADMIN" : "TEACHER")}>
           <option value="TEACHER">الصلاحية: محفّظ</option>
           <option value="ADMIN">الصلاحية: مدير</option>
@@ -215,24 +186,6 @@ function Teachers() {
         </button>
       </div>
       <p className="small muted">يدخل المحفّظ بعدها برمز يصله على بريده. لا يستطيع أحد غير مسجّل هنا إنشاء حساب بنفسه.</p>
-      {pwFor && (
-        <Panel title={`كلمة مرور جديدة لـ ${pwFor.name}`} onClose={() => setPwFor(null)} className="panel-inset">
-          <form className="formgrid compact" onSubmit={resetPassword} noValidate>
-            <div>
-              <label htmlFor="pw-new">كلمة المرور الجديدة</label>
-              <PasswordInput id="pw-new" value={pw1} onChange={(e) => setPw1(e.target.value)} autoComplete="new-password" />
-            </div>
-            <div>
-              <label htmlFor="pw-new2">تأكيد كلمة المرور</label>
-              <PasswordInput id="pw-new2" value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" />
-              {pw2 && <p className={`pw-match${pw1 === pw2 ? " ok" : " error-text"}`}>{pw1 === pw2 ? "✓ متطابقتان" : "كلمتا المرور غير متطابقتين"}</p>}
-            </div>
-            <div className="row-actions" style={{ alignSelf: "end" }}>
-              <button type="submit">حفظ كلمة المرور</button>
-            </div>
-          </form>
-        </Panel>
-      )}
       {error && <p className="error-text">{error}</p>}
       <div style={{ overflow: "auto" }}>
         <table className="staff-table">
@@ -290,9 +243,6 @@ function Teachers() {
                     )}
                     <button className="link" onClick={() => startEdit(p.id, p.name, p.default_filter)}>
                       تعديل
-                    </button>
-                    <button className="link" onClick={() => { setPwFor({ id: p.id, name: p.name }); setPw1(""); setPw2(""); }}>
-                      كلمة المرور
                     </button>
                     {p.id !== profile.id && (
                       <button className="link danger-link" disabled={busy} onClick={() => remove(p.id, p.name)}>

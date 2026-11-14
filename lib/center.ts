@@ -4,8 +4,8 @@
 export type Palette = "indigo" | "navy" | "plum" | "slate";
 
 export const PALETTES: { id: Palette; label: string; colors: [string, string] }[] = [
+  { id: "navy", label: "كحلي وذهبي", colors: ["#1b2550", "#c48b38"] },
   { id: "indigo", label: "نيلي ورملي", colors: ["#2f3e9e", "#b8925a"] },
-  { id: "navy", label: "كحلي وذهبي", colors: ["#1c2b4a", "#b98d2e"] },
   { id: "plum", label: "عنّابي ورملي", colors: ["#6a2c5b", "#c09a73"] },
   { id: "slate", label: "رمادي هادئ", colors: ["#334155", "#8a94a6"] },
 ];
@@ -52,6 +52,11 @@ export type MyContext = {
     onboarded: boolean;
     timezone: string;
     locale: "ar" | "en";
+    /** مسارات المتابعة المفعّلة (lib/tracks.ts); الحفظ always. */
+    enabled_tracks?: string[];
+    talqeen_label?: string | null;
+    /** إرسال التقارير لأولياء الأمور عبر واتساب (ملاحظة 5): off unless the administration turns it on. */
+    guardian_whatsapp?: boolean;
   } | null;
   membership: { role: CenterRole; is_owner: boolean; active: boolean; name: string; default_filter: string | null } | null;
   centers: { id: string; slug: string; name: string; role: CenterRole; status: string; active: boolean }[];
@@ -69,7 +74,7 @@ export function accentStyle(c: { primary_color?: string | null } | null | undefi
 export function applyPalette(c: { palette?: Palette | null; primary_color?: string | null } | null | undefined) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  root.dataset.palette = c?.palette || "indigo";
+  root.dataset.palette = c?.palette || "navy";
   for (const [k, v] of Object.entries(accentStyle(c) ?? {})) root.style.setProperty(k, String(v));
   if (!accentStyle(c)) for (const k of ["--accent", "--accent-strong", "--accent-soft"]) root.style.removeProperty(k);
 }
@@ -86,9 +91,15 @@ export function slugify(s: string): string {
     .slice(0, 40);
 }
 
+/** One letter for a centre without a logo: «مركز النور» → «ن» (not the «ا» of «ال», which reads like an I). */
 export function initials(name: string): string {
-  const w = name.replace(/^(مركز|المركز|جمعية|دار)\s+/, "").trim();
-  return w.slice(0, 1) || "م";
+  const w = name
+    .trim()
+    .replace(/^(مركز|المركز|جمعية|الجمعية|دار|معهد|المعهد|حلقات)\s+/, "")
+    .replace(/^(تحفيظ|لتحفيظ)\s+/, "")
+    .trim();
+  const first = (w.split(/\s+/)[0] ?? "").replace(/^(ال|لل)(?=[\u0600-\u06FF]{2})/, "");
+  return first.slice(0, 1) || "م";
 }
 
 export function whatsappLink(n: string | null | undefined): string | null {

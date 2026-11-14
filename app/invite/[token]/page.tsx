@@ -47,7 +47,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
     const { error } = await supabase.rpc("accept_invite", { p_token: token, p_name: name.trim() || null });
     setBusy(false);
     if (error) return setError(error.message);
-    router.replace("/");
+    router.replace("/app");
   }
 
   if (info === undefined || email === undefined) return <div className="login"><p className="muted">جارٍ التحميل...</p></div>;

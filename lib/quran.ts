@@ -67,12 +67,13 @@ export class Mushaf {
 
   formatRange(r: QuranRange | null): string {
     if (!r) return "—";
+    // One surah: «البقرة (1 - 15)»; across surahs: «من البقرة (آية 284) إلى آل عمران (آية 10)».
     if (r.from.surah === r.to.surah) {
       return r.from.ayah === r.to.ayah
-        ? `${this.name(r.from.surah)} ${r.from.ayah}`
-        : `${this.name(r.from.surah)} ${r.from.ayah}–${r.to.ayah}`;
+        ? `${this.name(r.from.surah)} (${r.from.ayah})`
+        : `${this.name(r.from.surah)} (${r.from.ayah} - ${r.to.ayah})`;
     }
-    return `${this.name(r.from.surah)} ${r.from.ayah} ← ${this.name(r.to.surah)} ${r.to.ayah}`;
+    return `من ${this.name(r.from.surah)} (آية ${r.from.ayah}) إلى ${this.name(r.to.surah)} (آية ${r.to.ayah})`;
   }
 
   /** Distinct ayahs covered by a set of ranges (overlaps counted once). */
@@ -96,6 +97,51 @@ export class Mushaf {
     if (curStart >= 0) covered += curEnd - curStart + 1;
     return covered;
   }
+
+  /** Distinct ayahs covered in each surah (overlaps counted once). */
+  bySurah(ranges: QuranRange[]): Map<number, number> {
+    const hit = new Set<number>();
+    for (const r of ranges) for (let i = this.index(r.from); i <= this.index(r.to); i++) hit.add(i);
+    const out = new Map<number, number>();
+    for (const sr of this.surahs) {
+      const start = this.before[sr.surah_no] ?? 0;
+      let n = 0;
+      for (let a = 1; a <= sr.ayah_count; a++) if (hit.has(start + a)) n++;
+      if (n) out.set(sr.surah_no, n);
+    }
+    return out;
+  }
+
+  /**
+   * What was memorized, told in surahs rather than ayahs (ملاحظة 7): «سورة الكهف كاملة + 20 آية من مريم»,
+   * «3 سور كاملة»، «3 سور كاملة + أجزاء من سورتين». The data stays in ayahs; this is only how it reads.
+   */
+  describeSurahs(ranges: QuranRange[]): string {
+    const per = this.bySurah(ranges);
+    if (!per.size) return "لا شيء بعد";
+    const full: number[] = [];
+    const part: [number, number][] = [];
+    for (const [no, n] of per) (n >= this.ayahCount(no) ? full.push(no) : part.push([no, n]));
+    const fullText =
+      full.length === 0 ? "" : full.length === 1 ? `سورة ${this.name(full[0])} كاملة` : full.length === 2 ? `سورتا ${this.name(full[0])} و${this.name(full[1])}` : `${surahCount(full.length)} كاملة`;
+    const partText =
+      part.length === 0 ? "" : part.length === 1 ? `${ayahCount(part[0][1])} من ${this.name(part[0][0])}` : `أجزاء من ${surahCount(part.length)}`;
+    return [fullText, partText].filter(Boolean).join(" + ");
+  }
+}
+
+/** «سورة واحدة»، «سورتان»، «3 سور»، «11 سورة». */
+export function surahCount(n: number): string {
+  if (n === 1) return "سورة واحدة";
+  if (n === 2) return "سورتين";
+  return n <= 10 ? `${n} سور` : `${n} سورة`;
+}
+
+/** «آية واحدة»، «آيتان»، «5 آيات»، «20 آية». */
+export function ayahCount(n: number): string {
+  if (n === 1) return "آية واحدة";
+  if (n === 2) return "آيتان";
+  return n <= 10 ? `${n} آيات` : `${n} آية`;
 }
 
 export function entryRange(e: Pick<QuranEntry, "from_surah_no" | "from_ayah" | "to_surah_no" | "to_ayah">): QuranRange | null {

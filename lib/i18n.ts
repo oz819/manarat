@@ -5,17 +5,17 @@
 export type Locale = "ar" | "en";
 
 const ar = {
-  "platform.name": "منصة منارات",
+  "platform.name": "منصة تلاوة",
   "platform.tagline": "إدارة مراكز وحلقات تحفيظ القرآن الكريم",
   "platform.lead": "سجّل مركزك في دقائق، أضف المعلّمين والطلاب، وتابع الحفظ والتلاوة والحضور والتقارير لأولياء الأمور — من الجوال، وحتى بدون إنترنت.",
   "platform.cta": "سجّل مركزك مجانًا",
   "platform.login": "تسجيل الدخول",
-  "platform.find": "عندك رابط مركزك؟",
+  "platform.find": "لديك رابط مركزك؟",
   "platform.go": "اذهب",
   "f.track.t": "الحفظ والتلاوة والمراجعة",
   "f.track.d": "تسجيل يومي آية بآية، وخريطة حفظ لكل طالب.",
   "f.offline.t": "يعمل بدون إنترنت",
-  "f.offline.d": "سجّل الحضور والتسميع، ويتزامن كل شيء عند عودة الاتصال.",
+  "f.offline.d": "سجّل الحضور والتسميع، ويُحفظ كل شيء في حسابك عند عودة الاتصال.",
   "f.family.t": "أولياء الأمور",
   "f.family.d": "رابط خاص لكل طالب، وتقارير وتنبيهات غياب عبر واتساب.",
   "f.reports.t": "تقارير وشهادات",
@@ -33,17 +33,19 @@ const ar = {
   "signup.city": "المدينة",
   "signup.you": "اسمك",
   "signup.email": "البريد الإلكتروني",
-  "signup.password": "كلمة المرور (8 أحرف على الأقل)",
   "signup.submit": "إنشاء الحساب",
-  "signup.have": "عندك حساب؟",
-  "signup.check": "أرسلنا رابط تأكيد إلى بريدك. افتحه لإكمال إعداد مركزك.",
+  "signup.have": "لديك حساب؟",
+  "signup.check": "أرسلنا كود دخول من 6 أرقام إلى بريدك، فاكتبه هنا لإكمال إعداد مركزك. تفقّد الرسائل غير المرغوبة أيضًا.",
+  "signup.code": "كود الدخول",
+  "signup.verify": "تأكيد ومتابعة",
+  "signup.back": "تعديل البيانات",
   "lang.switch": "English",
 } as const;
 
 export type Key = keyof typeof ar;
 
 const en: Record<Key, string> = {
-  "platform.name": "Manarat",
+  "platform.name": "Tilawa",
   "platform.tagline": "Run Quran memorization centers and circles",
   "platform.lead": "Register your center in minutes, add teachers and students, and track memorization, recitation, attendance and parent reports — on any phone, even offline.",
   "platform.cta": "Register your center — free",
@@ -71,10 +73,12 @@ const en: Record<Key, string> = {
   "signup.city": "City",
   "signup.you": "Your name",
   "signup.email": "Email",
-  "signup.password": "Password (8+ characters)",
   "signup.submit": "Create account",
   "signup.have": "Already have an account?",
-  "signup.check": "We sent a confirmation link to your email. Open it to finish setting up your center.",
+  "signup.check": "We sent a 6-digit sign-in code to your email. Type it here to finish setting up your center. Check your spam folder too.",
+  "signup.code": "Sign-in code",
+  "signup.verify": "Confirm and continue",
+  "signup.back": "Edit details",
   "lang.switch": "العربية",
 };
 

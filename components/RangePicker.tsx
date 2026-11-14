@@ -30,12 +30,13 @@ export default function RangePicker({
             </option>
           ))}
         </select>
-        <label>آية</label>
+        <label>من آية (1–{mushaf.ayahCount(value.from.surah)})</label>
         <input
           type="number"
           inputMode="numeric"
           min={1}
           max={mushaf.ayahCount(value.from.surah)}
+          aria-invalid={value.from.ayah > mushaf.ayahCount(value.from.surah) || undefined}
           value={value.from.ayah || ""}
           onChange={(e) => onChange({ ...value, from: { ...value.from, ayah: Number(e.target.value) } })}
         />
@@ -55,16 +56,20 @@ export default function RangePicker({
             </option>
           ))}
         </select>
-        <label>آية</label>
+        <label>إلى آية (1–{mushaf.ayahCount(value.to.surah)})</label>
         <input
           type="number"
           inputMode="numeric"
           min={1}
           max={mushaf.ayahCount(value.to.surah)}
+          aria-invalid={value.to.ayah > mushaf.ayahCount(value.to.surah) || undefined}
           value={value.to.ayah || ""}
           onChange={(e) => onChange({ ...value, to: { ...value.to, ayah: Number(e.target.value) } })}
         />
       </div>
+      {(value.from.ayah > mushaf.ayahCount(value.from.surah) || value.to.ayah > mushaf.ayahCount(value.to.surah)) && (
+        <p className="error-text range-hint">رقم الآية أكبر من عدد آيات السورة</p>
+      )}
     </div>
   );
 }

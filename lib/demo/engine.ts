@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
@@ -22,9 +23,7 @@ async function boot(): Promise<PGlite> {
   const sql = (p: string) => readFileSync(join(/* turbopackIgnore: true */ root, p), "utf8");
   const db = new PGlite();
   await db.exec(sql("supabase/tests/auth_stub.sql"));
-  await db.exec(sql("supabase/tests/base_schema.sql"));
-  await db.exec(sql("supabase/seed_quran_surahs.sql"));
-  for (const f of readdirSync(join(/* turbopackIgnore: true */ root, "supabase/migrations")).filter((f) => f >= "20261101").sort()) {
+  for (const f of readdirSync(join(/* turbopackIgnore: true */ root, "supabase/migrations")).filter((f) => f.endsWith(".sql")).sort()) {
     await db.exec(sql(`supabase/migrations/${f}`));
   }
   await db.exec(seedSql());
@@ -34,14 +33,24 @@ async function boot(): Promise<PGlite> {
 // On Netlify the site runs on several server instances at once, each with its own memory. So the
 // database is snapshotted to Netlify Blobs after every change, and an instance that is behind
 // loads the latest snapshot before answering. Locally (no Blobs) it simply stays in memory.
-// Bump SNAPSHOT to start the demo over (e.g. after a schema change).
-const SNAPSHOT = "db-2026-11-04-v1";
+// The snapshot is named after the schema and the starting data: a new migration or a change to the
+// seed starts the demo over by itself (an old snapshot would bring back the old schema).
+const SNAPSHOT = (() => {
+  try {
+    const dir = join(/* turbopackIgnore: true */ process.cwd(), "supabase/migrations");
+    const h = createHash("sha1");
+    for (const f of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) h.update(f).update(readFileSync(join(dir, f)));
+    return `manarat-${h.update(seedSql()).digest("hex").slice(0, 12)}`;
+  } catch {
+    return "manarat-demo";
+  }
+})();
 
 async function blobStore(): Promise<Store | null> {
   if (g.__demoStore !== undefined) return g.__demoStore;
   try {
     const { getStore } = await import("@netlify/blobs");
-    g.__demoStore = getStore({ name: "madaya-demo", consistency: "strong" }) as unknown as Store;
+    g.__demoStore = getStore({ name: "manarat-demo", consistency: "strong" }) as unknown as Store;
     await g.__demoStore.getMetadata(SNAPSHOT);
   } catch {
     g.__demoStore = null;
@@ -49,11 +58,18 @@ async function blobStore(): Promise<Store | null> {
   return g.__demoStore;
 }
 
+// ملاحظة 9: reads don't ask Blobs for the latest version again if this instance asked a moment ago;
+// every write still checks first, so no change is lost between instances.
+const FRESH_MS = 1500;
+let checkedAt = 0;
+
 /** The up-to-date database (call inside the lock). */
-async function current(): Promise<PGlite> {
+async function current(write = true): Promise<PGlite> {
   const store = await blobStore();
+  if (!write && g.__demo && Date.now() - checkedAt < FRESH_MS) return g.__demo.db;
   let remote = 0;
   if (store) remote = Number((await store.getMetadata(SNAPSHOT).catch(() => null))?.metadata?.version ?? 0);
+  checkedAt = Date.now();
   const st = g.__demo;
   if (st && st.version >= remote) return st.db;
   if (store && remote > 0) {
@@ -419,7 +435,7 @@ export async function handleDemo(req: Request, path: string): Promise<Response> 
   } catch {}
   return locked(async () => {
     try {
-      active = await current();
+      active = await current(changes(req, path, body));
     } catch (e) {
       g.__demo = undefined;
       return pgError(e);

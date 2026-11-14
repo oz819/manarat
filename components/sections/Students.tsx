@@ -5,6 +5,7 @@ import { useApp } from "@/components/AppContext";
 import StudentCard from "@/components/StudentCard";
 import { useScope } from "@/components/FilterBar";
 import LessonCard from "@/components/LessonCard";
+import Talqeen from "@/components/sections/Talqeen";
 import SendReports from "@/components/SendReports";
 import Panel from "@/components/Panel";
 import AbsenceAlerts from "@/components/AbsenceAlerts";
@@ -38,7 +39,7 @@ export default function Students({
   onClose: () => void;
 }) {
   const s = useStore();
-  const { mushaf, showToast, profile } = useApp();
+  const { mushaf, showToast, profile, tracks } = useApp();
   const [query, setQuery] = useState("");
   // Typing stays responsive on long lists: the filtered list re-renders at lower priority.
   const deferredQuery = useDeferredValue(query);
@@ -112,6 +113,8 @@ export default function Students({
       </div>
 
       <LessonCard circles={scopedCircles} />
+
+      {tracks.has("TALQEEN") && <TalqeenCard />}
 
       <Insights students={active} open={open} />
 
@@ -201,7 +204,7 @@ export default function Students({
                 <li key={st.id} onClick={() => open(st.id)}>
                   <div>
                     <b>{st.name}</b>
-                    {unsynced.has(st.id) && <span className="dot" title="تغييرات لم تُرسل" />}
+                    {unsynced.has(st.id) && <span className="dot" title="محفوظ على الجهاز، سيُحفظ في الحساب عند الاتصال" />}
                     <div className="small muted">
                       {s.get("circles", st.circle_id)?.name ?? "—"}
                       {hifz && ` · حفظ: ${mushaf.formatRange(entryRange(hifz))}`}
@@ -431,6 +434,21 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
 
 // Two on-device insights from the locally synced window: students absent on their last few
 // recorded days (تنبيه الغياب, with a message to the family), and this month's top memorizers.
+// جلسة التلقين (من آية إلى آية) for a whole halaqa, folded until the teacher opens it.
+function TalqeenCard() {
+  const { tracks } = useApp();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="card talqeen-fold">
+      <button type="button" className="fold-head" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <h3>🎙️ جلسة {tracks.label("TALQEEN")}</h3>
+        <span className="muted">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <Talqeen embedded />}
+    </div>
+  );
+}
+
 function Insights({ students, open }: { students: Student[]; open: (id: string) => void }) {
   const s = useStore();
   const { mushaf } = useApp();

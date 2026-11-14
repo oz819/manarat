@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import type { Profile, Role } from "@/lib/types";
 import { Mushaf } from "@/lib/quran";
+import { SURAHS } from "@/lib/surahs";
 import { store, useStore } from "@/lib/offline/store";
-import { filterStore } from "@/lib/filter";
+import { filterStore, teacherTitle } from "@/lib/filter";
 import { getMeta, setMeta } from "@/lib/offline/idb";
 import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_DISABLED_MESSAGE, NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import { AppContext } from "@/components/AppContext";
 import Students from "@/components/sections/Students";
-import Talqeen from "@/components/sections/Talqeen";
 import Reports from "@/components/sections/Reports";
 import Ranking from "@/components/sections/Ranking";
 import Manage from "@/components/sections/Manage";
@@ -26,54 +26,30 @@ import InstallHint from "@/components/InstallHint";
 import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
-import PushToggle from "@/components/PushToggle";
+import Appearance from "@/components/Appearance";
 import { applyPalette, type MyContext } from "@/lib/center";
+import { tracksOf } from "@/lib/tracks";
 
 type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "manage" | "trash" | "audit";
 
 const NAV: { id: Page; label: string }[] = [
-  { id: "students", label: "الطلاب" },
-  { id: "talqeen", label: "التلقين" },
-  { id: "reports", label: "التقارير" },
-  { id: "ranking", label: "المتفوقون" },
+  { id: "students", label: "👨‍🎓 الطلاب" },
+  { id: "reports", label: "📊 التقارير" },
+  { id: "ranking", label: "⭐ المتفوقون" },
 ];
 
+// Admins and the centre's owner only: the database keeps these out of a teacher's reach.
+// «الإدارة» and the two logs come right after «المتفوقون»; «اللوحة» last.
 const ADMIN_NAV: { id: Page; label: string }[] = [
-  { id: "dashboard", label: "اللوحة" },
-  { id: "manage", label: "الإدارة" },
-  { id: "trash", label: "سجل المحذوفات" },
-  { id: "audit", label: "سجل التعديلات" },
+  { id: "manage", label: "⚙️ الإدارة" },
+  { id: "audit", label: "📜 سجل التعديلات" },
+  { id: "trash", label: "🗑️ سجل المحذوفات" },
+  { id: "dashboard", label: "📈 اللوحة" },
 ];
-
-// Stroke icons for the tab bar (24px grid).
-const NAV_ICON: Record<Page, string> = {
-  students: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
-  talqeen: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
-  reports: "M4 20V10M10 20V4M16 20v-7M22 20H2",
-  ranking: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z",
-  dashboard: "M4 4h6v8H4zM14 4h6v5h-6zM14 13h6v7h-6zM4 16h6v4H4z",
-  manage: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
-  trash: "M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3",
-  audit: "M8 4h8v3H8zM6 5H5v16h14V5h-1M9 12h6M9 16h4",
-};
-
-function NavButton({ id, label, active, onClick }: { id: Page; label: string; active: boolean; onClick: () => void }) {
-  const ref = useRef<HTMLButtonElement>(null);
-  // On phones the tab bar is one scrolling row: keep the open tab in view.
-  useEffect(() => {
-    const b = ref.current, row = b?.parentElement;
-    if (!active || !b || !row || row.scrollWidth <= row.clientWidth) return;
-    row.scrollTo({ left: b.offsetLeft - (row.clientWidth - b.offsetWidth) / 2, behavior: "smooth" });
-  }, [active]);
-  return (
-    <button ref={ref} className={active ? "active" : ""} onClick={onClick} aria-current={active ? "page" : undefined}>
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d={NAV_ICON[id]} />
-      </svg>
-      <span>{label}</span>
-    </button>
-  );
-}
+// «talqeen» stays a known page so old links and saved history don't break; its session form now
+// lives in «الطلاب», so opening it lands there.
+const PAGES = new Set<Page>(["students", "talqeen", "reports", "ranking", "dashboard", "manage", "trash", "audit"]);
+const landing = (v: View): View => (v.page === "talqeen" ? { ...v, page: "students" } : v);
 
 type CachedProfile = { userId: string; profile: Profile; centerId?: string; ctx?: MyContext };
 
@@ -109,56 +85,90 @@ export default function AppShell() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        if (navigator.onLine) router.replace("/login");
+        if (navigator.onLine) router.replace("/");
         else setBlockedMessage("أول تسجيل دخول يحتاج اتصالًا بالإنترنت.");
         return;
       }
       const userId = session.user.id;
       const cached = await getMeta<CachedProfile>("profile");
+      const cachedP = cached?.userId === userId ? cached.profile : null;
+      const cachedC = cached?.userId === userId ? (cached.ctx ?? null) : null;
 
-      let p: Profile | null = cached?.userId === userId ? cached.profile : null;
-      let c: MyContext | null = cached?.userId === userId ? cached.ctx ?? null : null;
-      if (navigator.onLine) {
-        // Who I am in the centre I work in now (memberships), and which centres I belong to.
+      // Who I am in the centre I work in now (memberships). Returns false when the app can't open.
+      const fromServer = async (): Promise<{ p: Profile; c: MyContext } | false | null> => {
         const { data, error } = await supabase.rpc("my_context");
-        if (!error && data) {
-          c = data as unknown as MyContext;
-          const m = c.membership;
-          if (!c.center || !m) {
-            // Just signed up for a new centre and hasn't created it yet: finish that first.
-            if (c.blocked === "NO_CENTER" && !c.centers.length && session.user.user_metadata?.pending_center) {
-              router.replace("/onboarding");
-              return;
-            }
-            if (c.is_platform_admin && c.blocked === "NO_CENTER") {
-              router.replace("/super");
-              return;
-            }
-            setBlockedMessage(BLOCKED_MESSAGE[c.blocked ?? "NO_CENTER"]);
-            if (c.blocked !== "SUSPENDED") await supabase.auth.signOut();
-            return;
+        if (error || !data) return null;
+        const c = data as unknown as MyContext;
+        const m = c.membership;
+        if (!c.center || !m) {
+          // Just signed up for a new centre and hasn't created it yet: finish that first.
+          if (c.blocked === "NO_CENTER" && !c.centers.length && session.user.user_metadata?.pending_center) {
+            router.replace("/onboarding");
+            return false;
           }
-          p = { id: userId, name: m.name, role: m.role as Role, active: m.active, default_filter: m.default_filter };
+          if (c.is_platform_admin && c.blocked === "NO_CENTER") {
+            router.replace("/super");
+            return false;
+          }
+          setProfile(null);
+          setBlockedMessage(BLOCKED_MESSAGE[c.blocked ?? "NO_CENTER"]);
+          if (c.blocked !== "SUSPENDED") await supabase.auth.signOut({ scope: "local" });
+          return false;
         }
+        return { p: { id: userId, name: m.name, role: m.role as Role, active: m.active, default_filter: m.default_filter }, c };
+      };
+
+      const open = async (p: Profile, c: MyContext | null) => {
+        // A different account or a different centre on this device: start from a clean local copy,
+        // unless the previous one still has unsaved changes (those are kept and sent).
+        if (cached && (cached.userId !== userId || (cached.centerId && cached.centerId !== c?.center?.id))) {
+          await store.ensureLoaded();
+          if (store.status.pending + store.status.failed === 0) await store.reset();
+        }
+        await setMeta("profile", { userId, profile: p, centerId: c?.center?.id, ctx: c ?? undefined } satisfies CachedProfile);
+        applyPalette(c?.center);
+        setCtx(c);
+        setProfile(p);
+        filterStore.init(supabase, userId, p.default_filter);
+        await store.start(supabase, userId);
+        started = true;
+      };
+
+      // ملاحظة 9: back on this device with the same account — open at once from the saved copy and check
+      // with the server meanwhile, instead of making every opening wait for the network.
+      if (cachedP && cachedC?.center) {
+        await open(cachedP, cachedC);
+        if (!navigator.onLine) return;
+        const fresh = await fromServer();
+        if (!fresh) {
+          if (fresh === false) store.stop();
+          return;
+        }
+        if (fresh.c.center!.id !== cachedC.center.id) {
+          // The current centre changed on another device: reopen on the right one.
+          if (store.status.pending + store.status.failed === 0) await store.reset();
+          location.reload();
+          return;
+        }
+        await setMeta("profile", { userId, profile: fresh.p, centerId: fresh.c.center!.id, ctx: fresh.c } satisfies CachedProfile);
+        applyPalette(fresh.c.center);
+        setCtx(fresh.c);
+        setProfile(fresh.p);
+        return;
+      }
+
+      let p: Profile | null = cachedP;
+      let c: MyContext | null = cachedC;
+      if (navigator.onLine) {
+        const fresh = await fromServer();
+        if (fresh === false) return;
+        if (fresh) ({ p, c } = fresh);
       }
       if (!p) {
         setBlockedMessage("تعذّر التحقق من الحساب. اتصل بالإنترنت وأعد المحاولة.");
         return;
       }
-
-      // A different account or a different centre on this device: start from a clean local copy,
-      // unless the previous one still has unsynced changes (those are kept and sent).
-      if (cached && (cached.userId !== userId || (cached.centerId && cached.centerId !== c?.center?.id))) {
-        await store.ensureLoaded();
-        if (store.status.pending + store.status.failed === 0) await store.reset();
-      }
-      await setMeta("profile", { userId, profile: p, centerId: c?.center?.id, ctx: c ?? undefined } satisfies CachedProfile);
-      applyPalette(c?.center);
-      setCtx(c);
-      setProfile(p);
-      filterStore.init(supabase, userId, p.default_filter);
-      await store.start(supabase, userId);
-      started = true;
+      await open(p, c);
     })();
     return () => {
       if (started) store.stop();
@@ -168,14 +178,18 @@ export default function AppShell() {
 
   useEffect(() => {
     const current = (history.state as { view?: View } | null)?.view;
-    if (current) setView(current);
+    if (current && PAGES.has(current.page)) setView(landing(current));
     else history.replaceState({ ...history.state, view: HOME }, "");
-    const onPop = (e: PopStateEvent) => setView((e.state as { view?: View } | null)?.view ?? HOME);
+    const onPop = (e: PopStateEvent) => {
+      const v = (e.state as { view?: View } | null)?.view;
+      setView(v && PAGES.has(v.page) ? landing(v) : HOME);
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  function go(next: View) {
+  function go(to: View) {
+    const next = landing(to);
     if (next.page === view.page && next.studentId === view.studentId) return;
     setView(next);
     history.pushState({ view: next }, "");
@@ -203,7 +217,10 @@ export default function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revoked]);
 
-  const surahs = s.all("quran_surahs");
+  const tracks = useMemo(() => tracksOf(ctx?.center), [ctx?.center]);
+  // The surahs ship with the app (lib/surahs.ts); the synced table is used once it is on the device.
+  const synced = s.all("quran_surahs");
+  const surahs = synced.length === 114 ? synced : SURAHS;
   const mushaf = useMemo(() => new Mushaf(surahs), [surahs]);
 
   async function refreshCenter() {
@@ -218,7 +235,7 @@ export default function AppShell() {
     if (!ctx || id === ctx.center?.id) return;
     if (navigator.onLine) await store.sync();
     if (store.status.pending + store.status.failed > 0) {
-      showToast("في تغييرات لم تُرسل بعد. اتصل بالإنترنت وانتظر حتى تُرسل ثم بدّل المركز");
+      showToast("بعض التعديلات محفوظة على الجهاز ولم تُحفظ في الحساب بعد. اتصل بالإنترنت وانتظر «تم الحفظ ✓» ثم بدّل المركز");
       return;
     }
     const { error } = await supabase.rpc("switch_center", { p_center_id: id });
@@ -227,28 +244,31 @@ export default function AppShell() {
     location.reload();
   }
 
+  // ملاحظة 9: leaving is immediate — send what is waiting (a few seconds at most), never a full pull,
+  // then clear the session and this device's copy and go to the login page.
   async function logout() {
-    if (navigator.onLine) await store.sync();
+    await store.flush();
     const unsent = store.status.pending + store.status.failed;
     if (unsent > 0) {
       const ok = confirm(
-        `لديك ${unsent} تغيير لم يُرسل بعد إلى الخادم. تسجيل الخروج الآن يحذفها من هذا الجهاز نهائيًا.\n\nهل تريد تجاهلها وتسجيل الخروج؟`
+        `لديك ${unsent} تعديل محفوظ على هذا الجهاز ولم يُحفظ في الحساب بعد. تسجيل الخروج الآن يحذفه نهائيًا.\n\nهل تريد تسجيل الخروج رغم ذلك؟`
       );
       if (!ok) return;
     }
-    await store.reset();
-    await supabase.auth.signOut();
-    router.replace("/login");
+    store.stop();
+    await supabase.auth.signOut({ scope: "local" });
+    router.replace("/");
+    void store.reset();
   }
 
   if (blockedMessage) {
     return (
       <div className="login">
         <div className="loginbox">
-          <h1>حلقات القرآن</h1>
+          <h1>تلاوة</h1>
           <p className="center">{blockedMessage}</p>
-          <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/login")}>
-            العودة لتسجيل الدخول
+          <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/")}>
+            العودة إلى الصفحة الرئيسية
           </button>
         </div>
       </div>
@@ -270,13 +290,13 @@ export default function AppShell() {
   }
 
   return (
-    <AppContext.Provider value={{ supabase, profile, mushaf, showToast, center: ctx!.center!, isOwner: !!ctx?.membership?.is_owner, isPlatformAdmin: !!ctx?.is_platform_admin, refreshCenter }}>
+    <AppContext.Provider value={{ supabase, profile, mushaf, showToast, center: ctx!.center!, isOwner: !!ctx?.membership?.is_owner, isPlatformAdmin: !!ctx?.is_platform_admin, refreshCenter, tracks }}>
       <header className="no-print">
         <div className="headerrow">
           <div className="brand-row">
-            <CenterMark name={ctx?.center?.name ?? "منارات"} logo={ctx?.center?.logo_url} />
+            <CenterMark name={ctx?.center?.name ?? "تلاوة"} logo={ctx?.center?.logo_url} />
             <div className="brand-text">
-              <h1>{ctx?.center?.name ?? "حلقات القرآن"}</h1>
+              <h1>{ctx?.center?.name ?? "تلاوة"}</h1>
               <div className="dates">
                 <span className="hijri">
                   {greeting()} · {hijriToday()}
@@ -287,7 +307,7 @@ export default function AppShell() {
           </div>
           <div className="userbox">
             <span>
-              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : "محفّظ"}
+              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : teacherTitle(profile.default_filter, s.all("circles"))}
             </span>
             <div className="userbox-actions">
               {ctx && ctx.centers.filter((c) => c.active).length > 1 && (
@@ -305,13 +325,9 @@ export default function AppShell() {
                 </Link>
               )}
               <SyncBadge />
-              <PushToggle />
-              <button className="logout" onClick={logout}>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
-                </svg>
-                خروج
-              </button>
+              <Appearance />
+              <button className="secondary" onClick={() => router.push("/")}>الرئيسية</button>
+              <button onClick={logout}>خروج</button>
             </div>
           </div>
         </div>
@@ -320,7 +336,9 @@ export default function AppShell() {
       <nav className="no-print sliding">
         <SlidingIndicator active={page} />
         {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
-          <NavButton key={n.id} id={n.id} label={n.label} active={page === n.id} onClick={() => setPage(n.id)} />
+          <button key={n.id} className={page === n.id ? "active" : ""} onClick={() => setPage(n.id)}>
+            {n.label}
+          </button>
         ))}
       </nav>
 
@@ -334,12 +352,26 @@ export default function AppShell() {
       )}
 
       <main>
+        {page !== "students" ? (
+          <div className="back-row no-print">
+            <button type="button" className="link back-btn" onClick={() => setPage("students")}>
+              → رجوع
+            </button>
+          </div>
+        ) : (
+          !view.studentId && (
+            <div className="back-row no-print">
+              <Link href="/" className="link back-btn">
+                → رجوع إلى الرئيسية
+              </Link>
+            </div>
+          )
+        )}
         <div className="no-print">
           <InstallHint />
-          {((page === "students" && !view.studentId) || page === "talqeen" || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
+          {((page === "students" && !view.studentId) || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
         </div>
         {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
-        {page === "talqeen" && <Talqeen />}
         {page === "reports" && <Reports />}
         {page === "ranking" && <Ranking />}
         {page === "dashboard" && profile.role === "ADMIN" && <Dashboard openStudent={openStudent} openManage={() => setPage("manage")} />}
@@ -366,9 +398,9 @@ function gregorianToday(): string {
   }
 }
 
+// The Islamic greeting at every hour of the day.
 function greeting(): string {
-  const h = new Date().getHours();
-  return h < 12 ? "صباح الخير" : "مساء الخير";
+  return "السلام عليكم ورحمة الله";
 }
 
 // Today's date in the Umm al-Qura Hijri calendar, e.g. "١٦ ربيع الآخر ١٤٤٨ هـ".
@@ -379,3 +411,4 @@ function hijriToday(): string {
     return "";
   }
 }
+

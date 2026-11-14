@@ -12,8 +12,9 @@ import { todayStr, type TalqeenSession } from "@/lib/types";
 
 type Tick = { checked: boolean; notes: string };
 
-// Talqeen session (spec §5.2): record a passage once for everyone present.
-export default function Talqeen() {
+// Talqeen session (spec §5.2): record a passage once for everyone present. Shown inside «الطلاب»
+// in a folding card (`embedded`), which carries the title.
+export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
   const s = useStore();
   const { mushaf, showToast } = useApp();
   // A session is for one halaqa: offer the ones the shared filter covers.
@@ -114,7 +115,7 @@ export default function Talqeen() {
   return (
     <section>
       <div className="card">
-        <h3>🎙️ جلسة تلقين</h3>
+        {!embedded && <h3>🎙️ جلسة تلقين</h3>}
         <div className="formgrid compact">
           <div>
             <label>الحلقة</label>

@@ -36,7 +36,7 @@ const STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT"];
 
 export default function StudentCard({ studentId, onClose }: { studentId: string; onClose: () => void }) {
   const s = useStore();
-  const { mushaf, profile, showToast } = useApp();
+  const { mushaf, profile, showToast, tracks } = useApp();
   // Opened from «جاهزون للاختبار»: straight to the exams tab on that juz'.
   const [intent] = useState(() => takeCardIntent(studentId));
   const [section, setSection] = useState<Section>(intent?.tab ?? "HIFZ");
@@ -58,6 +58,11 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
   }
 
   const today = todayStr();
+  // التلقين is optional per centre (الإدارة ← قسم التلقين), and named the way the centre calls it.
+  const talqeenOn = tracks.has("TALQEEN");
+  const sections = SECTIONS.filter((sec) => sec.id !== "TALQEEN" || talqeenOn).map((sec) =>
+    sec.id === "TALQEEN" ? { ...sec, label: tracks.label("TALQEEN") } : sec
+  );
   const quran = s.byStudent("quran_entries").get(studentId) ?? [];
   const arabic = s.byStudent("arabic_entries").get(studentId) ?? [];
   const edu = s.byStudent("edu_notes").get(studentId) ?? [];
@@ -120,7 +125,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
                 <span className="muted">سجلاته قبل كل نقل تبقى محسوبة على حلقته القديمة.</span>
               </details>
             )}
-            {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>تغييرات لم تُرسل بعد</span>}
+            {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>لم يُحفظ في الحساب بعد</span>}
           </div>
           <button className={`secondary${editing ? " on" : ""}`} aria-pressed={editing} onClick={() => setEditing(true)}>
             ✏️ تعديل الطالب
@@ -150,7 +155,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
           <Pos label="الحفظ" value={p.hifz ? mushaf.formatRange(p.hifz.range) : null} extra={p.hifz?.percent != null ? `${p.hifz.percent}% محفوظ` : undefined} date={p.hifz?.entry.entry_date} />
           <Pos label="التلاوة" value={p.tilawa ? mushaf.formatRange(p.tilawa.range) : null} extra={p.tilawa?.percent != null ? `${p.tilawa.percent}%` : undefined} date={p.tilawa?.entry.entry_date} />
           <Pos label="المراجعة" value={p.murajaa ? mushaf.formatRange(p.murajaa.range) : null} date={p.murajaa?.entry.entry_date} />
-          <Pos label="التلقين" value={p.talqeen ? mushaf.formatRange(p.talqeen.range) : null} date={p.talqeen?.entry.entry_date} />
+          {talqeenOn && <Pos label={tracks.label("TALQEEN")} value={p.talqeen ? mushaf.formatRange(p.talqeen.range) : null} date={p.talqeen?.entry.entry_date} />}
           <Pos
             label="العربية"
             value={p.arabic ? `${p.arabic.book.title} — ص ${p.arabic.page}` : lastFinished ? `✅ أنهى ${lastFinished}` : null}
@@ -164,7 +169,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
 
       <div className="tabs sliding">
         <SlidingIndicator active={section} />
-        {SECTIONS.map((sec) => (
+        {sections.map((sec) => (
           <button
             key={sec.id}
             className={section === sec.id ? "active" : ""}
@@ -198,7 +203,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
         {section === "EXAMS" && (
           <ExamsSection key={studentId} studentId={studentId} exams={s.byStudent("exams").get(studentId) ?? []} initialJuz={intent?.juz} />
         )}
-        {section === "TALQEEN" && <TalqeenList entries={quran.filter((e) => e.track === "TALQEEN")} />}
+        {section === "TALQEEN" && talqeenOn && <TalqeenList entries={quran.filter((e) => e.track === "TALQEEN")} />}
         {section === "ARABIC" && <ArabicSection key={studentId} studentId={studentId} enrollments={enrollments} entries={arabic} />}
         {section === "TARBIYA" && <TarbiyaSection key={studentId} studentId={studentId} notes={edu} />}
         <div style={{ marginTop: 12 }}>
@@ -228,13 +233,17 @@ function Pos({ label, value, extra, date }: { label: string; value: string | nul
 }
 
 function TalqeenList({ entries }: { entries: QuranEntry[] }) {
-  const { mushaf, showToast } = useApp();
+  const { mushaf, showToast, tracks } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quality, setQuality] = useState("");
   const [notes, setNotes] = useState("");
   const list = [...entries].sort(byNewest((e) => e.entry_date));
 
-  if (!list.length) return <p className="muted">لا توجد جلسات تلقين لهذا الطالب. تُسجَّل من شاشة «التلقين».</p>;
+  if (!list.length) return (
+      <p className="muted">
+        لا توجد جلسات {tracks.label("TALQEEN")} لهذا الطالب. تُسجَّل من بطاقة «جلسة {tracks.label("TALQEEN")}» في صفحة «الطلاب».
+      </p>
+    );
 
   return (
     <ul className="history">

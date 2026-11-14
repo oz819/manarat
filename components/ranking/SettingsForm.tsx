@@ -19,9 +19,9 @@ export default function SettingsForm({ settings }: { settings: RankingSettings }
     e.preventDefault();
     for (const q of QUALITIES) {
       const n = Number(v.grades[q]);
-      if (!Number.isFinite(n) || n < 0 || n > 100) return setError(`قيمة «${q}» لازم تكون بين 0 و100`);
+      if (!Number.isFinite(n) || n < 0 || n > 100) return setError(`قيمة «${q}» يجب أن تكون بين 0 و100`);
     }
-    if (!Number.isInteger(Number(v.passMark)) || v.passMark < 1 || v.passMark > 100) return setError("علامة النجاح لازم تكون بين 1 و100");
+    if (!Number.isInteger(Number(v.passMark)) || v.passMark < 1 || v.passMark > 100) return setError("علامة النجاح يجب أن تكون بين 1 و100");
     const err = await rankingSettings.save(supabase, v);
     if (err) return setError(err);
     setError("");

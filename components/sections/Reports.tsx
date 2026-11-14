@@ -55,7 +55,11 @@ type Row = { student: Student; cells: Partial<Record<TrackKey, Cell>> };
 // offline it falls back to this device's local copy and says so.
 export default function Reports() {
   const s = useStore();
-  const { supabase, mushaf } = useApp();
+  const { supabase, mushaf, tracks: centerTracks } = useApp();
+  // التلقين only when the centre uses it, under the centre's own name for it.
+  const options = TRACKS.filter((t) => t.id !== "TALQEEN" || centerTracks.has("TALQEEN")).map((t) =>
+    t.id === "TALQEEN" ? { ...t, label: centerTracks.label("TALQEEN") } : t
+  );
   // Who the report covers: the students in the shared filter (section / halaqa / all), or one of them.
   const { filter, inScope, label: filterName } = useScope();
   const allStudents = s
@@ -72,7 +76,9 @@ export default function Reports() {
   const [from, setFrom] = useState(addDays(todayStr(), -6));
   const [to, setTo] = useState(todayStr());
   const [month, setMonth] = useState(todayStr().slice(0, 7));
-  const [tracks, setTracks] = useState<Set<TrackKey>>(new Set(["HIFZ", "TILAWA", "MURAJAA", "TALQEEN", "ATTENDANCE", "LESSON"]));
+  const [tracks, setTracks] = useState<Set<TrackKey>>(() =>
+    new Set<TrackKey>(["HIFZ", "TILAWA", "MURAJAA", ...(centerTracks.has("TALQEEN") ? (["TALQEEN"] as const) : []), "ATTENDANCE", "LESSON"])
+  );
   const [data, setData] = useState<ReportData | null>(null);
   const [offline, setOffline] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -156,7 +162,7 @@ export default function Reports() {
     attendance: keep(data.attendance, (a) => a.att_date),
     lessons: data.lessons,
   };
-  const chosen = TRACKS.filter((t) => tracks.has(t.id));
+  const chosen = options.filter((t) => tracks.has(t.id));
   const rows = filtered ? buildRows(students, filtered, chosen.map((t) => t.id), period, mushaf, books, history.circleOn) : [];
   const scopeLabel =
     scope === "student" ? (s.get("students", studentId)?.name ?? "—") : filter === "all" ? "جميع الحلقات" : filterName;
@@ -247,7 +253,7 @@ export default function Reports() {
         </div>
         <div className="recent" style={{ marginTop: 10 }}>
           <span className="muted">المسارات:</span>
-          {TRACKS.map((t) => (
+          {options.map((t) => (
             <label key={t.id} className="chip inline">
               <input
                 type="checkbox"

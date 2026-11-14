@@ -2,8 +2,7 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
-// Landing point for every link Supabase Auth emails out (account confirmation, password
-// recovery, email change). Establishes the session, then forwards to `next`.
+// Landing point for every link Supabase Auth emails out (account confirmation, email change). Establishes the session, then forwards to `next`.
 //
 // Two link shapes are accepted on purpose, because which one arrives depends on how the email
 // templates are configured in the Supabase dashboard:
@@ -17,10 +16,10 @@ export async function GET(request: Request) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/app";
 
   // Only allow forwarding to a path on this app — never to an attacker-supplied absolute URL.
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/app";
 
   const supabase = await createClient();
 

@@ -7,11 +7,12 @@ import CircleForm from "@/components/CircleForm";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { adminSoftDelete } from "@/lib/adminDelete";
 import { PROFILE_COLUMNS, store, useStore } from "@/lib/offline/store";
-import { SECTIONS, SECTION_LABEL, effectiveFilter, filterLabel, filterOptions } from "@/lib/filter";
+import { SECTIONS, SECTION_LABEL, effectiveFilter, filterLabel, filterOptions, teacherTitle } from "@/lib/filter";
 import CenterSettings, { HonorSettings } from "@/components/CenterSettings";
 import Registrations from "@/components/Registrations";
 import ExportExcel from "@/components/ExportExcel";
 import CenterProfile from "@/components/center/CenterProfile";
+import { TalqeenSetting } from "@/components/center/CenterTracks";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
 import DevCredit from "@/components/landing/DevCredit";
@@ -25,16 +26,18 @@ export default function Manage() {
         صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
         الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
       </div>
-      <CenterProfile />
+      {/* Same order as the Madaya centre; what a multi-centre platform adds comes after. */}
       <Registrations />
-      <Invites />
       <Teachers />
       <Halaqat />
-      <ImportStudents />
       <ArabicBooks />
       <CenterSettings />
+      <TalqeenSetting />
       <HonorSettings />
       <ExportExcel />
+      <CenterProfile />
+      <Invites />
+      <ImportStudents />
       <DevCredit />
     </section>
   );
@@ -45,7 +48,7 @@ function Teachers() {
   const { supabase, profile, showToast } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [newRole, setNewRole] = useState<"TEACHER" | "ADMIN">("TEACHER");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [emails, setEmails] = useState<Record<string, string>>({});
@@ -81,15 +84,15 @@ function Teachers() {
       const res = await fetch("/api/admin/teachers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), role: newRole }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setError(data.error || "تعذّر إضافة المحفّظ");
       setName("");
       setEmail("");
-      setPassword("");
+      setNewRole("TEACHER");
       await refresh();
-      showToast("تمت إضافة المحفّظ");
+      showToast(newRole === "ADMIN" ? "تمت إضافة المدير" : "تمت إضافة المحفّظ");
     } catch {
       setError("تحتاج اتصالًا بالإنترنت");
     } finally {
@@ -168,28 +171,18 @@ function Teachers() {
     showToast(`تم حذف «${personName}» — تجده في سجل المحذوفات`);
   }
 
-  async function resetPassword(id: string) {
-    const pw = prompt("كلمة المرور الجديدة (8 أحرف على الأقل):");
-    if (!pw) return;
-    const res = await fetch(`/api/admin/teachers/${id}/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: pw }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return setError(data.error || "تعذّر تغيير كلمة المرور");
-    showToast("تم تغيير كلمة المرور");
-  }
-
   return (
     <div className="card">
       <h3>👥 المحفّظون والمدراء</h3>
       <div className="formgrid compact">
         <input placeholder="الاسم" value={name} onChange={(e) => setName(e.target.value)} />
         <input placeholder="البريد الإلكتروني" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input placeholder="كلمة المرور (8 أحرف+)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <select aria-label="الصلاحية" value={newRole} onChange={(e) => setNewRole(e.target.value === "ADMIN" ? "ADMIN" : "TEACHER")}>
+          <option value="TEACHER">الصلاحية: محفّظ</option>
+          <option value="ADMIN">الصلاحية: مدير</option>
+        </select>
         <button onClick={add} disabled={busy}>
-          إضافة محفّظ
+          {newRole === "ADMIN" ? "إضافة مدير" : "إضافة محفّظ"}
         </button>
       </div>
       <p className="small muted">يدخل المحفّظ بعدها برمز يصله على بريده. لا يستطيع أحد غير مسجّل هنا إنشاء حساب بنفسه.</p>
@@ -218,7 +211,7 @@ function Teachers() {
                   <td className="small" dir="ltr" style={{ textAlign: "right" }}>
                     {emails[p.id] ?? "—"}
                   </td>
-                  <td>{p.role === "ADMIN" ? "مدير" : "محفّظ"}</td>
+                  <td>{p.role === "ADMIN" ? "مدير" : teacherTitle(p.default_filter, circles)}</td>
                   <td>{p.active ? "مفعّل" : "معطّل"}</td>
                   <td className="row-actions">
                     {p.id !== profile.id && (
@@ -250,9 +243,6 @@ function Teachers() {
                     )}
                     <button className="link" onClick={() => startEdit(p.id, p.name, p.default_filter)}>
                       تعديل
-                    </button>
-                    <button className="link" onClick={() => resetPassword(p.id)}>
-                      كلمة المرور
                     </button>
                     {p.id !== profile.id && (
                       <button className="link danger-link" disabled={busy} onClick={() => remove(p.id, p.name)}>
@@ -336,6 +326,25 @@ function Halaqat() {
     showToast("تم الحفظ");
   }
 
+  // A circle's teacher = the account that opens on that circle (its «يفتح على» filter, as in «تعديل»).
+  const staff = s.all("profiles").filter((p) => p.active).sort((a, b) => a.name.localeCompare(b.name, "ar"));
+  const teacherOf = (cid: string) => staff.find((p) => p.default_filter === `c:${cid}`)?.id ?? "";
+  async function setTeacher(cid: string, pid: string) {
+    setError("");
+    const before = staff.filter((p) => p.default_filter === `c:${cid}` && p.id !== pid).map((p) => p.id);
+    if (before.length) {
+      const { error } = await supabase.from("profiles").update({ default_filter: null }).in("id", before);
+      if (error) return setError(error.message);
+    }
+    if (pid) {
+      const { error } = await supabase.from("profiles").update({ default_filter: `c:${cid}` }).eq("id", pid);
+      if (error) return setError(error.message);
+    }
+    const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS);
+    if (data) await store.applyRemote("profiles", data);
+    showToast(pid ? "تم تعيين محفّظ الحلقة" : "أُزيل محفّظ الحلقة");
+  }
+
   async function remove(id: string, circleName: string) {
     const ok = await confirmDialog({
       title: `حذف الحلقة «${circleName}»؟`,
@@ -379,11 +388,13 @@ function Halaqat() {
         </div>
       )}
       {error && <p className="error-text">{error}</p>}
+      <div style={{ overflow: "auto" }}>
       <table>
         <thead>
           <tr>
             <th>الحلقة</th>
             <th>القسم</th>
+            <th>المحفّظ</th>
             <th>الطلاب</th>
             <th></th>
           </tr>
@@ -405,6 +416,16 @@ function Halaqat() {
                   {SECTIONS.map((sec) => (
                     <option key={sec} value={sec}>
                       {SECTION_LABEL[sec]}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td>
+                <select className="cell-select" value={teacherOf(c.id)} onChange={(e) => setTeacher(c.id, e.target.value)} aria-label={`محفّظ ${c.name}`}>
+                  <option value="">—</option>
+                  {staff.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
                     </option>
                   ))}
                 </select>
@@ -431,6 +452,7 @@ function Halaqat() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

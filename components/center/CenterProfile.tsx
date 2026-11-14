@@ -26,7 +26,7 @@ type Form = {
 const FIELDS: [keyof Form, string, string?][] = [
   ["country", "الدولة"],
   ["city", "المدينة"],
-  ["whatsapp", "واتساب (بالرمز الدولي)", "963993323763"],
+  ["whatsapp", "واتساب (بالرمز الدولي)", "962790000000"],
   ["contact_phone", "هاتف"],
   ["contact_email", "البريد"],
   ["instagram", "رابط انستغرام", "https://instagram.com/…"],
@@ -58,7 +58,7 @@ export default function CenterProfile() {
           name: data.name,
           about: data.about ?? "",
           logo_url: data.logo_url,
-          palette: (data.palette as Palette) || "indigo",
+          palette: (data.palette as Palette) || "navy",
           primary_color: data.primary_color ?? "",
           country: data.country ?? "",
           city: data.city ?? "",

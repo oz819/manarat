@@ -29,7 +29,7 @@ export async function membershipIn(admin: SupabaseClient<Database>, userId: stri
 }
 
 /**
- * A centre's admin may change a login's email or password only when that login belongs to their
+ * A centre's admin may change a login's email only when that login belongs to their
  * centre alone — otherwise one centre could take over an account another centre relies on.
  */
 export async function onlyInCenter(admin: SupabaseClient<Database>, userId: string, centerId: string): Promise<boolean> {

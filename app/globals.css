@@ -144,11 +144,11 @@ label.inline input{width:auto}
 /* Aurora: big soft blobs (radial gradients fade to transparent, so no runtime blur cost) that
    drift and breathe with transform/opacity. "alternate" makes every loop reverse smoothly. */
 .aurora{position:absolute;border-radius:50%;will-change:transform,opacity;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}
-.aurora.a1{width:75vmax;height:75vmax;left:-25vmax;top:-30vmax;background:radial-gradient(circle,rgba(5,30,21,.9) 0%,rgba(5,30,21,.45) 40%,transparent 70%);animation-name:aurora-1;animation-duration:24s}
-.aurora.a2{width:65vmax;height:65vmax;right:-20vmax;top:5vmax;background:radial-gradient(circle,rgba(56,160,112,.6) 0%,rgba(56,160,112,.24) 42%,transparent 70%);animation-name:aurora-2;animation-duration:19s}
-.aurora.a3{width:70vmax;height:70vmax;left:5vmax;bottom:-35vmax;background:radial-gradient(circle,rgba(30,110,78,.6) 0%,rgba(30,110,78,.25) 42%,transparent 70%);animation-name:aurora-3;animation-duration:28s}
+.aurora.a1{width:75vmax;height:75vmax;left:-25vmax;top:-30vmax;background:radial-gradient(circle,rgba(12,18,45,.9) 0%,rgba(12,18,45,.45) 40%,transparent 70%);animation-name:aurora-1;animation-duration:24s}
+.aurora.a2{width:65vmax;height:65vmax;right:-20vmax;top:5vmax;background:radial-gradient(circle,rgba(111,106,168,.6) 0%,rgba(111,106,168,.24) 42%,transparent 70%);animation-name:aurora-2;animation-duration:19s}
+.aurora.a3{width:70vmax;height:70vmax;left:5vmax;bottom:-35vmax;background:radial-gradient(circle,rgba(42,54,112,.6) 0%,rgba(42,54,112,.25) 42%,transparent 70%);animation-name:aurora-3;animation-duration:28s}
 .aurora.a4{width:45vmax;height:45vmax;right:5vmax;top:-12vmax;background:radial-gradient(circle,rgba(220,182,92,.32) 0%,color-mix(in srgb, var(--accent-2) 12%, transparent) 45%,transparent 70%);animation-name:aurora-4;animation-duration:16s}
-.aurora.a5{width:50vmax;height:50vmax;left:-12vmax;top:35vmax;background:radial-gradient(circle,rgba(70,170,120,.48) 0%,rgba(70,170,120,.18) 45%,transparent 70%);animation-name:aurora-5;animation-duration:22s}
+.aurora.a5{width:50vmax;height:50vmax;left:-12vmax;top:35vmax;background:radial-gradient(circle,rgba(227,176,98,.48) 0%,rgba(227,176,98,.18) 45%,transparent 70%);animation-name:aurora-5;animation-duration:22s}
 @keyframes aurora-1{0%{transform:translate3d(0,0,0) scale(1);opacity:.9}100%{transform:translate3d(32vw,22vh,0) scale(1.25);opacity:.55}}
 @keyframes aurora-2{0%{transform:translate3d(0,0,0) scale(1.1);opacity:.7}100%{transform:translate3d(-38vw,30vh,0) scale(.8);opacity:1}}
 @keyframes aurora-3{0%{transform:translate3d(0,0,0) scale(.95);opacity:.85}100%{transform:translate3d(34vw,-26vh,0) scale(1.25);opacity:.5}}
@@ -191,7 +191,7 @@ label.inline input{width:auto}
 @keyframes halo-breathe{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(.96)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}}
 
 /* ---- About card (dark glass), social links and footer link ---- */
-.landing-about{position:relative;margin-top:26px;width:100%;max-width:700px;padding:26px 30px 24px;text-align:right;background:rgba(6,34,24,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid color-mix(in srgb, var(--accent-2) 55%, transparent);border-radius:18px;box-shadow:0 14px 45px rgba(0,0,0,.35),inset 0 0 0 1px rgba(232,207,138,.08)}
+.landing-about{position:relative;margin-top:26px;width:100%;max-width:700px;padding:26px 30px 24px;text-align:right;background:rgba(18,26,61,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid color-mix(in srgb, var(--accent-2) 55%, transparent);border-radius:18px;box-shadow:0 14px 45px rgba(0,0,0,.35),inset 0 0 0 1px rgba(232,207,138,.08)}
 .landing-about h2{margin:0;text-align:center;font-family:var(--font-reem-kufi),Tahoma,sans-serif;font-weight:600;font-size:22px;color:#e8cf8a}
 .landing-about .ornament{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 14px;color:#c7a14a;font-size:12px}
 .landing-about .ornament i{display:block;width:56px;height:1px;background:linear-gradient(90deg,transparent,#c7a14a,transparent)}
@@ -212,7 +212,7 @@ label.inline input{width:auto}
 .landing-social{margin-top:22px;text-align:center;animation:landing-rise 1.4s cubic-bezier(.22,.61,.36,1) 1.5s both}
 .landing-social h3{margin:0 0 10px;font-family:var(--font-reem-kufi),Tahoma,sans-serif;font-weight:500;font-size:15px;color:#e8cf8a}
 .landing-social ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center;gap:14px}
-.landing-social a{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;color:#f4ead0;background:rgba(6,34,24,.55);border:1px solid color-mix(in srgb, var(--accent-2) 70%, transparent);box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .25s ease,color .25s ease,border-color .25s ease}
+.landing-social a{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;color:#f4ead0;background:rgba(18,26,61,.55);border:1px solid color-mix(in srgb, var(--accent-2) 70%, transparent);box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .25s ease,color .25s ease,border-color .25s ease}
 .landing-social a:hover,.landing-social a:focus-visible{transform:scale(1.1);color:#e8cf8a;border-color:#e8cf8a}
 /* Pinned to the bottom-left corner on desktop (where the old developer credit was). On phones it
    sits at the bottom of the page instead, so it never covers the social buttons while scrolling. */
@@ -236,16 +236,16 @@ label.inline input{width:auto}
 .sliding>button.active{background:transparent}
 .slide-pill{position:absolute;top:0;left:0;border-radius:10px;background:var(--g);box-shadow:0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);transition:transform .35s cubic-bezier(.3,1.3,.5,1),width .35s,height .35s,opacity .2s;pointer-events:none;z-index:0}
 
-/* ---- App theme (21st.dev "SeaGreen Minimal" palette + gold accents from the landing) ---- */
+/* ---- App theme: the centre palette (navy + gold by default) over a soft geometric pattern ---- */
 .app-bg{min-height:100vh;position:relative;isolation:isolate}
-.app-bg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23227472' stroke-opacity='.09' stroke-width='1'%3E%3Cpath d='M40 8l9.4 22.6L72 40l-22.6 9.4L40 72l-9.4-22.6L8 40l22.6-9.4z'/%3E%3Crect x='20' y='20' width='40' height='40' transform='rotate(45 40 40)'/%3E%3Crect x='20' y='20' width='40' height='40'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3Cpath d='M0 0l8 8M80 0l-8 8M0 80l8-8M80 80l-8-8'/%3E%3C/g%3E%3C/svg%3E") repeat,radial-gradient(1200px 600px at 100% 0%,color-mix(in srgb, var(--accent-2) 16%, transparent),transparent 60%),radial-gradient(900px 500px at 0% 100%,color-mix(in srgb, var(--accent) 14%, transparent),transparent 60%),linear-gradient(180deg,#f6f3ea 0%,var(--surface-2) 55%,var(--surface-2) 100%)}
-header{background:radial-gradient(circle at 90% -20%,color-mix(in srgb, var(--accent-2) 40%, transparent),transparent 45%),linear-gradient(135deg,var(--text) 0%,var(--accent-strong) 45%,var(--accent) 100%);border-bottom:2px solid color-mix(in srgb, var(--accent-2) 65%, transparent);box-shadow:0 6px 24px rgba(13,59,51,.25)}
+.app-bg::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%231B2550' stroke-opacity='.09' stroke-width='1'%3E%3Cpath d='M40 8l9.4 22.6L72 40l-22.6 9.4L40 72l-9.4-22.6L8 40l22.6-9.4z'/%3E%3Crect x='20' y='20' width='40' height='40' transform='rotate(45 40 40)'/%3E%3Crect x='20' y='20' width='40' height='40'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3Cpath d='M0 0l8 8M80 0l-8 8M0 80l8-8M80 80l-8-8'/%3E%3C/g%3E%3C/svg%3E") repeat,radial-gradient(1200px 600px at 100% 0%,color-mix(in srgb, var(--accent-2) 16%, transparent),transparent 60%),radial-gradient(900px 500px at 0% 100%,color-mix(in srgb, var(--accent) 14%, transparent),transparent 60%),linear-gradient(180deg,#f6f3ea 0%,var(--surface-2) 55%,var(--surface-2) 100%)}
+header{background:radial-gradient(circle at 90% -20%,color-mix(in srgb, var(--accent-2) 40%, transparent),transparent 45%),linear-gradient(135deg,var(--text) 0%,var(--accent-strong) 45%,var(--accent) 100%);border-bottom:2px solid color-mix(in srgb, var(--accent-2) 65%, transparent);box-shadow:0 6px 24px rgba(18,26,61,.25)}
 header h1{font-family:var(--font-reem-kufi),Tahoma,sans-serif;font-weight:700;letter-spacing:.2px}
 .brand-row{display:flex;align-items:center;gap:12px}
 .header-logo{width:46px;height:46px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px color-mix(in srgb, var(--accent-2) 80%, transparent),0 4px 12px rgba(0,0,0,.25);object-fit:cover}
 nav{background:rgba(255,255,255,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid color-mix(in srgb, var(--accent-2) 25%, transparent)}
 nav button,.tabs button{background:color-mix(in srgb, var(--accent) 8%, transparent)}
-.card{background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.9);box-shadow:0 1px 0 color-mix(in srgb, var(--accent-2) 25%, transparent) inset,0 6px 22px -6px rgba(20,50,40,.16)}
+.card{background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.9);box-shadow:0 1px 0 color-mix(in srgb, var(--accent-2) 25%, transparent) inset,0 6px 22px -6px rgba(18,26,61,.16)}
 .card h3,.student-head h2{font-family:var(--font-reem-kufi),Tahoma,sans-serif;font-weight:700}
 th{background:var(--surface-2)}
 input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb, var(--accent) 45%, transparent);outline-offset:1px}
@@ -434,7 +434,7 @@ button.juz-cell{padding:0;cursor:pointer}
 @media (max-width:420px){.map-stats{grid-template-columns:1fr 1fr}}
 
 /* ---- Phase 8: certificate (A4 landscape) ---- */
-.cert-overlay{position:fixed;inset:0;z-index:1000;background:rgba(20,40,34,.72);display:flex;flex-direction:column;align-items:center;padding:12px 8px;overflow:auto}
+.cert-overlay{position:fixed;inset:0;z-index:1000;background:rgba(18,26,61,.72);display:flex;flex-direction:column;align-items:center;padding:12px 8px;overflow:auto}
 .cert-actions{display:flex;gap:8px;margin-bottom:10px}
 .cert-scroll{width:100%;display:flex;justify-content:center}
 .cert-sheet{--w:min(1123px,96vw);width:var(--w);aspect-ratio:297/210;font-size:calc(var(--w)/60);box-sizing:border-box;padding:1.1em;color:var(--text);
@@ -442,7 +442,7 @@ button.juz-cell{padding:0;cursor:pointer}
   box-shadow:0 10px 40px rgba(0,0,0,.35);font-family:var(--font-reem-kufi),"Amiri","Traditional Arabic",Tahoma,serif;direction:rtl}
 .cert-frame{position:relative;height:100%;box-sizing:border-box;background:#fffdf7;border:.35em double #b88716;outline:.12em solid var(--accent);outline-offset:-.75em;
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2em 3em}
-.cert-corner{position:absolute;width:3.2em;height:3.2em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cg fill='%23b88716'%3E%3Cpath d='M40 4l8 20 20-8-8 20 20 4-20 4 8 20-20-8-8 20-8-20-20 8 8-20L0 40l20-4-8-20 20 8z' opacity='.85'/%3E%3C/g%3E%3Ccircle cx='40' cy='40' r='9' fill='%23fffdf7'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%23227472'/%3E%3C/svg%3E") center/contain no-repeat}
+.cert-corner{position:absolute;width:3.2em;height:3.2em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cg fill='%23b88716'%3E%3Cpath d='M40 4l8 20 20-8-8 20 20 4-20 4 8 20-20-8-8 20-8-20-20 8 8-20L0 40l20-4-8-20 20 8z' opacity='.85'/%3E%3C/g%3E%3Ccircle cx='40' cy='40' r='9' fill='%23fffdf7'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%231B2550'/%3E%3C/svg%3E") center/contain no-repeat}
 .cert-corner.tl{top:.9em;right:.9em}.cert-corner.tr{top:.9em;left:.9em}.cert-corner.bl{bottom:.9em;right:.9em}.cert-corner.br{bottom:.9em;left:.9em}
 .cert-logo{width:4.6em;height:4.6em;object-fit:contain;margin-bottom:.2em}
 .cert-center{font-size:1.15em;color:var(--accent);font-weight:700}
@@ -510,3 +510,9 @@ button.juz-cell{padding:0;cursor:pointer}
 .moves{margin-top:4px}
 .moves ul{margin:4px 0;padding-inline-start:18px;line-height:1.8}
 
+
+/* جلسة التلقين inside «الطلاب»: a card that folds open on its title */
+.card.talqeen-fold>button.fold-head{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;background:none;color:inherit;padding:0;border:0;box-shadow:none;text-align:start;transform:none}
+.card.talqeen-fold>button.fold-head h3{margin:0}
+.card.talqeen-fold>section{margin-top:10px}
+.card.talqeen-fold .card{box-shadow:none;margin:10px 0 0}

@@ -3,6 +3,7 @@
 
 import { entryRange, type Mushaf, type QuranRange } from "@/lib/quran";
 import { guardianUrl } from "@/lib/guardian";
+import type { Tracks } from "@/lib/tracks";
 import {
   ATTENDANCE_LABEL,
   TRACK_LABEL,
@@ -45,15 +46,19 @@ export function dayLines(
   mushaf: Mushaf,
   entries: QuranEntry[],
   attendance: Attendance | undefined,
-  lesson: CircleLesson | undefined
+  lesson: CircleLesson | undefined,
+  tracks?: Tracks
 ): string[] {
   const lines: string[] = [];
   for (const track of DAILY_TRACKS) {
+    // التلقين only when the centre uses it, under its own name for it.
+    if (track === "TALQEEN" && tracks && !tracks.has("TALQEEN")) continue;
+    const label = track === "TALQEEN" && tracks ? tracks.label("TALQEEN") : TRACK_LABEL[track];
     const list = entries
       .filter((e) => e.track === track && !e.deleted_at)
       .sort((a, b) => a.created_at.localeCompare(b.created_at));
     if (list.length) {
-      lines.push(`${TRACK_LABEL[track]}: ${list.map((e) => `${mushaf.formatRange(entryRange(e))}${e.quality ? ` (${e.quality})` : ""}`).join("، ")}`);
+      lines.push(`${label}: ${list.map((e) => `${mushaf.formatRange(entryRange(e))}${e.quality ? ` — ${e.quality}` : ""}`).join("، ")}`);
     }
   }
   const status = attendance && !attendance.deleted_at ? (attendance.status as AttendanceStatus) : null;

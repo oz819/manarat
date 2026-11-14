@@ -4,7 +4,7 @@ import PublicShell from "@/components/PublicShell";
 import RegisterForm from "@/components/RegisterForm";
 import { centerForHost } from "@/lib/centerServer";
 
-// تسجيل طالب جديد on a centre's own domain (madayacentre.com/register). On the platform the form
+// تسجيل طالب جديد on a centre's own domain (its-domain.com/register). On the platform the form
 // lives at /{slug}/register. The request waits for the admin (الإدارة ← طلبات التسجيل).
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "تسجيل طالب جديد", robots: { index: false, follow: false } };

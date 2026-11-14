@@ -8,7 +8,7 @@ type Brand = Pick<PublicCenter, "name" | "logo_url" | "palette" | "primary_color
 export default function PublicShell({ center, children }: { center?: Brand | null; children: React.ReactNode }) {
   const name = center?.name ?? "حلقات القرآن";
   return (
-    <div className="app-bg" data-palette={center?.palette ?? "indigo"} style={accentStyle(center)}>
+    <div className="app-bg" data-palette={center?.palette ?? "navy"} style={accentStyle(center)}>
       <main className="guardian">
         <div className="guardian-brand">
           <CenterMark name={name} logo={center?.logo_url} size={56} />

@@ -28,7 +28,7 @@ export async function centerBySlug(slug: string): Promise<PublicCenter | null> {
   return rpc<PublicCenter>("public_center", { p_slug: slug, p_domain: null });
 }
 
-/** The centre this hostname belongs to (madayacentre.com → Madaya), or the deployment's default. */
+/** The centre this hostname belongs to (e.g. a centre's own .com), or the deployment's default. */
 export async function centerForHost(): Promise<PublicCenter | null> {
   const host = ((await headers()).get("host") || "").split(":")[0].replace(/^www\./, "").toLowerCase();
   const byDomain = host ? await rpc<PublicCenter>("public_center", { p_slug: null, p_domain: host }) : null;

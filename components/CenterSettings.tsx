@@ -19,7 +19,7 @@ export default function CenterSettings() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const n = Number(v.absenceThreshold);
-    if (!Number.isInteger(n) || n < 1 || n > 30) return setError("عدد أيام الغياب لازم يكون بين 1 و30");
+    if (!Number.isInteger(n) || n < 1 || n > 30) return setError("عدد أيام الغياب يجب أن يكون بين 1 و30");
     const msg = v.absenceMessage?.trim() || null;
     const err = await rankingSettings.save(supabase, { ...v, absenceThreshold: n, absenceMessage: msg === DEFAULT_ABSENCE_MESSAGE ? null : msg });
     if (err) return setError(err);

@@ -4,10 +4,10 @@
 //   other same-origin  stale-while-revalidate (icons, manifest, background image)
 // Supabase requests are cross-origin and never touched; data offline comes from IndexedDB.
 
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = `shell-${VERSION}`;
 const STATIC = `static-${VERSION}`;
-const SHELL_URL = "/";
+const SHELL_URL = "/app";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -126,6 +126,23 @@ const SOFT_DELETE_HIDDEN = new Set<TableName>(["students", "circles", "arabic_bo
 export const LOCAL_WINDOW_DAYS = 60;
 const PAGE = 1000;
 const PULL_OVERLAP_MS = 2 * 60 * 1000;
+// How many tables are pulled at the same time. The demo's in-site database answers one request at a
+// time per server instance, so it gets fewer (each extra instance would start cold).
+const PULL_CONCURRENCY = process.env.NEXT_PUBLIC_DEMO === "1" ? 2 : 6;
+
+/** Like Promise.all over `items`, with at most `limit` running at once; results keep the input order. */
+async function mapLimit<T, R>(items: readonly T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
 
 export function keyOf(table: TableName, row: Record<string, unknown>): string {
   if (table === "attendance") return `${row.student_id}|${row.att_date}`;
@@ -613,6 +630,21 @@ class LocalStore {
     }, delay);
   }
 
+  /**
+   * Sends what is waiting in the outbox, without pulling anything (sign-out, ملاحظة 9). Gives up after
+   * `timeoutMs` so leaving is never held up by a slow network; whatever is left stays counted in status.
+   */
+  async flush(timeoutMs = 4000): Promise<void> {
+    if (!this.sb || !navigator.onLine || this.status.pending + this.status.failed === 0) return;
+    const send = (async () => {
+      if (this.syncPromise) await this.syncPromise.catch(() => {});
+      await this.push().catch(() => "stop");
+      this.recount();
+      this.emit();
+    })();
+    await Promise.race([send, new Promise((r) => setTimeout(r, timeoutMs))]);
+  }
+
   sync(): Promise<void> {
     if (this.syncPromise) return this.syncPromise;
     this.syncPromise = this.runSync().finally(() => {
@@ -759,30 +791,12 @@ class LocalStore {
       await idb.putRows(records);
     };
 
-    // Small reference tables: replaced wholesale.
-    if (this.data.quran_surahs.size < 114) {
-      const { data, error } = await sb.from("quran_surahs").select("surah_no,name,ayah_count").order("surah_no");
-      if (error) throw new Error(error.message);
-      await merge("quran_surahs", data ?? []);
-    }
-    {
-      const { data, error } = await sb.from("profiles").select(PROFILE_COLUMNS);
-      if (error) throw new Error(error.message);
-      const ids = new Set((data ?? []).map((p) => p.id));
-      for (const k of Array.from(this.data.profiles.keys())) {
-        if (!ids.has(k)) {
-          this.data.profiles.delete(k);
-          await idb.deleteRow("profiles", k);
-        }
-      }
-      await merge("profiles", data ?? []);
-    }
-
-    const bootstrap = !cursors.quran_entries;
-
-    for (const table of SYNC_TABLES) {
+    // Everything is requested at once (ملاحظة 9: it used to be ~20 requests one after another, which made
+    // the first screen wait several seconds), then merged in dependency order.
+    const fetchTable = async (table: (typeof SYNC_TABLES)[number]) => {
       const cursor = cursors[table];
       let maxUpdated = cursor ?? "";
+      const all: TableRows[typeof table][] = [];
       for (let from = 0; ; from += PAGE) {
         let q = sb.from(table).select("*");
         if (cursor) {
@@ -816,18 +830,48 @@ class LocalStore {
         const { data, error } = await q.order("updated_at").order(tiebreak).range(from, from + PAGE - 1);
         if (error) throw new Error(error.message);
         const rows = (data ?? []) as TableRows[typeof table][];
-        await merge(table, rows);
+        all.push(...rows);
         for (const r of rows) if (r.updated_at > maxUpdated) maxUpdated = r.updated_at;
         if (rows.length < PAGE) break;
       }
+      return { table, rows: all, maxUpdated, cursor };
+    };
+
+    const bootstrap = !cursors.quran_entries;
+    const [surahs, profiles, tables, latest] = await Promise.all([
+      this.data.quran_surahs.size < 114
+        ? sb.from("quran_surahs").select("surah_no,name,ayah_count").order("surah_no")
+        : Promise.resolve(null),
+      sb.from("profiles").select(PROFILE_COLUMNS),
+      mapLimit(SYNC_TABLES, PULL_CONCURRENCY, fetchTable),
+      // Each student's latest entry per track / per book, however old, so the card header and
+      // "prefill from last entry" work for students not seen in the local window.
+      bootstrap ? Promise.all([sb.rpc("sync_latest_quran_entries"), sb.rpc("sync_latest_arabic_entries")]) : Promise.resolve(null),
+    ]);
+
+    // Small reference tables: replaced wholesale.
+    if (surahs) {
+      if (surahs.error) throw new Error(surahs.error.message);
+      await merge("quran_surahs", surahs.data ?? []);
+    }
+    {
+      if (profiles.error) throw new Error(profiles.error.message);
+      const ids = new Set((profiles.data ?? []).map((p) => p.id));
+      for (const k of Array.from(this.data.profiles.keys())) {
+        if (!ids.has(k)) {
+          this.data.profiles.delete(k);
+          await idb.deleteRow("profiles", k);
+        }
+      }
+      await merge("profiles", profiles.data ?? []);
+    }
+    for (const { table, rows, maxUpdated, cursor } of tables) {
+      await merge(table, rows);
       if (maxUpdated) cursors[table] = maxUpdated;
       else if (!cursor) cursors[table] = new Date(0).toISOString();
     }
-
-    if (bootstrap) {
-      // Each student's latest entry per track / per book, however old, so the card header and
-      // "prefill from last entry" work for students not seen in the local window.
-      const [q, a] = await Promise.all([sb.rpc("sync_latest_quran_entries"), sb.rpc("sync_latest_arabic_entries")]);
+    if (latest) {
+      const [q, a] = latest;
       if (q.error) throw new Error(q.error.message);
       if (a.error) throw new Error(a.error.message);
       await merge("quran_entries", (q.data ?? []) as QuranEntry[]);

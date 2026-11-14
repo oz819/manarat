@@ -99,8 +99,8 @@ function RankingTab() {
 
   async function calculate(e: React.FormEvent) {
     e.preventDefault();
-    if (ITEMS.some((i) => !Number.isFinite(w[i.key]) || w[i.key] < 0)) return setWeightError("كل نسبة لازم تكون رقم من 0 لـ 100.");
-    if (sum !== 100) return setWeightError(`مجموع النسب لازم يكون 100%، وهو الآن ${sum}%.`);
+    if (ITEMS.some((i) => !Number.isFinite(w[i.key]) || w[i.key] < 0)) return setWeightError("كل نسبة يجب أن تكون رقمًا من 0 إلى 100.");
+    if (sum !== 100) return setWeightError(`مجموع النسب يجب أن يكون 100%، وهو الآن ${sum}%.`);
     setWeightError("");
     if (admin) {
       const err = await rankingSettings.save(supabase, { ...settings, weights: w });
@@ -214,7 +214,7 @@ function RankingTab() {
             )}
           </div>
           {weightError && <p className="error-text">{weightError}</p>}
-          {!admin && <p className="muted">تقدر تجرّب نسب مختلفة وتشوف الترتيب، بس النسب المحفوظة للكل بيحددها المدير.</p>}
+          {!admin && <p className="muted">يمكنك تجربة نسب مختلفة ومشاهدة الترتيب، لكن النسب المحفوظة للجميع يحددها المدير.</p>}
           {trial && <p className="muted">الترتيب الآن بنسب تجريبية غير محفوظة.</p>}
         </form>
       </div>

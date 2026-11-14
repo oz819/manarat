@@ -8,8 +8,8 @@
 #   BACKUP_PASSPHRASE   any long passphrase; keep it safe, without it a backup can't be opened
 #
 # Restore: download the artifact, then
-#   gpg -d madaya-YYYY-MM-DD.dump.gpg > madaya.dump
-#   pg_restore --no-owner --no-privileges -d "<database url>" madaya.dump
+#   gpg -d manarat-YYYY-MM-DD.dump.gpg > manarat.dump
+#   pg_restore --no-owner --no-privileges -d "<database url>" manarat.dump
 name: db-backup
 
 on:
@@ -56,7 +56,7 @@ jobs:
           PASS: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
-          name="madaya-$(TZ=Asia/Damascus date +%F)"
+          name="manarat-$(TZ=Asia/Damascus date +%F)"
           echo "NAME=$name" >> "$GITHUB_ENV"
           # The password goes to pg_dump on its own (PGPASSWORD), so special characters in it
           # need no URL encoding: user:password is everything before the last @.

@@ -59,6 +59,7 @@ export default function Students({
   const [sending, setSending] = useState(false);
   const [pending, setPending] = usePersistentState<"all" | "noAtt" | "noRec">("students.pending", "all");
   const listScroll = useRef(0);
+  const scrollToTalqeen = useRef(false);
 
   useEffect(() => setRecent(readRecent()), []);
 
@@ -68,7 +69,10 @@ export default function Students({
   }, [openId]);
 
   useEffect(() => {
-    if (!openId && talqeenOpen) document.getElementById("talqeen-session")?.scrollIntoView({ block: "start" });
+    if (!openId && scrollToTalqeen.current) {
+      scrollToTalqeen.current = false;
+      document.getElementById("talqeen-session")?.scrollIntoView({ block: "start" });
+    }
   }, [openId, talqeenOpen]);
 
   function open(id: string) {
@@ -82,7 +86,7 @@ export default function Students({
     window.scrollTo({ top: 0 });
   }
 
-  if (openId) return <StudentCard studentId={openId} onClose={onClose} onTalqeen={() => { setTalqeenOpen(true); onShowList(); }} />;
+  if (openId) return <StudentCard studentId={openId} onClose={onClose} onTalqeen={() => { scrollToTalqeen.current = true; setTalqeenOpen(true); onShowList(); }} />;
 
   const today = todayStr();
   const attendedToday = (id: string) => {

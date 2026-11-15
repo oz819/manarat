@@ -483,7 +483,7 @@ function ArabicBooks() {
     try {
       if (editingId) {
         const { data, error } = await supabase.from("arabic_entries").select("to_page")
-          .eq("book_id", editingId).is("deleted_at", null).order("to_page", { ascending: false }).limit(1);
+          .eq("book_id", editingId).order("to_page", { ascending: false }).limit(1);
         if (error) return setError(error.message);
         if (data?.[0] && total < data[0].to_page) return setError(tx("يوجد درس مسجّل حتى الصفحة {0}؛ لا يمكن تقليل عدد الصفحات عن ذلك.", [data[0].to_page]));
       }

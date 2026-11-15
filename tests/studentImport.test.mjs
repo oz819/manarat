@@ -33,3 +33,9 @@ test('quoted multiline cells stay in one row, CRLF and blank lines are handled',
     ['عمر', 'الفجر', '', ''],
   ]);
 });
+
+test('unclosed quotes reject the entire import instead of merging subsequent students', () => {
+  assert.throws(() => parseStudents('أحمد "الصغير,الفجر,,\nعمر,الفجر,,\nخالد,الفجر,,'), /اقتباس/);
+  assert.throws(() => parseStudents('أحمد,الفجر,"محمد\nعمر,الفجر,,'), /اقتباس/);
+  assert.equal(parseStudents('أحمد,الفجر,"محمد",\nعمر,الفجر,,').length, 2);
+});

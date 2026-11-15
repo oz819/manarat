@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --test tests/*.test.mjs",
     "test:spreadsheets": "node --test tests/studentImport.test.mjs tests/xlsx.test.mjs",
     "test:db": "node supabase/tests/isolation.test.mjs"
   },

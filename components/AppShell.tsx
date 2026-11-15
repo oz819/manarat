@@ -27,7 +27,6 @@ import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
 import { CenterMark } from "@/components/center/Geo";
 import Appearance from "@/components/Appearance";
-import DevCredit from "@/components/landing/DevCredit";
 import { applyPalette, type MyContext } from "@/lib/center";
 import { tracksOf } from "@/lib/tracks";
 
@@ -373,7 +372,6 @@ export default function AppShell() {
         {page === "audit" && profile.role === "ADMIN" && <AuditLog />}
       </main>
 
-      <footer className="app-footer no-print"><DevCredit /></footer>
 
       <Toast text={toast} />
       <ConfirmDialogHost />

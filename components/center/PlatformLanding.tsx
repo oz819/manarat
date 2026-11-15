@@ -80,7 +80,7 @@ export default function PlatformLanding() {
 
       {/* the whole platform page, right under the first screen */}
       <div className="mn-wrap mn-more" id="more">
-        <AboutBody locale={locale} />
+        <AboutBody locale={locale} showCredit />
       </div>
 
     </div>

@@ -40,6 +40,7 @@ export function parseTable(text: string): string[][] {
       finishRow();
     } else cell += ch;
   }
+  if (quoted) throw new Error("توجد علامة اقتباس غير مغلقة. صحّح البيانات قبل الاستيراد.");
   finishRow();
   return rows;
 }

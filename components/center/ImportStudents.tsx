@@ -17,7 +17,10 @@ export default function ImportStudents() {
   const [fallback, setFallback] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const rows = useMemo(() => parseStudents(text), [text]);
+  const { rows, parseError } = useMemo(() => {
+    try { return { rows: parseStudents(text), parseError: "" }; }
+    catch (error) { return { rows: [], parseError: (error as Error).message }; }
+  }, [text]);
 
   function downloadTemplate() {
     const url = URL.createObjectURL(new Blob(["\uFEFF", STUDENT_IMPORT_TEMPLATE], { type: "text/csv;charset=utf-8" }));
@@ -91,6 +94,7 @@ export default function ImportStudents() {
           </select>
         </div>
       </div>
+      {parseError && <p className="error-text" role="alert">{parseError}</p>}
       {rows.length > 0 && (
         <p className="small" style={{ marginTop: 8 }}>
           {rows.length} طالبًا جاهزون للإضافة

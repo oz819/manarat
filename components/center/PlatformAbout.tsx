@@ -42,7 +42,7 @@ export default function PlatformAbout() {
 
 /** The platform's story (intro + phones, features, how to start, the map, register). Shown under
  *  the sign-in gate on /login and on its own on /about. Must sit inside a `.mn` wrapper. */
-export function AboutBody({ locale }: { locale: Locale }) {
+export function AboutBody({ locale, showCredit = false }: { locale: Locale; showCredit?: boolean }) {
   const router = useRouter();
   const [slug, setSlug] = useState("");
   const tr = T[locale];
@@ -172,7 +172,7 @@ export function AboutBody({ locale }: { locale: Locale }) {
 
         <footer className="mn-footer">
           <span>{tr.footer}</span>
-          <DevCredit />
+          {showCredit && <DevCredit />}
           <span dir="ltr">© {new Date().getFullYear()}</span>
         </footer>
     </>

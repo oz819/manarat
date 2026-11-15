@@ -57,7 +57,7 @@ export function TalqeenSetting() {
           <input id="ts-talqeen" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={30} placeholder="مثلًا: التسميع" />
         </div>
       )}
-      <p className="muted small">عند إيقافه يختفي التلقين من التطبيق، ولا يُحذف شيء مما سُجّل فيه.</p>
+      <p className="muted small">التلقين مفعّل افتراضيًا للمراكز الجديدة، واستخدامه اختياري. يمكنك تركه دون جلسات أو إيقافه هنا؛ عند إيقافه يختفي من التطبيق، ولا يُحذف شيء مما سُجّل فيه.</p>
       {error && <p className="error-text">{error}</p>}
       <div className="ob-actions">
         <span />

@@ -140,6 +140,7 @@ export default function ArabicSection({
 
   return (
     <div className="track">
+      {!active.length && books.length > 0 && <p className="muted">لبدء تسجيل الدروس، اختر كتابًا من «إضافة كتاب للطالب» ثم اضغط «يدرسه». بعدها أدخل الصفحات التي درسها.</p>}
       {mine.length > 0 && (
         <div className="book-status">
           <label>كتب الطالب</label>
@@ -270,7 +271,7 @@ export default function ArabicSection({
           </button>
         </div>
       )}
-      {!books.length && <p className="muted">لا توجد كتب عربية بعد. يضيفها المدير من شاشة الإدارة.</p>}
+      {!books.length && <p className="muted">لا توجد كتب عربية بعد. يضيفها المدير من «الإدارة والإعدادات ← كتب العربية»، ثم تختار الكتاب هنا وتضغط «يدرسه».</p>}
     </div>
   );
 }

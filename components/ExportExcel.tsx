@@ -44,10 +44,10 @@ export default function ExportExcel() {
     try {
       type R = Record<string, unknown>;
       const [students, quran, att, exams] = await Promise.all([
-        all<R>("students", (q) => q.is("deleted_at", null).order("name")),
-        all<R>("quran_entries", (q) => q.is("deleted_at", null).gte("entry_date", from).lte("entry_date", to).order("entry_date")),
-        all<R>("attendance", (q) => q.is("deleted_at", null).gte("att_date", from).lte("att_date", to).order("att_date")),
-        all<R>("exams", (q) => q.is("deleted_at", null).gte("exam_date", from).lte("exam_date", to).order("exam_date")),
+        all<R>("students", (q) => q.is("deleted_at", null).order("name").order("id")),
+        all<R>("quran_entries", (q) => q.is("deleted_at", null).gte("entry_date", from).lte("entry_date", to).order("entry_date").order("id")),
+        all<R>("attendance", (q) => q.is("deleted_at", null).gte("att_date", from).lte("att_date", to).order("att_date").order("student_id")),
+        all<R>("exams", (q) => q.is("deleted_at", null).gte("exam_date", from).lte("exam_date", to).order("exam_date").order("id")),
       ]);
       const stu = new Map(students.map((x) => [x.id as string, x]));
       const name = (id: unknown) => (stu.get(id as string)?.name as string) ?? "—";
@@ -142,7 +142,7 @@ export default function ExportExcel() {
   return (
     <div className="card export-excel">
       <h3>📤 تصدير Excel</h3>
-      <p className="small muted">ملف واحد فيه أوراق: الطلاب، والتقارير، والحضور، والاختبارات للفترة التي تختارها.</p>
+      <p className="small muted">ملف Excel بصيغة ‎.xlsx فيه جميع الطلاب، وتقارير القرآن والحضور والاختبارات للفترة التي تختارها. يحتاج اتصالًا بالإنترنت ويصدّر البيانات المحفوظة في الحساب؛ انتظر «تم الحفظ ✓» أولًا.</p>
       <div className="export-row">
         <label>
           من

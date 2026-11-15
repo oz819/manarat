@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // API (the repository is public, no key needed). Warns when a day passes without a good copy.
 // The copies themselves are encrypted files on the run's page («Artifacts»).
 
-const RUNS = "https://api.github.com/repos/oz819/manarat/actions/workflows/db-backup.yml/runs?branch=main&per_page=10";
+const RUNS = "https://api.github.com/repos/oz819/telawah/actions/workflows/db-backup.yml/runs?branch=main&per_page=10";
 const STALE_HOURS = 30;
 
 type Run = { status: string; conclusion: string | null; created_at: string; html_url: string };

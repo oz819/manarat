@@ -182,13 +182,13 @@ nav > button svg { flex: none; }
 @keyframes lg-pop { from { opacity: 0; transform: translateY(14px) scale(.98); } }
 @keyframes fade-in { from { opacity: 0; } }
 
-/* developer signature — quiet, in the footer and the login dialog */
-.dev-credit { display: flex; align-items: center; gap: 8px; width: fit-content; margin: 22px auto 0; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); text-decoration: none; transition: border-color .2s, color .2s; }
+/* Developer attribution in the page footer. */
+.dev-credit { display: flex; flex-wrap: wrap; justify-content: center; max-width: 100%; text-align: center; align-items: center; gap: 8px; width: fit-content; margin: 22px auto 0; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); text-decoration: none; transition: border-color .2s, color .2s; }
 .dev-credit:hover { border-color: var(--accent); color: var(--text); }
 .dev-by { font-size: 9px; letter-spacing: .3em; }
 .dev-name { font-size: 13px; font-weight: 600; color: var(--text); }
-.dev-ig { display: grid; place-items: center; color: var(--accent); }
-.dev-ig svg { width: 15px; height: 15px; }
+.dev-repo { display: grid; place-items: center; color: var(--accent); }
+.dev-repo svg { width: 15px; height: 15px; }
 .dev-credit.compact { margin-top: 16px; }
 
 /* ---------------------------------------------------------------- centre public page (/{slug} and /login) */
@@ -378,3 +378,6 @@ td.row-actions button.link { padding: 4px 2px; }
 .ap-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .ap-chip.size-sm { font-size: 12px; } .ap-chip.size-lg { font-size: 15px; }
 @media (max-width: 520px) { .appearance-pop { position: fixed; top: 70px; inset-inline: 12px; width: auto; } }
+
+.app-footer{padding:16px;text-align:center}
+.app-footer .dev-credit{margin:0 auto;border:0;padding:0}

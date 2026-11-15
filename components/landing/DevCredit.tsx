@@ -1,19 +1,19 @@
-import { InstagramIcon } from "@/components/SocialIcons";
+import { GitHubIcon } from "@/components/SocialIcons";
 
-// Developer signature on the login page: full in the footer, a single line inside the login dialog.
+// Developer attribution links to the source repository.
 export default function DevCredit({ compact = false }: { compact?: boolean }) {
   return (
     <a
       className={`dev-credit${compact ? " compact" : ""}`}
-      href="https://www.instagram.com/osama.z.saifaldin/"
+      href="https://github.com/oz819/telawah"
       target="_blank"
       rel="noopener noreferrer"
       dir="ltr"
-      aria-label="Developed by Osama Zaid Saif Aldin on Instagram"
+      aria-label="Developed by Osama Zaid Saif Aldin — source on GitHub"
     >
       <span className="dev-by">DEVELOPED BY</span>
       <span className="dev-name">Osama Zaid Saif Aldin</span>
-      <span className="dev-ig" aria-hidden="true"><InstagramIcon /></span>
+      <span className="dev-repo" aria-hidden="true"><GitHubIcon /></span>
     </a>
   );
 }

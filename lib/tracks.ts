@@ -1,6 +1,5 @@
-// مسارات المتابعة (ملاحظة 4): which kinds of follow-up a centre uses. الحفظ always; the rest are
-// switched on in «الإدارة ← بيانات المركز». A track that is off disappears from the menu, the
-// student card, the reports, the dashboard and the parents' link — its data stays in the database.
+// New centres start with every track enabled, matching the database default. Talqeen is optional:
+// admins can disable it in settings without deleting history. Explicit saved choices take priority.
 
 export type TrackKey = "HIFZ" | "MURAJAA" | "TILAWA" | "TALQEEN" | "ARABIC" | "TARBIYA" | "EXAMS";
 
@@ -14,7 +13,7 @@ export const ALL_TRACKS: { key: TrackKey; label: string; hint: string }[] = [
   { key: "EXAMS", label: "الاختبارات", hint: "اختبارات الأجزاء والشهادات" },
 ];
 
-export const DEFAULT_TRACKS: TrackKey[] = ["HIFZ", "MURAJAA"];
+export const DEFAULT_TRACKS: TrackKey[] = ALL_TRACKS.map((track) => track.key);
 
 type WithTracks = { enabled_tracks?: string[] | null; talqeen_label?: string | null } | null | undefined;
 

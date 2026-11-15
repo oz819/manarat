@@ -3,13 +3,13 @@
 # as a workflow artifact. The repository is public, so the file is only ever stored encrypted.
 #
 # Needs two repository secrets (Settings → Secrets and variables → Actions); until both exist the
-# job only prints a notice:
+# job fails, so the dashboard card never shows a good backup that was not made:
 #   SUPABASE_DB_URL     Supabase → Connect → "Session pooler" connection string, with the password
 #   BACKUP_PASSPHRASE   any long passphrase; keep it safe, without it a backup can't be opened
 #
 # Restore: download the artifact, then
-#   gpg -d manarat-YYYY-MM-DD.dump.gpg > manarat.dump
-#   pg_restore --no-owner --no-privileges -d "<database url>" manarat.dump
+#   gpg -d tilawa-YYYY-MM-DD.dump.gpg > tilawa.dump
+#   pg_restore --no-owner --no-privileges -d "<database url>" tilawa.dump
 name: db-backup
 
 on:
@@ -32,8 +32,8 @@ jobs:
           PASS: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           if [ -z "$DB_URL" ] || [ -z "$PASS" ]; then
-            echo "::notice::Backup skipped: add the SUPABASE_DB_URL and BACKUP_PASSPHRASE secrets to turn it on."
-            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::error::No backup was made: add the SUPABASE_DB_URL and BACKUP_PASSPHRASE secrets (Settings → Secrets and variables → Actions)."
+            exit 1
           else
             # The URL is checked here so a malformed one never reaches pg_dump, whose errors quote
             # parts of it into this public log. Nothing of the URL is printed. The password may
@@ -56,7 +56,7 @@ jobs:
           PASS: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
-          name="manarat-$(TZ=Asia/Damascus date +%F)"
+          name="tilawa-$(TZ=Asia/Damascus date +%F)"
           echo "NAME=$name" >> "$GITHUB_ENV"
           # The password goes to pg_dump on its own (PGPASSWORD), so special characters in it
           # need no URL encoding: user:password is everything before the last @.

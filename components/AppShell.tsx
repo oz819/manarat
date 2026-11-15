@@ -39,12 +39,10 @@ const NAV: { id: Page; label: string }[] = [
 ];
 
 // Admins and the centre's owner only: the database keeps these out of a teacher's reach.
-// «الإدارة» and the two logs come right after «المتفوقون»; «اللوحة» last.
+// Logs are reached from settings; dashboard remains admin-only.
 const ADMIN_NAV: { id: Page; label: string }[] = [
-  { id: "manage", label: "⚙️ الإدارة" },
-  { id: "audit", label: "📜 سجل التعديلات" },
-  { id: "trash", label: "🗑️ سجل المحذوفات" },
-  { id: "dashboard", label: "📈 اللوحة" },
+  { id: "manage", label: "⚙️ الإدارة والإعدادات" },
+  { id: "dashboard", label: "📈 لوحة المتابعة" },
 ];
 // «talqeen» stays a known page so old links and saved history don't break; its session form now
 // lives in «الطلاب», so opening it lands there.
@@ -326,7 +324,9 @@ export default function AppShell() {
               )}
               <SyncBadge />
               <Appearance />
-              <button className="secondary" onClick={() => router.push("/")}>الرئيسية</button>
+              <button className="secondary" onClick={() => setPage(profile.role === "ADMIN" ? "dashboard" : "students")}>
+                {profile.role === "ADMIN" ? "لوحة المتابعة" : "الطلاب"}
+              </button>
               <button onClick={logout}>خروج</button>
             </div>
           </div>
@@ -334,9 +334,9 @@ export default function AppShell() {
       </header>
 
       <nav className="no-print sliding">
-        <SlidingIndicator active={page} />
+        <SlidingIndicator active={page === "audit" || page === "trash" ? "manage" : page} />
         {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
-          <button key={n.id} className={page === n.id ? "active" : ""} onClick={() => setPage(n.id)}>
+          <button key={n.id} className={(page === n.id || (n.id === "manage" && (page === "audit" || page === "trash"))) ? "active" : ""} onClick={() => setPage(n.id)}>
             {n.label}
           </button>
         ))}
@@ -352,33 +352,26 @@ export default function AppShell() {
       )}
 
       <main>
-        {page !== "students" ? (
+        {(page === "audit" || page === "trash") && (
           <div className="back-row no-print">
-            <button type="button" className="link back-btn" onClick={() => setPage("students")}>
-              → رجوع
+            <button type="button" className="link back-btn" onClick={() => setPage("manage")}>
+              → رجوع إلى الإدارة والإعدادات
             </button>
           </div>
-        ) : (
-          !view.studentId && (
-            <div className="back-row no-print">
-              <Link href="/" className="link back-btn">
-                → رجوع إلى الرئيسية
-              </Link>
-            </div>
-          )
         )}
         <div className="no-print">
           <InstallHint />
           {((page === "students" && !view.studentId) || page === "reports" || page === "ranking" || page === "dashboard") && <FilterBar />}
         </div>
-        {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} />}
+        {page === "students" && <Students openId={view.studentId} onOpen={openStudent} onClose={closeStudent} onShowList={() => setPage("students")} />}
         {page === "reports" && <Reports />}
         {page === "ranking" && <Ranking />}
         {page === "dashboard" && profile.role === "ADMIN" && <Dashboard openStudent={openStudent} openManage={() => setPage("manage")} />}
-        {page === "manage" && profile.role === "ADMIN" && <Manage />}
+        {page === "manage" && profile.role === "ADMIN" && <Manage openLog={(log) => setPage(log)} />}
         {page === "trash" && profile.role === "ADMIN" && <Trash />}
         {page === "audit" && profile.role === "ADMIN" && <AuditLog />}
       </main>
+
 
       <Toast text={toast} />
       <ConfirmDialogHost />

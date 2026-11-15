@@ -1046,5 +1046,6 @@
   "صفحتنا": "Our page",
   "آية واحدة": "1 verse",
   "لم تُسجَّل جلسات {0} لهذا الطالب بعد. سجّل جلسة للحلقة وحدّد الطلاب المشاركين ليظهر سجلّهم هنا.": "No {0} sessions recorded for this student yet. Record a circle session and select the participating students to show their records here.",
-  "تسجيل جلسة {0}": "Record a {0} session"
+  "تسجيل جلسة {0}": "Record a {0} session",
+  "توجد علامة اقتباس غير مغلقة. صحّح البيانات قبل الاستيراد.": "There is an unclosed quotation mark. Correct the data before importing."
 }

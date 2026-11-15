@@ -96,7 +96,7 @@ export default function ImportStudents() {
           </select>
         </div>
       </div>
-      {parseError && <p className="error-text" role="alert">{parseError}</p>}
+      {parseError && <p className="error-text" role="alert">{tx(parseError)}</p>}
       {rows.length > 0 && (
         <p className="small" style={{ marginTop: 8 }}>
           {rows.length}  {tx("طالبًا جاهزون للإضافة")}{missing > 0 && <span className="error-text"> — {missing}  {tx("بلا حلقة معروفة: اختر حلقة لهم")}</span>}

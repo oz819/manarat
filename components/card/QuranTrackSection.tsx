@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -30,6 +32,7 @@ export default function QuranTrackSection({
   /** A range to start the form on (e.g. a suggested review) instead of the usual guess. */
   prefill?: QuranRange | null;
 }) {
+  const { tx, locale, date: formatDate } = useI18n();
   const { mushaf, showToast, profile } = useApp();
   const mine = entries.filter((e) => e.track === track).sort(byNewest((e) => e.entry_date));
   const last = latestOfTrack(entries, track);
@@ -83,22 +86,22 @@ export default function QuranTrackSection({
       `${TRACK_LABEL[track]}: ${mushaf.formatRange(range)}`
     );
     if (!editingId) await store.ensurePresent(studentId, date);
-    showToast(editingId ? "تم تعديل الإدخال" : `تم حفظ ${TRACK_LABEL[track]}`);
+    showToast(editingId ? tx("تم تعديل الإدخال") : tx("تم حفظ {0}", [tx(TRACK_LABEL[track])]));
     reset(saved);
   }
 
   async function remove(e: QuranEntry) {
     const who = store.get("students", studentId)?.name ?? "";
     const ok = await confirmDialog({
-      title: `حذف ${TRACK_LABEL[track]} «${who}»؟`,
-      body: `${e.entry_date} · ${mushaf.formatRange(entryRange(e))}\n` + "ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك.",
-      ok: "حذف",
+      title: tx("حذف {0} «{1}»؟", [tx(TRACK_LABEL[track]), who]),
+      body: `${e.entry_date} · ${mushaf.formatRange(entryRange(e), locale)}\n` + tx("ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
     await store.softDelete("quran_entries", e.id, `حذف ${TRACK_LABEL[track]}`);
     if (editingId === e.id) reset();
-    showToast("تم الحذف");
+    showToast(tx("تم الحذف"));
   }
 
   const visible = showAll ? mine : mine.slice(0, 5);
@@ -109,33 +112,32 @@ export default function QuranTrackSection({
         <RangePicker mushaf={mushaf} value={range} onChange={setRange} />
         <div className="formgrid compact">
           <div>
-            <label>التاريخ</label>
+            <label>{tx("التاريخ")}</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
-            <label>التقدير</label>
+            <label>{tx("التقدير")}</label>
             <select value={quality} onChange={(e) => setQuality(e.target.value)}>
               <option value="">—</option>
               {QUALITIES.map((q) => (
-                <option key={q}>{q}</option>
+                <option key={q} value={q}>{tx(q)}</option>
               ))}
             </select>
           </div>
           <div className="wide">
-            <label>ملاحظة</label>
+            <label>{tx("ملاحظة")}</label>
             <input value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
         </div>
         <div className="row-actions">
-          <button onClick={save}>{editingId ? "حفظ التعديل" : `إضافة ${TRACK_LABEL[track]}`}</button>
+          <button onClick={save}>{editingId ? tx("حفظ التعديل") : tx("إضافة {0}", [tx(TRACK_LABEL[track])])}</button>
           {editingId && (
             <button className="secondary" onClick={() => reset()}>
-              إلغاء
-            </button>
+              {tx("إلغاء")}</button>
           )}
-          <span className="muted">{mushaf.length(range) > 0 && `${mushaf.length(range)} آية`}</span>
+          <span className="muted">{mushaf.length(range) > 0 && tx(mushaf.length(range) === 1 ? "آية واحدة" : "{0} آية", [mushaf.length(range)])}</span>
         </div>
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className="error-text">{tx(error)}</p>}
       </div>
 
       {mine.length ? (
@@ -143,34 +145,32 @@ export default function QuranTrackSection({
           {visible.map((e) => (
             <li key={e.id} className={editingId === e.id ? "editing" : ""}>
               <div>
-                <b>{mushaf.formatRange(entryRange(e))}</b>
-                <span className="muted"> · {e.entry_date}</span>
-                {e.quality && <span className="badge">{e.quality}</span>}
+                <b>{mushaf.formatRange(entryRange(e), locale)}</b>
+                <span className="muted"> · {formatDate(e.entry_date ?? "")}</span>
+                {e.quality && <span className="badge">{tx(e.quality)}</span>}
                 {e.notes && <div className="small muted">{e.notes}</div>}
                 {e.teacher_id && e.teacher_id !== profile.id && (
-                  <div className="small muted">سجّله: {store.get("profiles", e.teacher_id)?.name ?? "—"}</div>
+                  <div className="small muted">{tx("سجّله:")} {store.get("profiles", e.teacher_id)?.name ?? "—"}</div>
                 )}
               </div>
               <div className="row-actions">
                 <button className="link" onClick={() => startEdit(e)}>
-                  تعديل
-                </button>
+                  {tx("تعديل")}</button>
                 <button className="link danger-link" onClick={() => remove(e)}>
-                  حذف
-                </button>
+                  {tx("حذف")}</button>
               </div>
             </li>
           ))}
           {mine.length > 5 && (
             <li>
               <button className="link" onClick={() => setShowAll((s) => !s)}>
-                {showAll ? "عرض أقل" : `عرض الكل (${mine.length})`}
+                {showAll ? tx("عرض أقل") : tx("عرض الكل ({0})", [mine.length])}
               </button>
             </li>
           )}
         </ul>
       ) : (
-        <p className="muted">لا توجد إدخالات بعد.</p>
+        <p className="muted">{tx("لا توجد إدخالات بعد.")}</p>
       )}
     </div>
   );

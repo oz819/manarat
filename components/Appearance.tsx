@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 
 // «المظهر» in the app header: colours, font and text size. Per device (localStorage), applied as
@@ -68,6 +70,7 @@ function clear() {
 }
 
 export default function Appearance() {
+  const { tx } = useI18n();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -103,11 +106,10 @@ export default function Appearance() {
   return (
     <div className="appearance" ref={box}>
       <button type="button" className="secondary appearance-btn" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)}>
-        🎨 المظهر
-      </button>
+        {tx("🎨 المظهر")}</button>
       {open && (
-        <div className="appearance-pop" role="dialog" aria-label="المظهر">
-          <div className="ap-title">الألوان</div>
+        <div className="appearance-pop" role="dialog" aria-label={tx("المظهر")}>
+          <div className="ap-title">{tx("الألوان")}</div>
           <div className="ap-swatches">
             {UI_THEMES.map((t) => (
               <button
@@ -115,15 +117,15 @@ export default function Appearance() {
                 type="button"
                 className={`ap-swatch${prefs.theme === t.id ? " on" : ""}`}
                 style={{ background: t.swatch }}
-                title={t.label}
-                aria-label={t.label}
+                title={tx(t.label)}
+                aria-label={tx(t.label)}
                 aria-pressed={prefs.theme === t.id}
                 onClick={() => set({ theme: t.id })}
               />
             ))}
           </div>
 
-          <div className="ap-title">الخط</div>
+          <div className="ap-title">{tx("الخط")}</div>
           <div className="ap-row">
             {UI_FONTS.map((f) => (
               <button
@@ -135,12 +137,12 @@ export default function Appearance() {
                 onClick={() => set({ font: f.id })}
               >
                 بسم الله
-                <small>{f.label}</small>
+                <small>{tx(f.label)}</small>
               </button>
             ))}
           </div>
 
-          <div className="ap-title">حجم الخط</div>
+          <div className="ap-title">{tx("حجم الخط")}</div>
           <div className="ap-row">
             {UI_SIZES.map((z) => (
               <button
@@ -150,7 +152,7 @@ export default function Appearance() {
                 aria-pressed={prefs.size === z.id}
                 onClick={() => set({ size: z.id })}
               >
-                {z.label}
+                {tx(z.label)}
               </button>
             ))}
           </div>

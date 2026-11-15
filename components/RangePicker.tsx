@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import type { Mushaf, QuranRange } from "@/lib/quran";
 
 // From surah:ayah → to surah:ayah. Ranges may span surahs (muraja'a over a juz', spec §4.3).
@@ -12,6 +14,7 @@ export default function RangePicker({
   value: QuranRange;
   onChange: (r: QuranRange) => void;
 }) {
+  const { tx } = useI18n();
   function setFromSurah(no: number) {
     const from = { surah: no, ayah: 1 };
     // Keep "to" at or after "from" so the common single-surah case needs one pick.
@@ -22,7 +25,7 @@ export default function RangePicker({
   return (
     <div className="range">
       <div className="range-side">
-        <label>من سورة</label>
+        <label>{tx("من سورة")}</label>
         <select value={value.from.surah} onChange={(e) => setFromSurah(Number(e.target.value))}>
           {mushaf.surahs.map((s) => (
             <option key={s.surah_no} value={s.surah_no}>
@@ -30,7 +33,7 @@ export default function RangePicker({
             </option>
           ))}
         </select>
-        <label>من آية (1–{mushaf.ayahCount(value.from.surah)})</label>
+        <label>{tx("من آية (1–")}{mushaf.ayahCount(value.from.surah)})</label>
         <input
           type="number"
           inputMode="numeric"
@@ -42,7 +45,7 @@ export default function RangePicker({
         />
       </div>
       <div className="range-side">
-        <label>إلى سورة</label>
+        <label>{tx("إلى سورة")}</label>
         <select
           value={value.to.surah}
           onChange={(e) => {
@@ -56,7 +59,7 @@ export default function RangePicker({
             </option>
           ))}
         </select>
-        <label>إلى آية (1–{mushaf.ayahCount(value.to.surah)})</label>
+        <label>{tx("إلى آية (1–")}{mushaf.ayahCount(value.to.surah)})</label>
         <input
           type="number"
           inputMode="numeric"
@@ -68,7 +71,7 @@ export default function RangePicker({
         />
       </div>
       {(value.from.ayah > mushaf.ayahCount(value.from.surah) || value.to.ayah > mushaf.ayahCount(value.to.surah)) && (
-        <p className="error-text range-hint">رقم الآية أكبر من عدد آيات السورة</p>
+        <p className="error-text range-hint">{tx("رقم الآية أكبر من عدد آيات السورة")}</p>
       )}
     </div>
   );

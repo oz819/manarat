@@ -1,3 +1,4 @@
+import { staffText, type Locale } from "@/lib/i18n";
 // WhatsApp messages to one family: the day's report, the month's summary and the absence note.
 // Built from the device's local copy, so they work offline.
 
@@ -17,19 +18,19 @@ import {
 
 const DAILY_TRACKS: QuranTrack[] = ["HIFZ", "TILAWA", "MURAJAA", "TALQEEN"];
 
-export function dayName(date: string): string {
+export function dayName(date: string, locale: Locale = "ar"): string {
   const [y, m, d] = date.split("-").map(Number);
   try {
-    return new Intl.DateTimeFormat("ar-SY", { weekday: "long", day: "numeric", month: "long" }).format(new Date(y, m - 1, d));
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date(y, m - 1, d));
   } catch {
     return date;
   }
 }
 
-export function monthName(month: string): string {
+export function monthName(month: string, locale: Locale = "ar"): string {
   const [y, m] = month.split("-").map(Number);
   try {
-    return new Intl.DateTimeFormat("ar-SY", { month: "long", year: "numeric" }).format(new Date(y, m - 1, 1));
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { month: "long", year: "numeric" }).format(new Date(y, m - 1, 1));
   } catch {
     return month;
   }
@@ -47,34 +48,37 @@ export function dayLines(
   entries: QuranEntry[],
   attendance: Attendance | undefined,
   lesson: CircleLesson | undefined,
-  tracks?: Tracks
+  tracks?: Tracks,
+  locale: Locale = "ar"
 ): string[] {
+  const tx = (source: string) => staffText(locale, source);
   const lines: string[] = [];
   for (const track of DAILY_TRACKS) {
     // التلقين only when the centre uses it, under its own name for it.
     if (track === "TALQEEN" && tracks && !tracks.has("TALQEEN")) continue;
-    const label = track === "TALQEEN" && tracks ? tracks.label("TALQEEN") : TRACK_LABEL[track];
+    const label = track === "TALQEEN" && tracks ? tracks.label("TALQEEN") : tx(TRACK_LABEL[track]);
     const list = entries
       .filter((e) => e.track === track && !e.deleted_at)
       .sort((a, b) => a.created_at.localeCompare(b.created_at));
     if (list.length) {
-      lines.push(`${label}: ${list.map((e) => `${mushaf.formatRange(entryRange(e))}${e.quality ? ` — ${e.quality}` : ""}`).join("، ")}`);
+      lines.push(`${label}: ${list.map((e) => `${mushaf.formatRange(entryRange(e), locale)}${e.quality ? ` — ${tx(e.quality)}` : ""}`).join("، ")}`);
     }
   }
   const status = attendance && !attendance.deleted_at ? (attendance.status as AttendanceStatus) : null;
-  if (status) lines.push(`الحضور: ${ATTENDANCE_LABEL[status]}`);
-  if (lesson && !lesson.deleted_at && (status === "PRESENT" || status === "LATE")) lines.push(`الدرس: ${lesson.title}`);
+  if (status) lines.push(`${tx("الحضور")}: ${tx(ATTENDANCE_LABEL[status])}`);
+  if (lesson && !lesson.deleted_at && (status === "PRESENT" || status === "LATE")) lines.push(`${tx("الدرس")}: ${lesson.title}`);
   return lines;
 }
 
-function footer(token: string | undefined): string {
-  return token ? `\n\n🔗 صفحة المتابعة الكاملة:\n${guardianUrl(token)}` : "";
+function footer(token: string | undefined, locale: Locale = "ar"): string {
+  return token ? `\n\n🔗 ${staffText(locale, "صفحة المتابعة الكاملة:")}\n${guardianUrl(token)}` : "";
 }
 
 /** Masculine or feminine wording: students of the girls' section (إناث) get the feminine. */
 const g = (female: boolean, m: string, f: string) => (female ? f : m);
 
-export function dailyMessage(student: Student, date: string, lines: string[], token?: string, female = false): string {
+export function dailyMessage(student: Student, date: string, lines: string[], token?: string, female = false, locale: Locale = "ar"): string {
+  if (locale === "en") return staffText(locale, "تقرير يومي للأهل: {0}\n{1}\n{2}{3}", [dayName(date, locale), student.name, lines.length ? lines.join("\n") : staffText(locale, "لم يُسجَّل شيء في هذا اليوم."), footer(token, locale)]);
   const body = lines.length ? lines.join("\n") : `لم يُسجَّل ${g(female, "له", "لها")} شيء في هذا اليوم.`;
   return `السلام عليكم ورحمة الله\n📖 تقرير حلقة القرآن — ${dayName(date)}\n\n- ${student.name}\n${body}${footer(token)}`;
 }
@@ -108,8 +112,19 @@ function times(n: number): string {
   return n === 0 ? "لا يوجد" : n === 1 ? "مرة واحدة" : n === 2 ? "مرتان" : n <= 10 ? `${n} مرات` : `${n} مرة`;
 }
 
-export function monthlyMessage(student: Student, month: string, st: MonthStats, token?: string, female = false): string {
+export function monthlyMessage(student: Student, month: string, st: MonthStats, token?: string, female = false, locale: Locale = "ar"): string {
   const rate = st.days ? Math.round((st.attended / st.days) * 100) : null;
+  if (locale === "en") {
+    const lines = [
+      staffText(locale, "• الحفظ الجديد: {0} آية", [st.ayat]),
+      staffText(locale, "• التلاوة والمراجعة: {0} مرة", [st.recitations]),
+      staffText(locale, "• الحضور: {0}", [rate === null ? staffText(locale, "لم يُسجَّل") : `${rate}% (${st.attended}/${st.days})`]),
+      ...(st.rank ? [staffText(locale, "• الترتيب في الحلقة: {0} من {1}", [st.rank, st.rankOf])] : []),
+      ...st.exams.map(x => `• ${x}`),
+    ];
+    const encouragement = rate !== null && rate < 60 ? "نرجو الحرص على المواظبة على الحضور." : "بارك الله فيكم وجزاكم خيرًا على المتابعة.";
+    return staffText(locale, "ملخص شهري للأهل: {0} — {1}\n{2}\n{3}{4}", [monthName(month, locale), student.name, lines.join("\n"), staffText(locale, encouragement), footer(token, locale)]);
+  }
   const lines = [
     `• الحفظ الجديد: ${st.ayat ? `${st.ayat} آية` : "لا يوجد"}`,
     `• التلاوة والمراجعة: ${times(st.recitations)}`,
@@ -130,7 +145,8 @@ export function monthlyMessage(student: Student, month: string, st: MonthStats, 
 export const DEFAULT_ABSENCE_MESSAGE =
   "السلام عليكم ورحمة الله، نرجو أن تكونوا بخير.\nافتقدنا {الاسم} في حلقة القرآن آخر {العدد} أيام، ونتمنى أن {يكون} بخير وعافية.\nإن كان هناك ما نستطيع المساعدة فيه فنحن حاضرون، ونسعد بعودت{ه} قريبًا بإذن الله.";
 
-export function absenceMessage(template: string, student: Student, days: number, female = false): string {
+export function absenceMessage(template: string, student: Student, days: number, female = false, locale: Locale = "ar"): string {
+  if (locale === "en" && (!template || template === DEFAULT_ABSENCE_MESSAGE)) return staffText(locale, "رسالة غياب افتراضية: {0} — {1}", [student.name, days]);
   return (template || DEFAULT_ABSENCE_MESSAGE)
     .replaceAll("{الاسم}", student.name)
     .replaceAll("{العدد}", String(days))

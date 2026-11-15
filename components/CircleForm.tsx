@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SECTION_LABEL, SECTIONS } from "@/lib/filter";
@@ -43,6 +45,7 @@ export default function CircleForm({
   /** e.g. a "skip" or "cancel" button shown beside the save button. */
   secondary?: React.ReactNode;
 }) {
+  const { tx } = useI18n();
   const [name, setName] = useState("");
   const [section, setSection] = useState<string>("MALE");
   const [students, setStudents] = useState("");
@@ -54,9 +57,9 @@ export default function CircleForm({
     e.preventDefault();
     setError("");
     const n = name.trim();
-    if (!n) return setError("اكتب اسم الحلقة");
-    if (parsed.names.length > 300) return setError("الحد 300 اسم في المرة الواحدة");
-    if (!navigator.onLine) return setError("إنشاء الحلقة يحتاج اتصالًا بالإنترنت");
+    if (!n) return setError(tx("اكتب اسم الحلقة"));
+    if (parsed.names.length > 300) return setError(tx("الحد 300 اسم في المرة الواحدة"));
+    if (!navigator.onLine) return setError(tx("إنشاء الحلقة يحتاج اتصالًا بالإنترنت"));
     setBusy(true);
     const { data, error } = await supabase.rpc("admin_create_circle", {
       p_name: n,
@@ -64,7 +67,7 @@ export default function CircleForm({
       p_students: parsed.names,
     });
     setBusy(false);
-    if (error || !data) return setError(error?.message || "تعذّر إنشاء الحلقة");
+    if (error || !data) return setError(error?.message || tx("تعذّر إنشاء الحلقة"));
     const r = data as { id: string; students: number };
     setName("");
     setStudents("");
@@ -75,44 +78,44 @@ export default function CircleForm({
     <form className="circle-form" onSubmit={save} noValidate>
       <div className="two">
         <div>
-          <label htmlFor="cf-name">اسم الحلقة</label>
+          <label htmlFor="cf-name">{tx("اسم الحلقة")}</label>
           <input id="cf-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder="حلقة أبي بكر الصديق" />
         </div>
         <div>
-          <label htmlFor="cf-section">القسم</label>
+          <label htmlFor="cf-section">{tx("القسم")}</label>
           <select id="cf-section" value={section} onChange={(e) => setSection(e.target.value)}>
             {SECTIONS.map((s) => (
               <option key={s} value={s}>
-                {SECTION_LABEL[s]}
+                {tx(SECTION_LABEL[s])}
               </option>
             ))}
-            <option value="">بدون قسم</option>
+            <option value="">{tx("بدون قسم")}</option>
           </select>
         </div>
       </div>
       <div className="field">
         <label htmlFor="cf-students">
-          أسماء الطلاب <span className="muted small">(اسم في كل سطر — اختياري)</span>
+          {tx("أسماء الطلاب")} <span className="muted small">{tx("(اسم في كل سطر — اختياري)")}</span>
         </label>
         <textarea
           id="cf-students"
           rows={7}
           value={students}
           onChange={(e) => setStudents(e.target.value)}
-          placeholder={"أحمد محمد\nعمر خالد\nيوسف علي"}
+          placeholder={tx("أحمد محمد\nعمر خالد\nيوسف علي")}
         />
         <p className="small muted cf-count" aria-live="polite">
           {parsed.names.length
-            ? `سيُضاف ${parsed.names.length} ${parsed.names.length === 1 ? "طالب" : "طالبًا"}`
-            : "تستطيع اللصق من Excel أو واتساب مباشرة، أو إضافة الطلاب لاحقًا."}
-          {parsed.skipped > 0 && ` · تُجوهل ${parsed.skipped} سطر (مكرر أو قصير)`}
+            ? tx("سيُضاف {0} {1}", [parsed.names.length, parsed.names.length === 1 ? tx("طالب") : tx("طالبًا")])
+            : tx("تستطيع اللصق من Excel أو واتساب مباشرة، أو إضافة الطلاب لاحقًا.")}
+          {parsed.skipped > 0 && tx(" · تُجوهل {0} سطر (مكرر أو قصير)", [parsed.skipped])}
         </p>
       </div>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
       <div className="ob-actions">
         {secondary ?? <span />}
         <button type="submit" disabled={busy}>
-          {busy ? "جارٍ الحفظ..." : submitLabel}
+          {busy ? tx("جارٍ الحفظ...") : tx(submitLabel)}
         </button>
       </div>
     </form>

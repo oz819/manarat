@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -35,6 +37,7 @@ const SECTIONS: { id: Section; label: string }[] = [
 const STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT"];
 
 export default function StudentCard({ studentId, onClose, onTalqeen }: { studentId: string; onClose: () => void; onTalqeen: () => void }) {
+  const { tx, date: formatDate, locale } = useI18n();
   const s = useStore();
   const { mushaf, profile, showToast, tracks } = useApp();
   // Opened from «جاهزون للاختبار»: straight to the exams tab on that juz'.
@@ -49,10 +52,9 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
   if (!student) {
     return (
       <div className="card">
-        <p className="muted">الطالب غير موجود على هذا الجهاز.</p>
+        <p className="muted">{tx("الطالب غير موجود على هذا الجهاز.")}</p>
         <button className="secondary" onClick={onClose}>
-          رجوع
-        </button>
+          {tx("رجوع")}</button>
       </div>
     );
   }
@@ -61,7 +63,7 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
   // التلقين is optional per centre (الإدارة ← قسم التلقين), and named the way the centre calls it.
   const talqeenOn = tracks.has("TALQEEN");
   const sections = SECTIONS.filter((sec) => sec.id !== "TALQEEN" || talqeenOn).map((sec) =>
-    sec.id === "TALQEEN" ? { ...sec, label: tracks.label("TALQEEN") } : sec
+    sec.id === "TALQEEN" ? { ...sec, label: tracks.label("TALQEEN") } : { ...sec, label: tx(sec.label) }
   );
   const quran = s.byStudent("quran_entries").get(studentId) ?? [];
   const arabic = s.byStudent("arabic_entries").get(studentId) ?? [];
@@ -91,9 +93,9 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
     setLoadingHistory(true);
     try {
       await store.fetchStudentHistory(studentId);
-      showToast("تم تحميل السجل الكامل");
+      showToast(tx("تم تحميل السجل الكامل"));
     } catch {
-      showToast("تعذّر التحميل — تحتاج اتصالًا بالإنترنت");
+      showToast(tx("تعذّر التحميل — تحتاج اتصالًا بالإنترنت"));
     } finally {
       setLoadingHistory(false);
     }
@@ -105,63 +107,60 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
         <div className="title">
           <div>
             <button className="link" onClick={onClose}>
-              → كل الطلاب
-            </button>
+              {tx("→ كل الطلاب")}</button>
             <h2 style={{ margin: "4px 0" }}>
-              {student.name} {!student.active && <span className="badge redo">مؤرشف</span>}
+              {student.name} {!student.active && <span className="badge redo">{tx("مؤرشف")}</span>}
             </h2>
             <span className="muted">{circle?.name ?? "—"}</span>
             {moves.length > 0 && (
               <details className="moves small">
-                <summary>سجل الحلقات ({moves.length})</summary>
+                <summary>{tx("سجل الحلقات (")}{moves.length})</summary>
                 <ul>
                   {moves.map((t) => (
                     <li key={t.id}>
-                      {t.transfer_date}: من «{s.get("circles", t.from_circle_id ?? "")?.name ?? "—"}» إلى «
-                      {s.get("circles", t.to_circle_id ?? "")?.name ?? "—"}»
+                      {formatDate(t.transfer_date ?? "")}{tx(": من «")}{s.get("circles", t.from_circle_id ?? "")?.name ?? "—"}{tx("» إلى «")}{s.get("circles", t.to_circle_id ?? "")?.name ?? "—"}»
                     </li>
                   ))}
                 </ul>
-                <span className="muted">سجلاته قبل كل نقل تبقى محسوبة على حلقته القديمة.</span>
+                <span className="muted">{tx("سجلاته قبل كل نقل تبقى محسوبة على حلقته القديمة.")}</span>
               </details>
             )}
-            {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>لم يُحفظ في الحساب بعد</span>}
+            {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>{tx("لم يُحفظ في الحساب بعد")}</span>}
           </div>
           <button className={`secondary${editing ? " on" : ""}`} aria-pressed={editing} onClick={() => setEditing(true)}>
-            ✏️ تعديل الطالب
-          </button>
+            {tx("✏️ تعديل الطالب")}</button>
         </div>
 
         {editing && (
-          <Panel title="✏️ تعديل بيانات الطالب" onClose={() => setEditing(false)} className="panel-inset">
+          <Panel title={tx("✏️ تعديل بيانات الطالب")} onClose={() => setEditing(false)} className="panel-inset">
             <EditStudent studentId={studentId} isAdmin={profile.role === "ADMIN"} onDone={() => setEditing(false)} onDeleted={onClose} />
           </Panel>
         )}
 
         <div className="att-row">
-          <span className="muted">حضور اليوم:</span>
+          <span className="muted">{tx("حضور اليوم:")}</span>
           {STATUSES.map((st) => (
             <button
               key={st}
               className={status === st ? `chip on ${st.toLowerCase()}` : "chip"}
               onClick={() => store.setAttendance(studentId, today, status === st ? null : st)}
             >
-              {ATTENDANCE_LABEL[st]}
+              {tx(ATTENDANCE_LABEL[st])}
             </button>
           ))}
         </div>
 
         <div className="positions">
-          <Pos label="الحفظ" value={p.hifz ? mushaf.formatRange(p.hifz.range) : null} extra={p.hifz?.percent != null ? `${p.hifz.percent}% محفوظ` : undefined} date={p.hifz?.entry.entry_date} />
-          <Pos label="التلاوة" value={p.tilawa ? mushaf.formatRange(p.tilawa.range) : null} extra={p.tilawa?.percent != null ? `${p.tilawa.percent}%` : undefined} date={p.tilawa?.entry.entry_date} />
-          <Pos label="المراجعة" value={p.murajaa ? mushaf.formatRange(p.murajaa.range) : null} date={p.murajaa?.entry.entry_date} />
-          {talqeenOn && <Pos label={tracks.label("TALQEEN")} value={p.talqeen ? mushaf.formatRange(p.talqeen.range) : null} date={p.talqeen?.entry.entry_date} />}
+          <Pos label={tx("الحفظ")} value={p.hifz ? mushaf.formatRange(p.hifz.range, locale) : null} extra={p.hifz?.percent != null ? tx("{0}% محفوظ", [p.hifz.percent]) : undefined} date={p.hifz?.entry.entry_date} />
+          <Pos label={tx("التلاوة")} value={p.tilawa ? mushaf.formatRange(p.tilawa.range, locale) : null} extra={p.tilawa?.percent != null ? `${p.tilawa.percent}%` : undefined} date={p.tilawa?.entry.entry_date} />
+          <Pos label={tx("المراجعة")} value={p.murajaa ? mushaf.formatRange(p.murajaa.range, locale) : null} date={p.murajaa?.entry.entry_date} />
+          {talqeenOn && <Pos label={tracks.label("TALQEEN")} value={p.talqeen ? mushaf.formatRange(p.talqeen.range, locale) : null} date={p.talqeen?.entry.entry_date} />}
           <Pos
-            label="العربية"
-            value={p.arabic ? `${p.arabic.book.title} — ص ${p.arabic.page}` : lastFinished ? `✅ أنهى ${lastFinished}` : null}
+            label={tx("العربية")}
+            value={p.arabic ? tx("{0} — ص {1}", [p.arabic.book.title, p.arabic.page]) : lastFinished ? tx("✅ أنهى {0}", [lastFinished]) : null}
             extra={p.arabic ? `${p.arabic.percent}%` : undefined}
           />
-          <Pos label="آخر ملاحظة تربوية" value={p.lastTarbiya ?? null} />
+          <Pos label={tx("آخر ملاحظة تربوية")} value={p.lastTarbiya ?? null} />
         </div>
 
         <GuardianBox studentId={studentId} onEdit={() => setEditing(true)} />
@@ -186,7 +185,7 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
       <div className="card">
         {section === "MURAJAA" && !prefill && (
           <details className="review-box">
-            <summary>🔁 مراجعة اليوم المقترحة</summary>
+            <summary>{tx("🔁 مراجعة اليوم المقترحة")}</summary>
             <ReviewSuggestions entries={quran} onReview={review} />
           </details>
         )}
@@ -208,7 +207,7 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
         {section === "TARBIYA" && <TarbiyaSection key={studentId} studentId={studentId} notes={edu} />}
         <div style={{ marginTop: 12 }}>
           <button className="link" onClick={loadHistory} disabled={loadingHistory}>
-            {loadingHistory ? "جارٍ التحميل..." : "تحميل السجل الأقدم من الخادم"}
+            {loadingHistory ? tx("جارٍ التحميل...") : tx("تحميل السجل الأقدم من الخادم")}
           </button>
         </div>
       </div>
@@ -217,6 +216,7 @@ export default function StudentCard({ studentId, onClose, onTalqeen }: { student
 }
 
 function Pos({ label, value, extra, date }: { label: string; value: string | null; extra?: string; date?: string }) {
+  const { date: formatDate } = useI18n();
   return (
     <div className="pos-tile">
       <span className="muted">{label}</span>
@@ -225,7 +225,7 @@ function Pos({ label, value, extra, date }: { label: string; value: string | nul
         <span className="small muted">
           {extra}
           {extra && date ? " · " : ""}
-          {date}
+          {date ? formatDate(date) : ""}
         </span>
       )}
     </div>
@@ -233,6 +233,7 @@ function Pos({ label, value, extra, date }: { label: string; value: string | nul
 }
 
 function TalqeenList({ entries, onCreate }: { entries: QuranEntry[]; onCreate: () => void }) {
+  const { tx, locale, date: formatDate } = useI18n();
   const { mushaf, showToast, tracks } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quality, setQuality] = useState("");
@@ -241,8 +242,8 @@ function TalqeenList({ entries, onCreate }: { entries: QuranEntry[]; onCreate: (
 
   if (!list.length) return (
       <div>
-        <p className="muted">لم تُسجَّل جلسات {tracks.label("TALQEEN")} لهذا الطالب بعد. سجّل جلسة للحلقة وحدّد الطلاب المشاركين ليظهر سجلّهم هنا.</p>
-        <button type="button" onClick={onCreate}>تسجيل جلسة {tracks.label("TALQEEN")}</button>
+        <p className="muted">{tx("لم تُسجَّل جلسات {0} لهذا الطالب بعد. سجّل جلسة للحلقة وحدّد الطلاب المشاركين ليظهر سجلّهم هنا.", [tracks.label("TALQEEN")])}</p>
+        <button type="button" onClick={onCreate}>{tx("تسجيل جلسة {0}", [tracks.label("TALQEEN")])}</button>
       </div>
     );
 
@@ -251,28 +252,27 @@ function TalqeenList({ entries, onCreate }: { entries: QuranEntry[]; onCreate: (
       {list.map((e) => (
         <li key={e.id} className={editingId === e.id ? "editing" : ""}>
           <div style={{ flex: 1 }}>
-            <b>{mushaf.formatRange(entryRange(e))}</b>
-            <span className="muted"> · {e.entry_date}</span>
-            {e.quality && <span className="badge">{e.quality}</span>}
+            <b>{mushaf.formatRange(entryRange(e), locale)}</b>
+            <span className="muted"> · {formatDate(e.entry_date ?? "")}</span>
+            {e.quality && <span className="badge">{tx(e.quality)}</span>}
             {e.notes && <div className="small muted">{e.notes}</div>}
             {editingId === e.id && (
               <div className="formgrid compact" style={{ marginTop: 8 }}>
                 <select value={quality} onChange={(ev) => setQuality(ev.target.value)}>
                   <option value="">—</option>
                   {QUALITIES.map((q) => (
-                    <option key={q}>{q}</option>
+                    <option key={q} value={q}>{tx(q)}</option>
                   ))}
                 </select>
-                <input value={notes} placeholder="ملاحظة" onChange={(ev) => setNotes(ev.target.value)} />
+                <input value={notes} placeholder={tx("ملاحظة")} onChange={(ev) => setNotes(ev.target.value)} />
                 <button
                   onClick={async () => {
                     await store.save("quran_entries", { ...e, quality: quality || null, notes: notes.trim() || null }, "تعديل تلقين");
                     setEditingId(null);
-                    showToast("تم التعديل");
+                    showToast(tx("تم التعديل"));
                   }}
                 >
-                  حفظ
-                </button>
+                  {tx("حفظ")}</button>
               </div>
             )}
           </div>
@@ -285,22 +285,20 @@ function TalqeenList({ entries, onCreate }: { entries: QuranEntry[]; onCreate: (
                 setNotes(e.notes ?? "");
               }}
             >
-              تعديل
-            </button>
+              {tx("تعديل")}</button>
             <button
               className="link danger-link"
               onClick={async () => {
                 const ok = await confirmDialog({
-                  title: `حذف التلقين «${store.get("students", e.student_id)?.name ?? ""}»؟`,
-                  body: `${e.entry_date} · ${mushaf.formatRange(entryRange(e))}\n` + "ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك.",
-                  ok: "حذف",
+                  title: tx("حذف التلقين «{0}»؟", [store.get("students", e.student_id)?.name ?? ""]),
+                  body: `${e.entry_date} · ${mushaf.formatRange(entryRange(e), locale)}\n` + tx("ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك."),
+                  ok: tx("حذف"),
                   danger: true,
                 });
                 if (ok) await store.softDelete("quran_entries", e.id, "حذف تلقين");
               }}
             >
-              حذف
-            </button>
+              {tx("حذف")}</button>
           </div>
         </li>
       ))}
@@ -319,6 +317,7 @@ function EditStudent({
   onDone: () => void;
   onDeleted: () => void;
 }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, showToast } = useApp();
   const student = s.get("students", studentId)!;
@@ -332,44 +331,44 @@ function EditStudent({
   async function save() {
     if (!name.trim()) return;
     const guardianPhone = phone.trim() ? normalizePhone(phone) : null;
-    if (phone.trim() && !guardianPhone) return setError("رقم ولي الأمر غير صحيح — اكتبه مثل 0912345678 أو ‎+963912345678");
+    if (phone.trim() && !guardianPhone) return setError(tx("رقم ولي الأمر غير صحيح — اكتبه مثل 0912345678 أو ‎+963912345678"));
     await store.save(
       "students",
       { ...student, name: name.trim(), circle_id: circleId, guardian_name: guardianName.trim() || null, guardian_phone: guardianPhone },
       "تعديل بيانات طالب"
     );
-    showToast("تم حفظ بيانات الطالب");
+    showToast(tx("تم حفظ بيانات الطالب"));
     onDone();
   }
 
   async function toggleArchive() {
-    if (!confirm(student.active ? "أرشفة هذا الطالب؟" : "إلغاء أرشفة الطالب؟")) return;
+    if (!confirm(student.active ? tx("أرشفة هذا الطالب؟") : tx("إلغاء أرشفة الطالب؟"))) return;
     await store.save("students", { ...student, active: !student.active }, student.active ? "أرشفة طالب" : "إلغاء أرشفة طالب");
     onDone();
   }
 
   async function remove() {
     const ok = await confirmDialog({
-      title: `حذف الطالب «${student.name}»؟`,
-      body: "ينتقل إلى سجل المحذوفات ويختفي من كل القوائم والتقارير. تبقى سجلاته كاملة، ويمكن استرجاعه من سجل المحذوفات.",
-      ok: "حذف",
+      title: tx("حذف الطالب «{0}»؟", [student.name]),
+      body: tx("ينتقل إلى سجل المحذوفات ويختفي من كل القوائم والتقارير. تبقى سجلاته كاملة، ويمكن استرجاعه من سجل المحذوفات."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
     const err = await adminSoftDelete(supabase, "student", student.id);
     if (err) return showToast(err);
-    showToast(`تم حذف «${student.name}» — تجده في سجل المحذوفات`);
+    showToast(tx("تم حذف «{0}» — تجده في سجل المحذوفات", [student.name]));
     onDeleted();
   }
 
   return (
     <div className="formgrid compact" style={{ margin: "10px 0" }}>
       <div>
-        <label>الاسم</label>
+        <label>{tx("الاسم")}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div>
-        <label>الحلقة</label>
+        <label>{tx("الحلقة")}</label>
         <select value={circleId} onChange={(e) => setCircleId(e.target.value)}>
           {circles.map((c) => (
             <option key={c.id} value={c.id}>
@@ -378,34 +377,32 @@ function EditStudent({
           ))}
         </select>
         {circleId !== student.circle_id && (
-          <p className="small muted">نقل من اليوم: سجلاته السابقة تبقى محسوبة على حلقته الحالية في الترتيب والتقارير.</p>
+          <p className="small muted">{tx("نقل من اليوم: سجلاته السابقة تبقى محسوبة على حلقته الحالية في الترتيب والتقارير.")}</p>
         )}
       </div>
       <div>
-        <label>اسم ولي الأمر</label>
-        <input value={guardianName} onChange={(e) => setGuardianName(e.target.value)} placeholder="اختياري" />
+        <label>{tx("اسم ولي الأمر")}</label>
+        <input value={guardianName} onChange={(e) => setGuardianName(e.target.value)} placeholder={tx("اختياري")} />
       </div>
       <div>
-        <label>رقم واتساب ولي الأمر</label>
+        <label>{tx("رقم واتساب ولي الأمر")}</label>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" />
       </div>
       <div className="row-actions" style={{ alignSelf: "end" }}>
-        <button onClick={save}>حفظ</button>
+        <button onClick={save}>{tx("حفظ")}</button>
         <button className="secondary" onClick={onDone}>
-          إلغاء التعديل
-        </button>
+          {tx("إلغاء التعديل")}</button>
         {isAdmin && (
           <button className="secondary" onClick={toggleArchive}>
-            {student.active ? "أرشفة" : "إلغاء الأرشفة"}
+            {student.active ? tx("أرشفة") : tx("إلغاء الأرشفة")}
           </button>
         )}
         {isAdmin && (
           <button className="danger" onClick={remove}>
-            حذف
-          </button>
+            {tx("حذف")}</button>
         )}
       </div>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
     </div>
   );
 }

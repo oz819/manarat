@@ -83,7 +83,7 @@ label { color: var(--muted); font-size: var(--fs-sm); font-weight: 500; }
 th { background: var(--surface-2); color: var(--muted); font-weight: 600; }
 th, td { border-bottom-color: var(--line); }
 .badge, .pill { background: var(--surface-2); color: var(--text); }
-.notice { background: var(--warn-soft); border-right-color: var(--accent-2); color: var(--text); }
+.notice { background: var(--warn-soft); border-inline-start-color: var(--accent-2); color: var(--text); }
 .excellent { background: var(--accent-soft); color: var(--accent-strong); }
 .good { background: var(--info-soft); color: var(--accent); }
 .redo { background: var(--danger-soft); color: var(--danger); }
@@ -327,7 +327,7 @@ td.row-actions button.link { padding: 4px 2px; }
 /* On phones the account row sits under the centre name, across the full width. */
 @media (max-width: 520px) {
   .headerrow { flex-wrap: wrap; gap: 10px; }
-  .userbox { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: right; }
+  .userbox { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: start; }
   .userbox-actions { margin-top: 0; }
 }
 .userbox .sync-badge, .userbox-actions > * { white-space: nowrap; }
@@ -381,3 +381,16 @@ td.row-actions button.link { padding: 4px 2px; }
 
 .app-footer{padding:16px;text-align:center}
 .app-footer .dev-credit{margin:0 auto;border:0;padding:0}
+
+/* Locale controls stay reachable on narrow screens. */
+.language-switch { white-space: nowrap; }
+html[lang="en"] .cert-sheet { font-family: var(--font-body), sans-serif; }
+html[dir="ltr"] .login-close { left: auto; right: 12px; }
+
+@media (max-width: 650px) {
+  .app-bg .headerrow { flex-wrap: wrap; }
+  .app-bg .userbox { display: flex; flex-direction: column; align-items: stretch; width: 100%; min-width: 0; text-align: start; }
+  .app-bg .userbox > span { overflow-wrap: anywhere; }
+  .app-bg .userbox-actions { flex-wrap: wrap; justify-content: flex-start; min-width: 0; width: 100%; }
+  .app-bg .userbox .sync-badge { white-space: normal; }
+}

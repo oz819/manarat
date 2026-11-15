@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/components/LocaleProvider";
 import { CenterMark } from "@/components/center/Geo";
 import { accentStyle, type PublicCenter } from "@/lib/center";
 
@@ -6,7 +9,8 @@ import { accentStyle, type PublicCenter } from "@/lib/center";
 type Brand = Pick<PublicCenter, "name" | "logo_url" | "palette" | "primary_color">;
 
 export default function PublicShell({ center, children }: { center?: Brand | null; children: React.ReactNode }) {
-  const name = center?.name ?? "حلقات القرآن";
+  const { tx } = useI18n();
+  const name = center?.name ?? tx("حلقات القرآن");
   return (
     <div className="app-bg" data-palette={center?.palette ?? "navy"} style={accentStyle(center)}>
       <main className="guardian">
@@ -14,7 +18,7 @@ export default function PublicShell({ center, children }: { center?: Brand | nul
           <CenterMark name={name} logo={center?.logo_url} size={56} />
           <div>
             <h1>{name}</h1>
-            <span className="muted">متابعة حلقات القرآن الكريم</span>
+            <span className="muted">{tx("متابعة حلقات القرآن الكريم")}</span>
           </div>
         </div>
         {children}

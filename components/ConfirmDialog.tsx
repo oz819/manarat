@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useState } from "react";
 
 type Request = {
@@ -22,6 +24,7 @@ export function confirmDialog(opts: { title: string; body?: string; ok?: string;
 
 // Mounted once (AppShell). Escape cancels; the cancel button gets focus so Enter never deletes by accident.
 export default function ConfirmDialogHost() {
+  const { tx } = useI18n();
   const [req, setReq] = useState<Request | null>(null);
 
   useEffect(() => {
@@ -53,15 +56,14 @@ export default function ConfirmDialogHost() {
         aria-labelledby="dialog-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h4 id="dialog-title">{req.title}</h4>
-        {req.body && <p>{req.body}</p>}
+        <h4 id="dialog-title">{tx(req.title)}</h4>
+        {req.body && <p>{tx(req.body)}</p>}
         <div className="row-actions">
           <button className={req.danger ? "danger" : ""} onClick={() => close(true)}>
-            {req.ok}
+            {tx(req.ok)}
           </button>
           <button className="secondary" autoFocus onClick={() => close(false)}>
-            إلغاء
-          </button>
+            {tx("إلغاء")}</button>
         </div>
       </div>
     </div>

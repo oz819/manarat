@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/components/LocaleProvider";
 import type { JuzProgress } from "@/lib/juz";
 
 // The 30 juz' as a grid: filled green when memorized in full, partly filled by the share
@@ -11,18 +14,19 @@ export default function JuzGrid({
   selected?: number | null;
   onSelect?: (n: number) => void;
 }) {
+  const { tx } = useI18n();
   return (
-    <div className="juz-grid" role="list" aria-label="خريطة الأجزاء الثلاثين">
+    <div className="juz-grid" role="list" aria-label={tx("خريطة الأجزاء الثلاثين")}>
       {juz.map((j) => {
         const cls = `juz-cell ${j.percent === 100 ? "full" : j.percent > 0 ? "part" : ""} ${selected === j.juz ? "sel" : ""}`;
-        const label = `الجزء ${j.juz}: ${j.percent === 100 ? "محفوظ كاملًا" : j.percent ? `${j.percent}%` : "لم يبدأ"}`;
+        const label = tx("الجزء {0}: {1}", [j.juz, j.percent === 100 ? tx("محفوظ كاملًا") : j.percent ? `${j.percent}%` : tx("لم يبدأ")]);
         const style = { "--fill": `${j.percent}%` } as React.CSSProperties;
         return onSelect ? (
-          <button key={j.juz} type="button" role="listitem" className={cls} style={style} title={label} aria-label={label} onClick={() => onSelect(j.juz)}>
+          <button key={j.juz} type="button" role="listitem" className={cls} style={style} title={tx(label)} aria-label={tx(label)} onClick={() => onSelect(j.juz)}>
             {j.juz}
           </button>
         ) : (
-          <span key={j.juz} role="listitem" className={cls} style={style} title={label} aria-label={label}>
+          <span key={j.juz} role="listitem" className={cls} style={style} title={tx(label)} aria-label={tx(label)}>
             {j.juz}
           </span>
         );

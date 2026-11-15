@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { newId, store, useStore } from "@/lib/offline/store";
@@ -10,6 +12,7 @@ import { parseStudents, STUDENT_IMPORT_TEMPLATE } from "@/lib/studentImport";
 // is required). A halaqa that doesn't match goes to the one picked below. Students are added
 // through the offline outbox like any other, so it works on a weak connection too.
 export default function ImportStudents() {
+  const { tx } = useI18n();
   const { showToast } = useApp();
   const s = useStore();
   const circles = s.all("circles").filter((c) => c.active);
@@ -23,7 +26,7 @@ export default function ImportStudents() {
     const url = URL.createObjectURL(new Blob(["\uFEFF", STUDENT_IMPORT_TEMPLATE], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "قالب-استيراد-الطلاب.csv";
+    a.download = tx("قالب-استيراد-الطلاب.csv");
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -38,8 +41,8 @@ export default function ImportStudents() {
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
-    if (f.size > 1024 * 1024) return showToast("الملف أكبر من 1 ميغابايت");
-    if (/\.xlsx?$/i.test(f.name)) return showToast("احفظ ملف Excel بصيغة CSV أولًا، أو انسخ الخلايا والصقها هنا");
+    if (f.size > 1024 * 1024) return showToast(tx("الملف أكبر من 1 ميغابايت"));
+    if (/\.xlsx?$/i.test(f.name)) return showToast(tx("احفظ ملف Excel بصيغة CSV أولًا، أو انسخ الخلايا والصقها هنا"));
     setText(await f.text());
   }
 
@@ -62,27 +65,26 @@ export default function ImportStudents() {
     }
     setBusy(false);
     setText("");
-    showToast(`أُضيف ${rows.length} طالبًا`);
+    showToast(tx("أُضيف {0} طالبًا", [rows.length]));
   }
 
   return (
     <div className="card">
-      <h3>📥 استيراد طلاب من CSV أو لصق Excel</h3>
+      <h3>{tx("📥 استيراد طلاب من CSV أو لصق Excel")}</h3>
       <p className="small muted">
-        الأعمدة بالترتيب: اسم الطالب، الحلقة، اسم ولي الأمر، رقم ولي الأمر. انسخ الخلايا من Excel والصقها هنا، أو ارفع ملف CSV بترميز UTF-8. الاسم مطلوب؛ وبقية الحقول اختيارية إذا اخترت الحلقة أدناه.
-      </p>
-      <p className="small muted">ملفات ‎.xlsx و‎.xls لا تُرفع مباشرة: احفظها من Excel بصيغة CSV UTF-8، أو انسخ الخلايا والصقها. اجعل عمود الهاتف نصًا للحفاظ على الصفر في بدايته.</p>
-      <button type="button" className="link" onClick={downloadTemplate}>تنزيل قالب CSV</button>
-      <textarea aria-label="بيانات الطلاب للاستيراد" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={"أحمد محمد\tحلقة أبي بكر\tمحمد\t0991234567"} dir="auto" />
+        {tx("الأعمدة بالترتيب: اسم الطالب، الحلقة، اسم ولي الأمر، رقم ولي الأمر. انسخ الخلايا من Excel والصقها هنا، أو ارفع ملف CSV بترميز UTF-8. الاسم مطلوب؛ وبقية الحقول اختيارية إذا اخترت الحلقة أدناه.")}</p>
+      <p className="small muted">{tx("ملفات ‎.xlsx و‎.xls لا تُرفع مباشرة: احفظها من Excel بصيغة CSV UTF-8، أو انسخ الخلايا والصقها. اجعل عمود الهاتف نصًا للحفاظ على الصفر في بدايته.")}</p>
+      <button type="button" className="link" onClick={downloadTemplate}>{tx("تنزيل قالب CSV")}</button>
+      <textarea aria-label={tx("بيانات الطلاب للاستيراد")} rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={tx("أحمد محمد\tحلقة أبي بكر\tمحمد\t0991234567")} dir="auto" />
       <div className="formgrid compact" style={{ marginTop: 8 }}>
         <div>
-          <label>ملف CSV</label>
+          <label>{tx("ملف CSV")}</label>
           <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={readFile} />
         </div>
         <div>
-          <label>حلقة لمن لم تُذكر حلقته</label>
+          <label>{tx("حلقة لمن لم تُذكر حلقته")}</label>
           <select value={fallback} onChange={(e) => setFallback(e.target.value)}>
-            <option value="">— اختر —</option>
+            <option value="">{tx("— اختر —")}</option>
             {circles.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -93,12 +95,11 @@ export default function ImportStudents() {
       </div>
       {rows.length > 0 && (
         <p className="small" style={{ marginTop: 8 }}>
-          {rows.length} طالبًا جاهزون للإضافة
-          {missing > 0 && <span className="error-text"> — {missing} بلا حلقة معروفة: اختر حلقة لهم</span>}
+          {rows.length}  {tx("طالبًا جاهزون للإضافة")}{missing > 0 && <span className="error-text"> — {missing}  {tx("بلا حلقة معروفة: اختر حلقة لهم")}</span>}
         </p>
       )}
       <button type="button" onClick={run} disabled={!rows.length || missing > 0 || busy} style={{ marginTop: 8 }}>
-        {busy ? "جارٍ الإضافة..." : `إضافة ${rows.length || ""} طالب`}
+        {busy ? tx("جارٍ الإضافة...") : tx("إضافة {0} طالب", [rows.length || ""])}
       </button>
     </div>
   );

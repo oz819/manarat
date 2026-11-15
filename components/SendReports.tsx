@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import Panel from "@/components/Panel";
@@ -21,6 +23,7 @@ type Show = "all" | "unsent" | "nophone";
 // opens WhatsApp to the guardian's number with the text filled in and marks it sent (on every
 // device), so the teacher sees where they got to. Also the month's summary (ملخص الشهر).
 export default function SendReports({ onClose }: { onClose: () => void }) {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { mushaf, supabase, tracks } = useApp();
   const { inScope, label } = useScope();
@@ -73,9 +76,9 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
         (quranBy.get(st.id) ?? []).filter((e) => e.entry_date === date),
         s.get("attendance", `${st.id}|${date}`),
         s.get("circle_lessons", `${st.circle_id}|${date}`),
-        tracks
+        tracks, locale
       );
-      return dailyMessage(st, date, lines, token, female(st));
+      return dailyMessage(st, date, lines, token, female(st), locale);
     }
     const inMonth = (d: string) => d >= monthFrom && d <= monthTo;
     const base = monthStats(
@@ -84,8 +87,8 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
       (attBy.get(st.id) ?? []).filter((a) => inMonth(a.att_date))
     );
     const r = ranks.get(st.id);
-    const stats: MonthStats = { ...base, rank: r?.rank ?? null, rankOf: r?.of ?? 0, exams: examLines(s.all("exams"), st.id, monthFrom, monthTo, mushaf) };
-    return monthlyMessage(st, month, stats, token, female(st));
+    const stats: MonthStats = { ...base, rank: r?.rank ?? null, rankOf: r?.of ?? 0, exams: examLines(s.all("exams"), st.id, monthFrom, monthTo, mushaf, locale) };
+    return monthlyMessage(st, month, stats, token, female(st), locale);
   }
 
   const sentOf = (st: Student) => {
@@ -106,52 +109,49 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Panel title="📤 إرسال تقارير الحلقة" onClose={onClose} className="send-reports">
+    <Panel title={tx("📤 إرسال تقارير الحلقة")} onClose={onClose} className="send-reports">
       <div className="recent">
         <button className={`chip ${mode === "DAILY" ? "on" : ""}`} onClick={() => setMode("DAILY")}>
-          تقرير اليوم
-        </button>
+          {tx("تقرير اليوم")}</button>
         <button className={`chip ${mode === "MONTHLY" ? "on" : ""}`} onClick={() => setMode("MONTHLY")}>
-          ملخص الشهر
-        </button>
+          {tx("ملخص الشهر")}</button>
       </div>
       <div className="formgrid compact">
         {mode === "DAILY" ? (
           <div>
-            <label>اليوم</label>
+            <label>{tx("اليوم")}</label>
             <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value || todayStr())} />
           </div>
         ) : (
           <div>
-            <label>الشهر</label>
+            <label>{tx("الشهر")}</label>
             <input type="month" value={month} max={todayStr().slice(0, 7)} onChange={(e) => setMonth(e.target.value || todayStr().slice(0, 7))} />
           </div>
         )}
         <div className="send-progress">
           <b>
-            أُرسل {sentCount} من {students.length}
+            {tx("أُرسل")} {sentCount}  {tx("من")} {students.length}
           </b>
           <div className="progress">
             <i style={{ width: `${students.length ? Math.round((sentCount / students.length) * 100) : 0}%` }} />
           </div>
           <span className="small muted">
-            {label} · {mode === "DAILY" ? dayName(date) : monthName(month)}
+            {label} · {mode === "DAILY" ? dayName(date, locale) : monthName(month, locale)}
           </span>
         </div>
       </div>
-      {tooOld && <p className="notice">هذا الجهاز يحتفظ بآخر {LOCAL_WINDOW_DAYS} يومًا فقط، فقد تكون الرسائل ناقصة.</p>}
+      {tooOld && <p className="notice">{tx("هذا الجهاز يحتفظ بآخر")} {LOCAL_WINDOW_DAYS}  {tx("يومًا فقط، فقد تكون الرسائل ناقصة.")}</p>}
       {noPhone > 0 && (
         <p className="notice warn-notice">
-          ⚠️ {noPhone} {noPhone === 1 ? "طالب" : "طلاب"} بدون رقم لولي الأمر — أضف الرقم تحت اسم الطالب.
-        </p>
+          ⚠️ {noPhone} {noPhone === 1 ? tx("طالب") : tx("طلاب")}  {tx("بدون رقم لولي الأمر — أضف الرقم تحت اسم الطالب.")}</p>
       )}
       <div className="recent">
-        <span className="muted">عرض:</span>
+        <span className="muted">{tx("عرض:")}</span>
         {(
           [
-            ["all", "الكل"],
-            ["unsent", "لم يُرسل"],
-            ["nophone", "بدون رقم"],
+            ["all", tx("الكل")],
+            ["unsent", tx("لم يُرسل")],
+            ["nophone", tx("بدون رقم")],
           ] as const
         ).map(([id, text]) => (
           <button key={id} className={`chip ${show === id ? "on" : ""}`} onClick={() => setShow(id)}>
@@ -164,13 +164,14 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
         {list.map((st) => (
           <SendRow key={st.id} student={st} message={messageFor(st)} sent={sentOf(st)} onMark={(v) => mark(st, v)} />
         ))}
-        {!list.length && <li className="muted">لا يوجد طلاب هنا.</li>}
+        {!list.length && <li className="muted">{tx("لا يوجد طلاب هنا.")}</li>}
       </ul>
     </Panel>
   );
 }
 
 function SendRow({ student, message, sent, onMark }: { student: Student; message: string; sent: boolean; onMark: (sent: boolean) => void }) {
+  const { tx } = useI18n();
   const { showToast } = useApp();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
@@ -178,10 +179,10 @@ function SendRow({ student, message, sent, onMark }: { student: Student; message
 
   async function savePhone() {
     const p = normalizePhone(phone);
-    if (!p) return setError("الرقم غير صحيح — مثل 0912345678");
+    if (!p) return setError(tx("الرقم غير صحيح — مثل 0912345678"));
     setError("");
     await store.save("students", { ...student, guardian_phone: p }, `رقم ولي الأمر: ${student.name}`);
-    showToast("تم حفظ الرقم");
+    showToast(tx("تم حفظ الرقم"));
   }
 
   return (
@@ -194,16 +195,15 @@ function SendRow({ student, message, sent, onMark }: { student: Student; message
               {formatPhone(student.guardian_phone)}
             </bdi>
           ) : (
-            <div className="no-phone">⚠️ لا يوجد رقم لولي الأمر</div>
+            <div className="no-phone">{tx("⚠️ لا يوجد رقم لولي الأمر")}</div>
           )}
         </div>
         <div className="row-actions">
           {sent ? (
             <>
-              <span className="badge excellent">✓ أُرسلت</span>
+              <span className="badge excellent">{tx("✓ أُرسلت")}</span>
               <button className="link" onClick={() => onMark(false)}>
-                تراجع
-              </button>
+                {tx("تراجع")}</button>
             </>
           ) : (
             <a
@@ -213,21 +213,19 @@ function SendRow({ student, message, sent, onMark }: { student: Student; message
               rel="noreferrer"
               onClick={() => onMark(true)}
             >
-              إرسال
-            </a>
+              {tx("إرسال")}</a>
           )}
           <button className="link" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-            {open ? "إخفاء" : "الرسالة"}
+            {open ? tx("إخفاء") : tx("الرسالة")}
           </button>
         </div>
       </div>
       {!student.guardian_phone && (
         <div className="inline-phone">
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" aria-label={`رقم ولي أمر ${student.name}`} />
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" aria-label={tx("رقم ولي أمر {0}", [student.name])} />
           <button className="secondary" onClick={savePhone} disabled={!phone.trim()}>
-            حفظ الرقم
-          </button>
-          {error && <span className="error-text">{error}</span>}
+            {tx("حفظ الرقم")}</button>
+          {error && <span className="error-text">{tx(error)}</span>}
         </div>
       )}
       {open && <pre className="msg-preview">{message}</pre>}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useState } from "react";
 
 type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void> };
@@ -9,6 +11,7 @@ const DISMISS_KEY = "installHintDismissed";
 // Teachers must install the app to the home screen: it keeps working offline and iOS is far less
 // likely to evict its stored data (spec §6.3).
 export default function InstallHint() {
+  const { tx } = useI18n();
   const [show, setShow] = useState(false);
   const [ios, setIos] = useState(false);
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
@@ -41,10 +44,9 @@ export default function InstallHint() {
 
   return (
     <div className="notice install-hint">
-      <b>📲 ثبّت التطبيق على الشاشة الرئيسية</b> ليعمل بدون إنترنت وتبقى بياناتك محفوظة على الجهاز.
-      <div className="small" style={{ marginTop: 6 }}>
+      <b>{tx("📲 ثبّت التطبيق على الشاشة الرئيسية")}</b>  {tx("ليعمل بدون إنترنت وتبقى بياناتك محفوظة على الجهاز.")}<div className="small" style={{ marginTop: 6 }}>
         {ios ? (
-          <>في Safari: اضغط زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية».</>
+          <>{tx("في Safari: اضغط زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية».")}</>
         ) : deferred ? (
           <button
             onClick={async () => {
@@ -53,14 +55,12 @@ export default function InstallHint() {
               dismiss();
             }}
           >
-            تثبيت الآن
-          </button>
+            {tx("تثبيت الآن")}</button>
         ) : (
-          <>من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</>
+          <>{tx("من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».")}</>
         )}
         <button className="link" onClick={dismiss} style={{ marginInlineStart: 10 }}>
-          لاحقًا
-        </button>
+          {tx("لاحقًا")}</button>
       </div>
     </div>
   );

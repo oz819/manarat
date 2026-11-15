@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -7,22 +9,23 @@ import { createClient } from "@/utils/supabase/client";
 import DevCredit from "@/components/landing/DevCredit";
 import { GeoStar } from "@/components/center/Geo";
 import { SLUG_RE, applyPalette, slugify, type PendingCenter } from "@/lib/center";
-import { dirOf, t, type Key, type Locale } from "@/lib/i18n";
+import { dirOf, t, type Key } from "@/lib/i18n";
 
 // سجّل مركزك: the owner's email and the centre's basics. There is no password: a 6-digit code is
 // emailed (signInWithOtp, creating the login if it is new) and typed in here; then /onboarding creates
 // the centre with these details and the owner becomes its admin. The details are also saved on the
 // login itself, so a link-style email (/auth/confirm?next=/onboarding) leads to the same place.
 export default function SignupPage() {
-  return <Suspense fallback={<div className="login"><p>جارٍ التحميل…</p></div>}><SignupForm /></Suspense>;
+  const { tx } = useI18n();
+  return <Suspense fallback={<div className="login"><p>{tx("جارٍ التحميل…")}</p></div>}><SignupForm /></Suspense>;
 }
 
 function SignupForm() {
+  const { tx, locale, setLocale } = useI18n();
   const searchParams = useSearchParams();
   const fromLogin = searchParams.get("from") === "login";
   const router = useRouter();
   const [supabase] = useState(() => createClient());
-  const [locale, setLocale] = useState<Locale>("ar");
   const tr = (k: Key) => t(locale, k);
   const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: searchParams.get("email")?.trim() ?? "", website: "" });
   const [slugTouched, setSlugTouched] = useState(false);
@@ -64,11 +67,11 @@ function SignupForm() {
     const pending: PendingCenter = { name: f.name.trim(), slug: f.slug, country: f.country.trim(), city: f.city.trim(), owner: f.owner.trim() };
     const email = f.email.trim();
     if (f.website) return setSent({ email, pending }); // a bot filled the hidden field: no email is sent
-    if (f.name.trim().length < 2) return setError("اكتب اسم المركز");
+    if (f.name.trim().length < 2) return setError(tx("اكتب اسم المركز"));
     if (!SLUG_RE.test(f.slug)) return setError(`${tr("signup.slug")}: ${tr("signup.slugHint")} (3–40)`);
-    if (slugTaken) return setError("هذا الرابط مستخدم، اختر غيره");
-    if (f.owner.trim().length < 2) return setError("اكتب اسمك");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError("اكتب بريدًا صحيحًا");
+    if (slugTaken) return setError(tx("هذا الرابط مستخدم، اختر غيره"));
+    if (f.owner.trim().length < 2) return setError(tx("اكتب اسمك"));
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError(tx("اكتب بريدًا صحيحًا"));
     setBusy(true);
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -82,11 +85,11 @@ function SignupForm() {
     if (error) {
       return setError(
         error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
-          ? "محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة."
+          ? tx("محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.")
           : error.code === "signup_disabled" || error.code === "otp_disabled"
-            ? "التسجيل مغلق حاليًا."
+            ? tx("التسجيل مغلق حاليًا.")
             : error.code === "unexpected_failure"
-              ? "تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا."
+              ? tx("تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا.")
               : error.message
       );
     }
@@ -102,7 +105,7 @@ function SignupForm() {
     const { error } = await supabase.auth.verifyOtp({ email: sent.email, token: code.trim(), type: "email" });
     if (error) {
       setBusy(false);
-      return setError(error.code === "otp_expired" ? "الكود غير صحيح أو منتهي الصلاحية." : `تعذّر تأكيد الكود (${error.code ?? error.status}).`);
+      return setError(error.code === "otp_expired" ? tx("الكود غير صحيح أو منتهي الصلاحية.") : tx("تعذّر تأكيد الكود ({0}).", [error.code ?? error.status]));
     }
     // An email that already had a login keeps its old details; save this centre on it so the
     // wizard opens with them filled in.
@@ -185,7 +188,7 @@ function SignupForm() {
                   />
                 </div>
                 <p className="small muted" style={{ margin: "4px 0 0" }}>
-                  {slugTaken ? <span className="error-text">هذا الرابط مستخدم</span> : tr("signup.slugHint")}
+                  {slugTaken ? <span className="error-text">{tx("هذا الرابط مستخدم")}</span> : tr("signup.slugHint")}
                 </p>
               </div>
               <div className="two" style={{ marginTop: 12 }}>

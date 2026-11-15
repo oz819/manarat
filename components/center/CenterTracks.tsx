@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp, type AppCtx } from "@/components/AppContext";
 import { ALL_TRACKS, type TrackKey } from "@/lib/tracks";
@@ -21,6 +23,7 @@ async function saveTracks(app: AppCtx, on: Set<TrackKey>, label: string): Promis
 // «قسم التلقين» in الإدارة: one switch for التلقين alone (the other tracks stay as they are) and the
 // centre's own name for it. Switched off, it disappears from the app; nothing recorded in it is deleted.
 export function TalqeenSetting() {
+  const { tx } = useI18n();
   const app = useApp();
   const { center, tracks, showToast } = app;
   const [enabled, setEnabled] = useState(() => tracks.has("TALQEEN"));
@@ -41,28 +44,28 @@ export function TalqeenSetting() {
     const msg = await saveTracks(app, on, enabled ? label : (center.talqeen_label ?? ""));
     setBusy(false);
     if (msg) return setError(msg);
-    showToast(enabled ? `تم حفظ قسم ${label.trim() || "التلقين"}` : "تم إيقاف قسم التلقين");
+    showToast(enabled ? tx("تم حفظ قسم {0}", [label.trim() || tx("التلقين")]) : tx("تم إيقاف قسم التلقين"));
   }
 
   return (
     <form className="card" onSubmit={save} noValidate>
-      <h3>🎙️ قسم التلقين</h3>
+      <h3>{tx("🎙️ قسم التلقين")}</h3>
       <label className="inline">
         <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
-        {enabled ? "مفعّل" : "غير مفعّل"}
+        {enabled ? tx("مفعّل") : tx("غير مفعّل")}
       </label>
       {enabled && (
         <div className="field" style={{ marginTop: 8 }}>
-          <label htmlFor="ts-talqeen">اسم القسم في مركزك (اختياري)</label>
-          <input id="ts-talqeen" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={30} placeholder="مثلًا: التسميع" />
+          <label htmlFor="ts-talqeen">{tx("اسم القسم في مركزك (اختياري)")}</label>
+          <input id="ts-talqeen" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={30} placeholder={tx("مثلًا: التسميع")} />
         </div>
       )}
-      <p className="muted small">التلقين مفعّل افتراضيًا للمراكز الجديدة، واستخدامه اختياري. يمكنك تركه دون جلسات أو إيقافه هنا؛ عند إيقافه يختفي من التطبيق، ولا يُحذف شيء مما سُجّل فيه.</p>
-      {error && <p className="error-text">{error}</p>}
+      <p className="muted small">{tx("التلقين مفعّل افتراضيًا للمراكز الجديدة، واستخدامه اختياري. يمكنك تركه دون جلسات أو إيقافه هنا؛ عند إيقافه يختفي من التطبيق، ولا يُحذف شيء مما سُجّل فيه.")}</p>
+      {error && <p className="error-text">{tx(error)}</p>}
       <div className="ob-actions">
         <span />
         <button type="submit" disabled={!dirty || busy}>
-          {busy ? "جارٍ الحفظ…" : "حفظ"}
+          {busy ? tx("جارٍ الحفظ…") : tx("حفظ")}
         </button>
       </div>
     </form>
@@ -73,6 +76,7 @@ export function TalqeenSetting() {
 // until switched on here. A track that is off disappears from the whole app and the parents' link;
 // what was recorded in it stays in the database and comes back if it is switched on again.
 export default function CenterTracks() {
+  const { tx } = useI18n();
   const app = useApp();
   const { center, tracks, showToast } = app;
   const [on, setOn] = useState<Set<TrackKey>>(() => new Set(tracks.list));
@@ -90,13 +94,13 @@ export default function CenterTracks() {
     const msg = await saveTracks(app, on, label);
     setBusy(false);
     if (msg) return setError(msg);
-    showToast("تم حفظ مسارات المتابعة");
+    showToast(tx("تم حفظ مسارات المتابعة"));
   }
 
   return (
     <form className="card" onSubmit={save} noValidate>
-      <h3>مسارات المتابعة</h3>
-      <p className="muted small">اختر ما يتابعه مركزك. ما لا تختاره يختفي من التطبيق ومن رابط وليّ الأمر، ولا يُحذف شيء مما سُجّل فيه.</p>
+      <h3>{tx("مسارات المتابعة")}</h3>
+      <p className="muted small">{tx("اختر ما يتابعه مركزك. ما لا تختاره يختفي من التطبيق ومن رابط وليّ الأمر، ولا يُحذف شيء مما سُجّل فيه.")}</p>
       <div className="track-pick">
         {ALL_TRACKS.map((t) => (
           <label key={t.key} className={`track-opt${on.has(t.key) ? " on" : ""}`}>
@@ -112,23 +116,23 @@ export default function CenterTracks() {
               }}
             />
             <span>
-              <b>{t.key === "TALQEEN" && label.trim() ? label.trim() : t.label}</b>
-              <small className="muted">{t.hint}</small>
+              <b>{t.key === "TALQEEN" && label.trim() ? label.trim() : tx(t.label)}</b>
+              <small className="muted">{tx(t.hint)}</small>
             </span>
           </label>
         ))}
       </div>
       {on.has("TALQEEN") && (
         <div className="field">
-          <label htmlFor="ct-talqeen">اسم «التلقين» في مركزك (اختياري)</label>
-          <input id="ct-talqeen" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={30} placeholder="مثلًا: التسميع" />
+          <label htmlFor="ct-talqeen">{tx("اسم «التلقين» في مركزك (اختياري)")}</label>
+          <input id="ct-talqeen" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={30} placeholder={tx("مثلًا: التسميع")} />
         </div>
       )}
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
       <div className="ob-actions">
         <span />
         <button type="submit" disabled={!dirty || busy}>
-          {busy ? "جارٍ الحفظ…" : "حفظ المسارات"}
+          {busy ? tx("جارٍ الحفظ…") : tx("حفظ المسارات")}
         </button>
       </div>
     </form>

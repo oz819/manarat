@@ -42,3 +42,11 @@ npx tsc --noEmit && npx eslint .
 - **قاعدة البيانات:** مشروع Supabase خاص بتلاوة (`.env.local.example` فاضي لحد ما ينعمل).
 - **صورة الواجهة:** صورة الواجهة ثلاثية الأبعاد `public/landing/hero.webp`.
 - **النطاق:** نطاق خاص بالمنصة.
+
+### Staff interface languages
+
+Arabic remains the default. Use **English / العربية** in the staff header or sign-in form to switch languages. The preference is saved on this device (`tilawa:locale`), works offline, and is shared with the platform landing and signup pages. The document direction and dates follow the selected language without changing routes or signing out.
+
+Staff translations live in `lib/staff-en.json`, keyed by the original Arabic copy, with formatting helpers in `lib/i18n.ts` and `useI18n()` in `components/LocaleProvider.tsx`. Translate labels at the component or report-builder boundary. Pass dynamic names/content as numbered substitutions; never translate database values, Quran/surah text, names, notes, custom Talqeen names or admin-authored message templates. Native grade/area options keep an explicit original `value` while translating their visible labels. Add catalogue entries for new UI copy and run `npm run test:i18n`.
+
+Public guardian/honour pages and the onboarding/platform-administration tools retain their existing language coverage. Received reports, historical sync descriptions and custom message templates are preserved as authored. Unrecognised service errors retain their original diagnostic text.

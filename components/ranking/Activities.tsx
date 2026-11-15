@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -10,6 +12,7 @@ import { todayStr, type Activity } from "@/lib/types";
 // الدورات والأنشطة: an activity (a course, a trip, a competition…) for one halaqa or all of them,
 // and a tick for each student who attended. Works offline like the other records.
 export default function Activities() {
+  const { tx } = useI18n();
   const s = useStore();
   const { showToast } = useApp();
   const { scopedCircles, inScope } = useScope();
@@ -26,7 +29,7 @@ export default function Activities() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return setError("اكتب اسم النشاط");
+    if (!title.trim()) return setError(tx("اكتب اسم النشاط"));
     setError("");
     const id = newId();
     await store.save(
@@ -36,29 +39,28 @@ export default function Activities() {
     );
     setTitle("");
     setOpenId(id);
-    showToast("تمت إضافة النشاط، حدّد من حضره");
+    showToast(tx("تمت إضافة النشاط، حدّد من حضره"));
   }
 
   return (
     <>
       <div className="card">
-        <h3>🎯 الدورات والأنشطة</h3>
+        <h3>{tx("🎯 الدورات والأنشطة")}</h3>
         <p className="muted">
-          أضف النشاط مرة واحدة، ثم علّم الطلاب الذين حضروه. علامة الطالب في هذا البند = نسبة الأنشطة التي حضرها من أنشطة حلقته.
-        </p>
+          {tx("أضف النشاط مرة واحدة، ثم علّم الطلاب الذين حضروه. علامة الطالب في هذا البند = نسبة الأنشطة التي حضرها من أنشطة حلقته.")}</p>
         <form className="formgrid compact" onSubmit={add}>
           <div className="wide">
-            <label>اسم النشاط</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: دورة أحكام التجويد" />
+            <label>{tx("اسم النشاط")}</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tx("مثال: دورة أحكام التجويد")} />
           </div>
           <div>
-            <label>التاريخ</label>
+            <label>{tx("التاريخ")}</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
-            <label>الحلقة</label>
+            <label>{tx("الحلقة")}</label>
             <select value={circleId} onChange={(e) => setCircleId(e.target.value)}>
-              <option value="">كل الحلقات</option>
+              <option value="">{tx("كل الحلقات")}</option>
               {scopedCircles.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -67,14 +69,14 @@ export default function Activities() {
             </select>
           </div>
           <div style={{ alignSelf: "end" }}>
-            <button type="submit">إضافة النشاط</button>
+            <button type="submit">{tx("إضافة النشاط")}</button>
           </div>
         </form>
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className="error-text">{tx(error)}</p>}
       </div>
 
       <div className="card">
-        <h3>سجل الأنشطة</h3>
+        <h3>{tx("سجل الأنشطة")}</h3>
         {list.length ? (
           <ul className="history">
             {list.map((a) => (
@@ -82,7 +84,7 @@ export default function Activities() {
             ))}
           </ul>
         ) : (
-          <p className="muted">لا توجد أنشطة بعد.</p>
+          <p className="muted">{tx("لا توجد أنشطة بعد.")}</p>
         )}
       </div>
     </>
@@ -90,6 +92,7 @@ export default function Activities() {
 }
 
 function ActivityRow({ activity: a, open, onToggle }: { activity: Activity; open: boolean; onToggle: () => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { inScope } = useScope();
   const circle = a.circle_id ? s.get("circles", a.circle_id) : null;
@@ -107,7 +110,7 @@ function ActivityRow({ activity: a, open, onToggle }: { activity: Activity; open
     const next = new Set(went);
     if (next.has(id)) next.delete(id);
     else next.add(id);
-    setIds(next, `حضور نشاط: ${a.title}`);
+    setIds(next, tx("حضور نشاط: {0}", [a.title]));
   }
 
   // Who was marked present or late in their halaqa that day.
@@ -117,14 +120,14 @@ function ActivityRow({ activity: a, open, onToggle }: { activity: Activity; open
       const att = s.get("attendance", `${st.id}|${a.activity_date}`);
       if (att && !att.deleted_at && (att.status === "PRESENT" || att.status === "LATE")) next.add(st.id);
     }
-    setIds(next, `حضور نشاط: ${a.title}`);
+    setIds(next, tx("حضور نشاط: {0}", [a.title]));
   }
 
   async function remove() {
     const ok = await confirmDialog({
-      title: `حذف نشاط «${a.title}»؟`,
-      body: `${a.activity_date} · ${circle?.name ?? "كل الحلقات"}\nلن يُحسب في ترتيب المتفوقين.`,
-      ok: "حذف",
+      title: tx("حذف نشاط «{0}»؟", [a.title]),
+      body: tx("{0} · {1}\nلن يُحسب في ترتيب المتفوقين.", [a.activity_date, circle?.name ?? "كل الحلقات"]),
+      ok: tx("حذف"),
       danger: true,
     });
     if (ok) await store.softDelete("activities", a.id, "حذف نشاط");
@@ -137,28 +140,25 @@ function ActivityRow({ activity: a, open, onToggle }: { activity: Activity; open
           <b>{a.title}</b>
           <span className="muted">
             {" "}
-            · {a.activity_date} · {circle?.name ?? "كل الحلقات"} · حضره {a.student_ids.length}
+            · {a.activity_date} · {circle?.name ?? tx("كل الحلقات")}  {tx("· حضره")} {a.student_ids.length}
           </span>
         </div>
         <div className="row-actions">
           <button className="link" onClick={onToggle}>
-            {open ? "إخفاء" : "الحضور"}
+            {open ? tx("إخفاء") : tx("الحضور")}
           </button>
           <button className="link danger-link" onClick={remove}>
-            حذف
-          </button>
+            {tx("حذف")}</button>
         </div>
       </div>
       {open && (
         <div className="activity-roster">
           <div className="row-actions">
             <button className="secondary" onClick={presentThatDay}>
-              تحديد حاضري الحلقة ذلك اليوم
-            </button>
+              {tx("تحديد حاضري الحلقة ذلك اليوم")}</button>
             {went.size > 0 && (
-              <button className="secondary" onClick={() => setIds(new Set(), `حضور نشاط: ${a.title}`)}>
-                إلغاء الكل
-              </button>
+              <button className="secondary" onClick={() => setIds(new Set(), tx("حضور نشاط: {0}", [a.title]))}>
+                {tx("إلغاء الكل")}</button>
             )}
           </div>
           <div className="roster-grid">

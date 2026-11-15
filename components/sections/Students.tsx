@@ -1,5 +1,8 @@
 "use client";
 
+import { staffText, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import StudentCard from "@/components/StudentCard";
@@ -40,6 +43,7 @@ export default function Students({
   onClose: () => void;
   onShowList: () => void;
 }) {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { mushaf, showToast, profile, tracks } = useApp();
   const [query, setQuery] = useState("");
@@ -114,9 +118,9 @@ export default function Students({
   return (
     <section>
       <div className="grid">
-        <StatTile icon="👥" label="الطلاب" value={active.length} />
-        <StatTile icon="✅" label="حاضرون اليوم" value={presentToday} of={active.length} />
-        <StatTile icon="📖" label="سُجّل لهم اليوم" value={recordedToday} of={active.length} />
+        <StatTile icon="👥" label={tx("الطلاب")} value={active.length} />
+        <StatTile icon="✅" label={tx("حاضرون اليوم")} value={presentToday} of={active.length} />
+        <StatTile icon="📖" label={tx("سُجّل لهم اليوم")} value={recordedToday} of={active.length} />
       </div>
 
       <LessonCard circles={scopedCircles} />
@@ -128,13 +132,13 @@ export default function Students({
       {sending && <SendReports onClose={() => setSending(false)} />}
 
       {adding && (
-        <Panel title="➕ إضافة طالب" onClose={() => setAdding(false)}>
+        <Panel title={tx("➕ إضافة طالب")} onClose={() => setAdding(false)}>
           <AddStudent
             defaultCircleId={scopedCircles[0]?.id ?? ""}
             onCancel={() => setAdding(false)}
             onAdded={(id) => {
               setAdding(false);
-              showToast("تمت إضافة الطالب");
+              showToast(tx("تمت إضافة الطالب"));
               open(id);
             }}
           />
@@ -145,51 +149,47 @@ export default function Students({
         <RollCall
           circles={scopedCircles}
           onClose={() => setRollCall(false)}
-          onDone={(n) => showToast(`تم تحضير ${n} طالب`)}
+          onDone={(n) => showToast(tx("تم تحضير {0} طالب", [n]))}
         />
       )}
 
       <div className="card">
         <div className="title">
-          <h3>👨‍🎓 الطلاب</h3>
+          <h3>{tx("👨‍🎓 الطلاب")}</h3>
           <div className="row-actions">
             <button className={`secondary${rollCall ? " on" : ""}`} aria-pressed={rollCall} onClick={() => setRollCall(true)}>
-              📋 تحضير سريع
-            </button>
+              {tx("📋 تحضير سريع")}</button>
             <button className={`secondary${sending ? " on" : ""}`} aria-pressed={sending} onClick={() => setSending(true)}>
-              📤 إرسال التقارير
-            </button>
+              {tx("📤 إرسال التقارير")}</button>
             <button className={adding ? "on" : ""} aria-pressed={adding} onClick={() => setAdding(true)}>
-              + إضافة طالب
-            </button>
+              {tx("+ إضافة طالب")}</button>
           </div>
         </div>
         <div className="search-row" style={{ gridTemplateColumns: "1fr" }}>
-          <input type="search" placeholder="ابحث باسم الطالب..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input type="search" placeholder={tx("ابحث باسم الطالب...")} value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
         <div className="recent">
-          <span className="muted">عرض:</span>
+          <span className="muted">{tx("عرض:")}</span>
           {(
             [
-              ["all", "الكل"],
-              ["noAtt", "لم يُحضَّروا اليوم"],
-              ["noRec", "لم يُسمِّعوا اليوم"],
+              ["all", tx("الكل")],
+              ["noAtt", tx("لم يُحضَّروا اليوم")],
+              ["noRec", tx("لم يُسمِّعوا اليوم")],
             ] as const
           ).map(([id, label]) => (
             <button key={id} className={`chip ${pending === id ? "on" : ""}`} onClick={() => setPending(id)}>
-              {label}
+              {tx(label)}
             </button>
           ))}
         </div>
         {profile.role === "ADMIN" && (
           <label className="inline">
-            <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> عرض المؤرشفين
-          </label>
+            <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />  {tx("عرض المؤرشفين")}</label>
         )}
 
         {!query && recentStudents.length > 0 && (
           <div className="recent">
-            <span className="muted">فُتحوا مؤخرًا:</span>
+            <span className="muted">{tx("فُتحوا مؤخرًا:")}</span>
             {recentStudents.map((st) => (
               <button key={st!.id} className="chip" onClick={() => open(st!.id)}>
                 {st!.name}
@@ -199,27 +199,27 @@ export default function Students({
         )}
 
         {!s.status.initialSyncDone && !students.length ? (
-          <p className="muted">جارٍ تنزيل البيانات لأول مرة... (يحتاج اتصالًا بالإنترنت)</p>
+          <p className="muted">{tx("جارٍ تنزيل البيانات لأول مرة... (يحتاج اتصالًا بالإنترنت)")}</p>
         ) : students.length ? (
           <ul className="student-list">
             {students.map((st) => {
               const hifz = latestOfTrack(quranBy.get(st.id), "HIFZ");
-              const bookLine = arabicStatus(enrollBy.get(st.id), (id) => s.get("arabic_books", id)?.title);
+              const bookLine = arabicStatus(locale, enrollBy.get(st.id), (id) => s.get("arabic_books", id)?.title);
               const att = s.get("attendance", `${st.id}|${today}`);
               const status = att && !att.deleted_at ? (att.status as AttendanceStatus) : null;
               return (
                 <li key={st.id} onClick={() => open(st.id)}>
                   <div>
                     <b>{st.name}</b>
-                    {unsynced.has(st.id) && <span className="dot" title="محفوظ على الجهاز، سيُحفظ في الحساب عند الاتصال" />}
+                    {unsynced.has(st.id) && <span className="dot" title={tx("محفوظ على الجهاز، سيُحفظ في الحساب عند الاتصال")} />}
                     <div className="small muted">
                       {s.get("circles", st.circle_id)?.name ?? "—"}
-                      {hifz && ` · حفظ: ${mushaf.formatRange(entryRange(hifz))}`}
+                      {hifz && tx(" · حفظ: {0}", [mushaf.formatRange(entryRange(hifz), locale)])}
                       {bookLine && ` · ${bookLine}`}
                     </div>
                     {/* Quick way to set the book a student is studying, without opening the card. */}
                     <select
-                      aria-label="الكتاب الذي يدرسه"
+                      aria-label={tx("الكتاب الذي يدرسه")}
                       className="book-select"
                       style={{ marginTop: 6, padding: "6px 8px", fontSize: "0.9em" }}
                       value={(enrollBy.get(st.id) ?? []).find((e) => !e.deleted_at && !e.finished_on)?.book_id ?? ""}
@@ -229,7 +229,7 @@ export default function Students({
                         setStudyingBook(st.id, e.target.value, enrollBy.get(st.id) ?? []);
                       }}
                     >
-                      <option value="">— اختر الكتاب —</option>
+                      <option value="">{tx("— اختر الكتاب —")}</option>
                       {books.map((b) => (
                         <option key={b.id} value={b.id}>
                           {b.title}
@@ -239,7 +239,7 @@ export default function Students({
                   </div>
                   {status && (
                     <span className={`badge ${status === "ABSENT" ? "redo" : status === "EXCUSED" ? "warn" : "excellent"}`}>
-                      {ATTENDANCE_LABEL[status]}
+                      {tx(ATTENDANCE_LABEL[status])}
                     </span>
                   )}
                 </li>
@@ -247,7 +247,7 @@ export default function Students({
             })}
           </ul>
         ) : (
-          <p className="muted">لا يوجد طلاب مطابقون.</p>
+          <p className="muted">{tx("لا يوجد طلاب مطابقون.")}</p>
         )}
       </div>
     </section>
@@ -263,6 +263,7 @@ function AddStudent({
   onAdded: (id: string) => void;
   onCancel: () => void;
 }) {
+  const { tx } = useI18n();
   const s = useStore();
   const circles = s.all("circles").filter((c) => c.active);
   const books = s.all("arabic_books").filter((b) => b.active);
@@ -274,9 +275,9 @@ function AddStudent({
   const [error, setError] = useState("");
 
   async function add() {
-    if (!name.trim() || !circleId) return setError("أدخل الاسم واختر الحلقة");
+    if (!name.trim() || !circleId) return setError(tx("أدخل الاسم واختر الحلقة"));
     const guardianPhone = phone.trim() ? normalizePhone(phone) : null;
-    if (phone.trim() && !guardianPhone) return setError("رقم ولي الأمر غير صحيح — اكتبه مثل 0912345678");
+    if (phone.trim() && !guardianPhone) return setError(tx("رقم ولي الأمر غير صحيح — اكتبه مثل 0912345678"));
     const id = newId();
     await store.save(
       "students",
@@ -293,7 +294,7 @@ function AddStudent({
     onAdded(id);
   }
 
-  if (!circles.length) return <p className="notice">لا توجد حلقات بعد. يُنشئها المدير من شاشة الإدارة.</p>;
+  if (!circles.length) return <p className="notice">{tx("لا توجد حلقات بعد. يُنشئها المدير من شاشة الإدارة.")}</p>;
 
   return (
     <form
@@ -305,11 +306,11 @@ function AddStudent({
       noValidate
     >
       <div>
-        <label>اسم الطالب</label>
+        <label>{tx("اسم الطالب")}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div>
-        <label>الحلقة</label>
+        <label>{tx("الحلقة")}</label>
         <select value={circleId} onChange={(e) => setCircleId(e.target.value)}>
           {circles.map((c) => (
             <option key={c.id} value={c.id}>
@@ -319,9 +320,9 @@ function AddStudent({
         </select>
       </div>
       <div>
-        <label>كتاب العربية (اختياري)</label>
+        <label>{tx("كتاب العربية (اختياري)")}</label>
         <select value={bookId} onChange={(e) => setBookId(e.target.value)}>
-          <option value="">بدون</option>
+          <option value="">{tx("بدون")}</option>
           {books.map((b) => (
             <option key={b.id} value={b.id}>
               {b.title}
@@ -330,21 +331,21 @@ function AddStudent({
         </select>
       </div>
       <div>
-        <label>رقم واتساب ولي الأمر (اختياري)</label>
+        <label>{tx("رقم واتساب ولي الأمر (اختياري)")}</label>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" />
       </div>
       <div className="row-actions" style={{ alignSelf: "end" }}>
-        <button type="submit">حفظ الطالب</button>
+        <button type="submit">{tx("حفظ الطالب")}</button>
         <button type="button" className="secondary" onClick={onCancel}>
-          إلغاء
-        </button>
+          {tx("إلغاء")}</button>
       </div>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
     </form>
   );
 }
 
 function StatTile({ icon, label, value, of }: { icon: string; label: string; value: number; of?: number }) {
+  const { tx, number } = useI18n();
   const pct = of ? Math.round((value / of) * 100) : null;
   return (
     <div className="card stat stat-tile">
@@ -352,10 +353,10 @@ function StatTile({ icon, label, value, of }: { icon: string; label: string; val
         {icon}
       </span>
       <div>
-        <span className="muted">{label}</span>
+        <span className="muted">{tx(label)}</span>
         <b>
-          {value}
-          {of !== undefined && <small> / {of}</small>}
+          {number(value)}
+          {of !== undefined && <small> / {number(of)}</small>}
         </b>
         {pct !== null && (
           <div className="progress">
@@ -372,6 +373,7 @@ const ROLL_STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT
 // Mark today's attendance for a whole circle on one screen instead of opening each student card.
 // Offers the halaqat the shared filter covers.
 function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: () => void; onDone: (n: number) => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const today = todayStr();
   const [savedCid, setCid] = useState(circles[0]?.id ?? "");
@@ -392,10 +394,10 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
   }
 
   return (
-    <Panel title="📋 تحضير اليوم" onClose={onClose} className="rollcall">
+    <Panel title={tx("📋 تحضير اليوم")} onClose={onClose} className="rollcall">
       <div className="formgrid compact">
         <div>
-          <label>الحلقة</label>
+          <label>{tx("الحلقة")}</label>
           <select value={cid} onChange={(e) => setCid(e.target.value)}>
             {circles.map((c) => (
               <option key={c.id} value={c.id}>
@@ -406,7 +408,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
         </div>
         <div style={{ alignSelf: "end" }}>
           <button onClick={allPresent} disabled={!unmarked.length}>
-            ✅ الباقون حاضرون ({unmarked.length})
+            {tx("✅ الباقون حاضرون (")}{unmarked.length})
           </button>
         </div>
       </div>
@@ -424,7 +426,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
                       className={`chip ${cur === stt ? `on ${stt.toLowerCase()}` : ""}`}
                       onClick={() => store.setAttendance(st.id, today, cur === stt ? null : stt)}
                     >
-                      {ATTENDANCE_LABEL[stt]}
+                      {tx(ATTENDANCE_LABEL[stt])}
                     </button>
                   ))}
                 </div>
@@ -433,7 +435,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
           })}
         </ul>
       ) : (
-        <p className="muted">لا يوجد طلاب في هذه الحلقة.</p>
+        <p className="muted">{tx("لا يوجد طلاب في هذه الحلقة.")}</p>
       )}
     </Panel>
   );
@@ -443,11 +445,12 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
 // recorded days (تنبيه الغياب, with a message to the family), and this month's top memorizers.
 // جلسة التلقين (من آية إلى آية) for a whole halaqa, folded until the teacher opens it.
 function TalqeenCard({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
+  const { tx } = useI18n();
   const { tracks } = useApp();
   return (
     <div className="card talqeen-fold" id="talqeen-session">
       <button type="button" className="fold-head" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <h3>🎙️ جلسة {tracks.label("TALQEEN")}</h3>
+        <h3>{tx("🎙️ جلسة")} {tracks.label("TALQEEN")}</h3>
         <span className="muted">{open ? "▲" : "▼"}</span>
       </button>
       {open && <Talqeen embedded />}
@@ -456,6 +459,7 @@ function TalqeenCard({ open, setOpen }: { open: boolean; setOpen: (open: boolean
 }
 
 function Insights({ students, open }: { students: Student[]; open: (id: string) => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { mushaf } = useApp();
   const quranBy = s.byStudent("quran_entries");
@@ -478,15 +482,15 @@ function Insights({ students, open }: { students: Student[]; open: (id: string) 
       <ReadyForExam students={students} open={open} />
       {stars.length > 0 && (
         <div className="card insight star-card">
-          <h3>🏆 نجوم الحفظ هذا الشهر</h3>
-          <p className="muted">بعدد الآيات المحفوظة</p>
+          <h3>{tx("🏆 نجوم الحفظ هذا الشهر")}</h3>
+          <p className="muted">{tx("بعدد الآيات المحفوظة")}</p>
           <ul className="insight-list">
             {stars.map(({ st, ayahs }, i) => (
               <li key={st.id} onClick={() => open(st.id)}>
                 <span>
                   <span className="medal">{medals[i] ?? `${i + 1}.`}</span> {st.name}
                 </span>
-                <span className="badge excellent">{ayahs} آية</span>
+                <span className="badge excellent">{ayahs}  {tx("آية")}</span>
               </li>
             ))}
           </ul>
@@ -524,11 +528,12 @@ async function setStudyingBook(studentId: string, bookId: string, enrollments: A
 }
 
 // e.g. "📖 الرشيدي" while studying it, or "✅ أنهى الرشيدي" once every book is finished.
-function arabicStatus(enrollments: ArabicEnrollment[] | undefined, title: (bookId: string) => string | undefined): string {
+function arabicStatus(locale: Locale, enrollments: ArabicEnrollment[] | undefined, title: (bookId: string) => string | undefined): string {
+  const tx = (source: string, values?: readonly (string | number | null | undefined)[]) => staffText(locale, source, values);
   const mine = (enrollments ?? []).filter((e) => !e.deleted_at);
   const studying = mine.filter((e) => !e.finished_on).map((e) => title(e.book_id)).filter(Boolean);
   if (studying.length) return `📖 ${studying.join("، ")}`;
   const last = mine.filter((e) => e.finished_on).sort((a, b) => b.finished_on!.localeCompare(a.finished_on!))[0];
   const t = last && title(last.book_id);
-  return t ? `✅ أنهى ${t}` : "";
+  return t ? tx("✅ أنهى {0}", [t]) : "";
 }

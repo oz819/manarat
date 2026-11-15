@@ -1,15 +1,18 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useRef } from "react";
 
 /** The one close button of the app: ✕ «إغلاق» in the panel's corner (an icon always has its word). */
 export function CloseButton({ onClick, label = "إغلاق" }: { onClick: () => void; label?: string }) {
+  const { tx } = useI18n();
   return (
-    <button type="button" className="icon-close" onClick={onClick} title={label}>
+    <button type="button" className="icon-close" onClick={onClick} title={tx(label)}>
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
         <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
       </svg>
-      <span>{label}</span>
+      <span>{tx(label)}</span>
     </button>
   );
 }

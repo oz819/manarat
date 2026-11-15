@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -40,11 +42,12 @@ const PURGE_WARNING: Record<Kind, string> = {
   talqeen_session: "الجلسة ستُمسح نهائيًا مع إدخالات التلقين التابعة لها.",
 };
 
-const WHEN = new Intl.DateTimeFormat("ar-SY", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
+
 
 // Admin-only trash (سجل المحذوفات): everything soft-deleted, with restore and permanent purge.
 // Online only: it reads and writes the server directly, then nudges a sync so lists update.
 export default function Trash() {
+  const { tx, date } = useI18n();
   const { supabase, showToast } = useApp();
   const [items, setItems] = useState<Item[] | null>(null);
   const [filter, setFilter] = useState<Kind | "all">("all");
@@ -79,28 +82,28 @@ export default function Trash() {
 
   async function restore(it: Item) {
     const ok = await confirmDialog({
-      title: `استرجاع ${KIND_LABEL[it.kind]} «${it.label}»؟`,
-      body: "سيعود إلى مكانه في كل القوائم كما كان.",
-      ok: "استرجاع",
+      title: tx("استرجاع {0} «{1}»؟", [tx(KIND_LABEL[it.kind]), it.label]),
+      body: tx("سيعود إلى مكانه في كل القوائم كما كان."),
+      ok: tx("استرجاع"),
     });
-    if (ok) await run(it, "admin_restore", `تم استرجاع «${it.label}»`);
+    if (ok) await run(it, "admin_restore", tx("تم استرجاع «{0}»", [it.label]));
   }
 
   async function purge(it: Item) {
     const first = await confirmDialog({
-      title: `مسح ${KIND_LABEL[it.kind]} «${it.label}» نهائيًا؟`,
-      body: "سيُحذف من قاعدة البيانات ولن يظهر في سجل المحذوفات بعد ذلك.",
-      ok: "متابعة",
+      title: tx("مسح {0} «{1}» نهائيًا؟", [tx(KIND_LABEL[it.kind]), it.label]),
+      body: tx("سيُحذف من قاعدة البيانات ولن يظهر في سجل المحذوفات بعد ذلك."),
+      ok: tx("متابعة"),
       danger: true,
     });
     if (!first) return;
     const second = await confirmDialog({
-      title: "⚠️ لا رجعة في هذه الخطوة",
-      body: `${PURGE_WARNING[it.kind]} لا يمكن لأحد استرجاعه بعدها. هل أنت متأكد تمامًا؟`,
-      ok: "نعم، احذف نهائيًا",
+      title: tx("⚠️ لا رجعة في هذه الخطوة"),
+      body: tx("{0} لا يمكن لأحد استرجاعه بعدها. هل أنت متأكد تمامًا؟", [tx(PURGE_WARNING[it.kind])]),
+      ok: tx("نعم، احذف نهائيًا"),
       danger: true,
     });
-    if (second) await run(it, "admin_purge", `تم حذف «${it.label}» نهائيًا`);
+    if (second) await run(it, "admin_purge", tx("تم حذف «{0}» نهائيًا", [it.label]));
   }
 
   const kinds = items ? (Array.from(new Set(items.map((i) => i.kind))) as Kind[]) : [];
@@ -110,40 +113,38 @@ export default function Trash() {
     <section>
       <div className="card">
         <div className="title">
-          <h3>🗑️ سجل المحذوفات</h3>
+          <h3>{tx("🗑️ سجل المحذوفات")}</h3>
           <button className="secondary" onClick={load}>
-            تحديث
-          </button>
+            {tx("تحديث")}</button>
         </div>
         <p className="small muted">
-          كل ما يُحذف من التطبيق يبقى هنا حتى تسترجعه أو تمسحه نهائيًا. الحساب المحذوف لا يستطيع تسجيل الدخول ما دام هنا.
-        </p>
+          {tx("كل ما يُحذف من التطبيق يبقى هنا حتى تسترجعه أو تمسحه نهائيًا. الحساب المحذوف لا يستطيع تسجيل الدخول ما دام هنا.")}</p>
         {items && items.length > 0 && (
           <div className="recent">
             <button className={`chip ${filter === "all" ? "on" : ""}`} onClick={() => setFilter("all")}>
-              الكل ({items.length})
+              {tx("الكل (")}{items.length})
             </button>
             {kinds.map((k) => (
               <button key={k} className={`chip ${filter === k ? "on" : ""}`} onClick={() => setFilter(k)}>
-                {KIND_LABEL[k]} ({items.filter((i) => i.kind === k).length})
+                {tx(KIND_LABEL[k])} ({items.filter((i) => i.kind === k).length})
               </button>
             ))}
           </div>
         )}
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className="error-text">{tx(error)}</p>}
         {!items ? (
-          <p className="muted">جارٍ التحميل...</p>
+          <p className="muted">{tx("جارٍ التحميل...")}</p>
         ) : !shown.length ? (
-          <p className="muted center trash-empty">سجل المحذوفات فارغ 👌</p>
+          <p className="muted center trash-empty">{tx("سجل المحذوفات فارغ 👌")}</p>
         ) : (
           <div style={{ overflow: "auto" }}>
             <table className="trash-table">
               <thead>
                 <tr>
-                  <th>الاسم</th>
-                  <th>النوع</th>
-                  <th>حذفه</th>
-                  <th>متى</th>
+                  <th>{tx("الاسم")}</th>
+                  <th>{tx("النوع")}</th>
+                  <th>{tx("حذفه")}</th>
+                  <th>{tx("متى")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -155,17 +156,15 @@ export default function Trash() {
                       {it.detail && <div className="small muted">{it.detail}</div>}
                     </td>
                     <td>
-                      <span className={`badge kind-${it.kind}`}>{KIND_LABEL[it.kind]}</span>
+                      <span className={`badge kind-${it.kind}`}>{tx(KIND_LABEL[it.kind])}</span>
                     </td>
-                    <td>{it.deleted_by_name ?? <span className="muted">غير معروف</span>}</td>
-                    <td className="small muted">{WHEN.format(new Date(it.deleted_at))}</td>
+                    <td>{it.deleted_by_name ?? <span className="muted">{tx("غير معروف")}</span>}</td>
+                    <td className="small muted">{date(it.deleted_at, { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" })}</td>
                     <td className="row-actions">
                       <button className="link" disabled={busy === it.id} onClick={() => restore(it)}>
-                        استرجاع
-                      </button>
+                        {tx("استرجاع")}</button>
                       <button className="link danger-link" disabled={busy === it.id} onClick={() => purge(it)}>
-                        مسح نهائي
-                      </button>
+                        {tx("مسح نهائي")}</button>
                     </td>
                   </tr>
                 ))}

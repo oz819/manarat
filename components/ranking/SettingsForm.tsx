@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { rankingSettings } from "@/lib/rankingSettings";
@@ -9,6 +11,7 @@ import { QUALITIES } from "@/lib/types";
 // What each grade is worth, the first day of the week and when the course started.
 // Admins edit; teachers see the values in use.
 export default function SettingsForm({ settings }: { settings: RankingSettings }) {
+  const { tx } = useI18n();
   const { supabase, profile, showToast } = useApp();
   const admin = profile.role === "ADMIN";
   const [draft, setDraft] = useState<RankingSettings | null>(null);
@@ -19,25 +22,25 @@ export default function SettingsForm({ settings }: { settings: RankingSettings }
     e.preventDefault();
     for (const q of QUALITIES) {
       const n = Number(v.grades[q]);
-      if (!Number.isFinite(n) || n < 0 || n > 100) return setError(`قيمة «${q}» يجب أن تكون بين 0 و100`);
+      if (!Number.isFinite(n) || n < 0 || n > 100) return setError(tx("قيمة «{0}» يجب أن تكون بين 0 و100", [q]));
     }
-    if (!Number.isInteger(Number(v.passMark)) || v.passMark < 1 || v.passMark > 100) return setError("علامة النجاح يجب أن تكون بين 1 و100");
+    if (!Number.isInteger(Number(v.passMark)) || v.passMark < 1 || v.passMark > 100) return setError(tx("علامة النجاح يجب أن تكون بين 1 و100"));
     const err = await rankingSettings.save(supabase, v);
     if (err) return setError(err);
     setError("");
     setDraft(null);
-    showToast("تم حفظ الإعدادات");
+    showToast(tx("تم حفظ الإعدادات"));
   }
 
   return (
     <form className="card" onSubmit={save}>
-      <h3>⚙️ إعدادات الترتيب</h3>
-      {!admin && <p className="muted">هذه الإعدادات يعدّلها المدير.</p>}
-      <h4>قيمة كل تقدير من 100</h4>
+      <h3>{tx("⚙️ إعدادات الترتيب")}</h3>
+      {!admin && <p className="muted">{tx("هذه الإعدادات يعدّلها المدير.")}</p>}
+      <h4>{tx("قيمة كل تقدير من 100")}</h4>
       <div className="formgrid compact">
         {QUALITIES.map((q) => (
           <div key={q}>
-            <label>{q}</label>
+            <label>{tx(q)}</label>
             <input
               type="number"
               min={0}
@@ -50,10 +53,10 @@ export default function SettingsForm({ settings }: { settings: RankingSettings }
           </div>
         ))}
       </div>
-      <h4>الاختبارات</h4>
+      <h4>{tx("الاختبارات")}</h4>
       <div className="formgrid compact">
         <div>
-          <label>علامة النجاح بالاختبار (من 100)</label>
+          <label>{tx("علامة النجاح بالاختبار (من 100)")}</label>
           <input
             type="number"
             min={1}
@@ -62,24 +65,24 @@ export default function SettingsForm({ settings }: { settings: RankingSettings }
             disabled={!admin}
             value={Number.isFinite(v.passMark) ? v.passMark : ""}
             onChange={(e) => setDraft({ ...v, passMark: e.target.value === "" ? NaN : Number(e.target.value) })}
-            aria-label="علامة النجاح"
+            aria-label={tx("علامة النجاح")}
           />
         </div>
       </div>
-      <h4>الأسبوع والدورة</h4>
+      <h4>{tx("الأسبوع والدورة")}</h4>
       <div className="formgrid compact">
         <div>
-          <label>أول يوم في الأسبوع</label>
+          <label>{tx("أول يوم في الأسبوع")}</label>
           <select disabled={!admin} value={v.weekStart} onChange={(e) => setDraft({ ...v, weekStart: Number(e.target.value) })}>
             {[6, 0, 1, 2, 3, 4, 5].map((d) => (
               <option key={d} value={d}>
-                {WEEK_DAYS[d]}
+                {tx(WEEK_DAYS[d])}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label>بداية الدورة</label>
+          <label>{tx("بداية الدورة")}</label>
           <input
             type="date"
             disabled={!admin}
@@ -91,16 +94,14 @@ export default function SettingsForm({ settings }: { settings: RankingSettings }
       {admin && (
         <div className="row-actions" style={{ marginTop: 12 }}>
           <button type="submit" disabled={!draft}>
-            حفظ الإعدادات
-          </button>
+            {tx("حفظ الإعدادات")}</button>
           {draft && (
             <button type="button" className="secondary" onClick={() => setDraft(null)}>
-              تراجع
-            </button>
+              {tx("تراجع")}</button>
           )}
         </div>
       )}
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
     </form>
   );
 }

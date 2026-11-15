@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo } from "react";
 import { useApp } from "@/components/AppContext";
 import { store, useStore } from "@/lib/offline/store";
@@ -42,6 +44,7 @@ export function absenceStreak(rows: Attendance[] | undefined): { days: number; s
 // تنبيه الغياب: who needs a call, and a kind ready-made message to their family on WhatsApp.
 // Sending marks it (synced) so the other teachers know the family was contacted.
 export default function AbsenceAlerts({ students, open }: { students: Student[]; open: (id: string) => void }) {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { supabase } = useApp();
   const settings = useRankingSettings(supabase);
@@ -53,27 +56,27 @@ export default function AbsenceAlerts({ students, open }: { students: Student[];
 
   return (
     <div className="card insight warn-card absence-alerts">
-      <h3>⚠️ تنبيه الغياب</h3>
-      <p className="muted">غابوا آخر {settings.absenceThreshold} أيام مسجّلة متتالية أو أكثر</p>
+      <h3>{tx("⚠️ تنبيه الغياب")}</h3>
+      <p className="muted">{tx("غابوا آخر")} {settings.absenceThreshold}  {tx("أيام مسجّلة متتالية أو أكثر")}</p>
       <ul className="insight-list">
         {absent.map((a) => {
           const female = s.get("circles", a.student.circle_id)?.section === "FEMALE";
-          const msg = absenceMessage(settings.absenceMessage ?? "", a.student, a.days, female);
+          const msg = absenceMessage(settings.absenceMessage ?? "", a.student, a.days, female, locale);
           const done = contacted(a);
           return (
             <li key={a.student.id}>
               <span className="absent-name" onClick={() => open(a.student.id)}>
-                {a.student.name} <span className="badge redo">{a.days} أيام</span>
+                {a.student.name} <span className="badge redo">{a.days}  {tx("أيام")}</span>
               </span>
               {done ? (
-                <span className="badge excellent">✓ تواصلنا</span>
+                <span className="badge excellent">{tx("✓ تواصلنا")}</span>
               ) : (
                 <a
                   className="btn small secondary"
                   href={waLink(msg, a.student.guardian_phone)}
                   target="_blank"
                   rel="noreferrer"
-                  title={a.student.guardian_phone ? undefined : "لا يوجد رقم لولي الأمر — اختر جهة الاتصال في واتساب"}
+                  title={a.student.guardian_phone ? undefined : tx("لا يوجد رقم لولي الأمر — اختر جهة الاتصال في واتساب")}
                   onClick={() =>
                     store.save(
                       "report_sends",
@@ -82,7 +85,7 @@ export default function AbsenceAlerts({ students, open }: { students: Student[];
                     )
                   }
                 >
-                  💬 رسالة للأهل{a.student.guardian_phone ? "" : " ⚠️"}
+                  {tx("💬 رسالة للأهل")}{a.student.guardian_phone ? "" : " ⚠️"}
                 </a>
               )}
             </li>

@@ -1,5 +1,8 @@
 "use client";
 
+import { staffText, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { useStore } from "@/lib/offline/store";
@@ -93,6 +96,7 @@ const HIDDEN = new Set(["id", "talqeen_session_id"]);
 // سجل التعديلات (admin): who added, changed, deleted or restored what, and when. Recorded by the
 // database itself from the moment it was turned on. Online only.
 export default function AuditLog() {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { supabase, mushaf } = useApp();
   const [rows, setRows] = useState<Row[]>([]);
@@ -110,7 +114,7 @@ export default function AuditLog() {
   const load = useCallback(
     async (offset: number) => {
       setError("");
-      if (!navigator.onLine) return setError("سجل التعديلات يحتاج اتصالًا بالإنترنت");
+      if (!navigator.onLine) return setError(tx("سجل التعديلات يحتاج اتصالًا بالإنترنت"));
       setBusy(true);
       let q = supabase.from("audit_log").select("*").order("at", { ascending: false }).order("id", { ascending: false });
       if (actor) q = q.eq("actor", actor);
@@ -124,7 +128,7 @@ export default function AuditLog() {
       setRows((prev) => (offset ? [...prev, ...(data ?? [])] : (data ?? [])));
       setMore((data ?? []).length === PAGE);
     },
-    [supabase, actor, table, act, from, to]
+    [supabase, actor, table, act, from, to, tx]
   );
   useEffect(() => {
     load(0);
@@ -132,20 +136,21 @@ export default function AuditLog() {
 
   const val = (field: string, v: unknown): string => {
     if (v === null || v === undefined || v === "") return "—";
-    if (field === "student_id") return s.get("students", String(v))?.name ?? "طالب محذوف";
+    if (field === "student_id") return s.get("students", String(v))?.name ?? tx("طالب محذوف");
     if (field === "circle_id") return s.get("circles", String(v))?.name ?? "—";
     if (field === "book_id") return s.get("arabic_books", String(v))?.title ?? "—";
     if (field === "from_surah_no" || field === "to_surah_no" || field === "surah_no") return mushaf.name(Number(v));
-    if (field === "track") return TRACK_LABEL[v as QuranTrack] ?? String(v);
-    if (field === "status") return ATTENDANCE_LABEL[v as AttendanceStatus] ?? String(v);
-    if (field === "section") return SECTION_LABEL[v as Section] ?? String(v);
-    if (field === "kind") return EXAM_KIND_LABEL[v as ExamKind] ?? String(v);
-    if (field === "role") return v === "ADMIN" ? "مدير" : "محفّظ";
-    if (field === "active") return v ? "نشط" : "مؤرشف/موقوف";
-    if (field === "passed") return v ? "ناجح" : "لم ينجح";
-    if (field === "deleted_at") return "نعم";
+    if (field === "track") return tx(TRACK_LABEL[v as QuranTrack] ?? String(v));
+    if (field === "status") return tx(ATTENDANCE_LABEL[v as AttendanceStatus] ?? String(v));
+    if (field === "section") return tx(SECTION_LABEL[v as Section] ?? String(v));
+    if (field === "kind") return tx(EXAM_KIND_LABEL[v as ExamKind] ?? String(v));
+    if (field === "quality" || field === "area") return tx(String(v));
+    if (field === "role") return v === "ADMIN" ? tx("مدير") : tx("محفّظ");
+    if (field === "active") return v ? tx("نشط") : tx("مؤرشف/موقوف");
+    if (field === "passed") return v ? tx("ناجح") : tx("لم ينجح");
+    if (field === "deleted_at") return tx("نعم");
     if (field === "guardian_phone") return `+${v}`;
-    if (field === "student_ids" && Array.isArray(v)) return `${v.length} طلاب`;
+    if (field === "student_ids" && Array.isArray(v)) return tx("{0} طلاب", [v.length]);
     if (typeof v === "object") return JSON.stringify(v).replace(/[{}"]/g, "").replace(/,/g, "، ");
     return String(v);
   };
@@ -154,13 +159,13 @@ export default function AuditLog() {
   const subject = (r: Row): string => {
     const c = (r.changes ?? {}) as Record<string, unknown>;
     const pick = (k: string) => (Array.isArray(c[k]) ? (c[k] as unknown[])[1] ?? (c[k] as unknown[])[0] : c[k]);
-    if (r.student_id) return s.get("students", r.student_id)?.name ?? (typeof pick("name") === "string" ? String(pick("name")) : "طالب محذوف");
+    if (r.student_id) return s.get("students", r.student_id)?.name ?? (typeof pick("name") === "string" ? String(pick("name")) : tx("طالب محذوف"));
     if (r.table_name === "circles") return s.get("circles", r.row_key)?.name ?? String(pick("name") ?? "");
     if (r.table_name === "profiles") return s.get("profiles", r.row_key)?.name ?? String(pick("name") ?? "");
     if (r.table_name === "arabic_books") return s.get("arabic_books", r.row_key)?.title ?? String(pick("title") ?? "");
     if (r.table_name === "circle_lessons") return s.get("circles", r.row_key.split("|")[0])?.name ?? "";
     if (r.table_name === "talqeen_sessions" || r.table_name === "activities") return val("circle_id", pick("circle_id"));
-    if (r.table_name === "ranking_settings") return "إعدادات المركز";
+    if (r.table_name === "ranking_settings") return tx("إعدادات المركز");
     return "";
   };
 
@@ -172,12 +177,12 @@ export default function AuditLog() {
         .filter((k) => k !== "deleted_at")
         .map((k) => {
           const [a, b] = c[k] as [unknown, unknown];
-          return `${FIELD_LABEL[k] ?? k}: ${val(k, a)} ← ${val(k, b)}`;
+          return `${tx(FIELD_LABEL[k] ?? k)}: ${val(k, a)} ${locale === "ar" ? "←" : "→"} ${val(k, b)}`;
         });
     }
     if (r.action === "DELETE" && "deleted_at" in c && keys.length === 1) return [];
     // A whole new (or purged) row: one line, so a day of entries stays short on a phone.
-    const all = keys.filter((k) => k !== "student_id" && k !== "deleted_at").map((k) => `${FIELD_LABEL[k] ?? k}: ${val(k, c[k])}`);
+    const all = keys.filter((k) => k !== "student_id" && k !== "deleted_at").map((k) => `${tx(FIELD_LABEL[k] ?? k)}: ${val(k, c[k])}`);
     return all.length ? [all.join("، ")] : [];
   };
 
@@ -185,7 +190,7 @@ export default function AuditLog() {
   const needle = search.trim().toLowerCase();
   const shown = needle
     ? rows.filter((r) =>
-        [ACTION[r.action]?.label, TABLE_LABEL[r.table_name], subject(r), ...lines(r), (r.actor && s.get("profiles", r.actor)?.name) || "النظام"]
+        [tx(ACTION[r.action]?.label ?? r.action), tx(TABLE_LABEL[r.table_name] ?? r.table_name), subject(r), ...lines(r), (r.actor && s.get("profiles", r.actor)?.name) || "النظام"]
           .join(" ")
           .toLowerCase()
           .includes(needle)
@@ -195,52 +200,50 @@ export default function AuditLog() {
   return (
     <section>
       <div className="card audit">
-        <h3>📜 سجل التعديلات</h3>
-        <p className="small muted">كل إضافة وتعديل وحذف على البيانات: مَن ومتى وماذا تغيّر. السجل يبدأ من يوم تفعيله.</p>
+        <h3>{tx("📜 سجل التعديلات")}</h3>
+        <p className="small muted">{tx("كل إضافة وتعديل وحذف على البيانات: مَن ومتى وماذا تغيّر. السجل يبدأ من يوم تفعيله.")}</p>
         <div className="audit-filters">
-          <select aria-label="المستخدم" value={actor} onChange={(e) => setActor(e.target.value)}>
-            <option value="">كل المستخدمين</option>
+          <select aria-label={tx("المستخدم")} value={actor} onChange={(e) => setActor(e.target.value)}>
+            <option value="">{tx("كل المستخدمين")}</option>
             {staff.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
           </select>
-          <select aria-label="نوع البيانات" value={table} onChange={(e) => setTable(e.target.value)}>
-            <option value="">كل البيانات</option>
+          <select aria-label={tx("نوع البيانات")} value={table} onChange={(e) => setTable(e.target.value)}>
+            <option value="">{tx("كل البيانات")}</option>
             {Object.entries(TABLE_LABEL).map(([k, v]) => (
               <option key={k} value={k}>
-                {v}
+                {tx(v)}
               </option>
             ))}
           </select>
-          <select aria-label="نوع العملية" value={act} onChange={(e) => setAct(e.target.value)}>
-            <option value="">كل العمليات</option>
+          <select aria-label={tx("نوع العملية")} value={act} onChange={(e) => setAct(e.target.value)}>
+            <option value="">{tx("كل العمليات")}</option>
             {Object.entries(ACTION).map(([k, v]) => (
               <option key={k} value={k}>
-                {v.label}
+                {tx(v.label)}
               </option>
             ))}
           </select>
           <label>
-            من
-            <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            {tx("من")}<input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
           </label>
           <label>
-            إلى
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            {tx("إلى")}<input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </label>
         </div>
         <input
           type="search"
           className="audit-search"
-          placeholder="ابحث في السجل: اسم طالب، حلقة، مستخدم، سورة…"
-          aria-label="بحث في سجل التعديلات"
+          placeholder={tx("ابحث في السجل: اسم طالب، حلقة، مستخدم، سورة…")}
+          aria-label={tx("بحث في سجل التعديلات")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        {error && <p className="error-text">{error}</p>}
-        {!busy && !error && !shown.length && <p className="muted">لا توجد تعديلات بهذا الفرز.</p>}
+        {error && <p className="error-text">{tx(error)}</p>}
+        {!busy && !error && !shown.length && <p className="muted">{tx("لا توجد تعديلات بهذا الفرز.")}</p>}
         <ul className="audit-list">
           {shown.map((r) => {
             const a = ACTION[r.action] ?? { label: r.action, cls: "" };
@@ -248,9 +251,9 @@ export default function AuditLog() {
             return (
               <li key={r.id}>
                 <div className="audit-head">
-                  <span className={`badge ${a.cls}`}>{a.label}</span>
+                  <span className={`badge ${a.cls}`}>{tx(a.label)}</span>
                   <b>
-                    {TABLE_LABEL[r.table_name] ?? r.table_name}
+                    {tx(TABLE_LABEL[r.table_name] ?? r.table_name)}
                     {subject(r) ? ` · ${subject(r)}` : ""}
                   </b>
                 </div>
@@ -262,7 +265,7 @@ export default function AuditLog() {
                   </ul>
                 )}
                 <div className="muted">
-                  {(r.actor && s.get("profiles", r.actor)?.name) || "النظام"} · {when(r.at)}
+                  {(r.actor && s.get("profiles", r.actor)?.name) || tx("النظام")} · {when(locale, r.at)}
                 </div>
               </li>
             );
@@ -270,7 +273,7 @@ export default function AuditLog() {
         </ul>
         {more && (
           <button className="secondary" disabled={busy} onClick={() => load(rows.length)}>
-            {busy ? "جارٍ التحميل..." : "عرض المزيد"}
+            {busy ? tx("جارٍ التحميل...") : tx("عرض المزيد")}
           </button>
         )}
       </div>
@@ -278,9 +281,10 @@ export default function AuditLog() {
   );
 }
 
-function when(iso: string): string {
+function when(locale: Locale, iso: string): string {
+  const tx = (source: string, values?: readonly (string | number | null | undefined)[]) => staffText(locale, source, values);
   const d = new Date(iso);
   const day = localDateStr(d);
-  const time = new Intl.DateTimeFormat("ar-SY", { hour: "numeric", minute: "2-digit" }).format(d);
-  return `${new Intl.DateTimeFormat("ar-SY", { weekday: "long", day: "numeric", month: "long" }).format(d)}${day === localDateStr(new Date()) ? " (اليوم)" : ""} · ${time}`;
+  const time = new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { hour: "numeric", minute: "2-digit" }).format(d);
+  return `${new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { weekday: "long", day: "numeric", month: "long" }).format(d)}${day === localDateStr(new Date()) ? tx(" (اليوم)") : ""} · ${time}`;
 }

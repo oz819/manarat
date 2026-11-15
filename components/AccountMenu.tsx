@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import SyncBadge from "@/components/SyncBadge";
@@ -21,10 +23,11 @@ export default function AccountMenu({
   onSwitch: (centerId: string) => void;
   onLogout: () => void;
 }) {
+  const { tx } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const centers = ctx.centers.filter((c) => c.active);
-  const role = profile.role === "ADMIN" ? (ctx.membership?.is_owner ? "صاحب المركز" : "مدير") : "معلّم";
+  const role = profile.role === "ADMIN" ? (ctx.membership?.is_owner ? tx("صاحب المركز") : tx("مدير")) : tx("معلّم");
 
   useEffect(() => {
     if (!open) return;
@@ -45,7 +48,7 @@ export default function AccountMenu({
           <circle cx="12" cy="8" r="4" />
           <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
         </svg>
-        <span>حسابي</span>
+        <span>{tx("حسابي")}</span>
       </button>
       {open && (
         <div className="account-menu" role="menu">
@@ -54,18 +57,18 @@ export default function AccountMenu({
             <span className="muted small">{role}</span>
           </div>
           <div className="account-row">
-            <span className="muted small">حالة الحفظ</span>
+            <span className="muted small">{tx("حالة الحفظ")}</span>
             <SyncBadge />
           </div>
           {pushSupported() && (
             <div className="account-row">
-              <span className="muted small">الإشعارات على هذا الجهاز</span>
+              <span className="muted small">{tx("الإشعارات على هذا الجهاز")}</span>
               <PushToggle />
             </div>
           )}
           {centers.length > 1 && (
             <label className="account-row">
-              <span className="muted small">المركز</span>
+              <span className="muted small">{tx("المركز")}</span>
               <select className="center-switch" value={ctx.center?.id} onChange={(e) => onSwitch(e.target.value)}>
                 {centers.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -77,12 +80,10 @@ export default function AccountMenu({
           )}
           {ctx.is_platform_admin && (
             <Link href="/super" className="account-link" role="menuitem">
-              لوحة المنصة
-            </Link>
+              {tx("لوحة المنصة")}</Link>
           )}
           <button type="button" className="account-link danger-link" role="menuitem" onClick={onLogout}>
-            تسجيل الخروج
-          </button>
+            {tx("تسجيل الخروج")}</button>
         </div>
       )}
     </div>

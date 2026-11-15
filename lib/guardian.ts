@@ -26,12 +26,24 @@ export function waLink(text: string, phone?: string | null): string {
   return `https://wa.me/${phone ?? ""}?text=${encodeURIComponent(text)}`;
 }
 
-export function guardianMessage(studentName: string, token: string): string {
+export function guardianMessage(studentName: string, token: string, locale: "ar" | "en" = "ar"): string {
+  if (locale === "en") return `Peace be upon you
+Follow ${studentName}’s Quran circle progress (memorization, recitation, attendance and lessons):
+${guardianUrl(token)}
+This link is private; please do not share it.`;
   return `السلام عليكم ورحمة الله\nهذا رابط متابعة ${studentName} في حلقة القرآن (الحفظ والتلاوة والحضور والدروس):\n${guardianUrl(token)}\nالرابط خاص بكم، يرجى عدم مشاركته.`;
 }
 
 /** "منذ ساعتين" / "منذ 3 أيام" — when a family last opened their page. */
-export function sinceLabel(iso: string | null | undefined): string {
+export function sinceLabel(iso: string | null | undefined, locale: "ar" | "en" = "ar"): string {
+  if (locale === "en") {
+    if (!iso) return "Not opened yet";
+    const hours = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 3600000));
+    if (hours < 1) return "Opened recently";
+    if (hours < 24) return `Opened ${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+    const days = Math.round(hours / 24);
+    return `Opened ${days} ${days === 1 ? "day" : "days"} ago`;
+  }
   if (!iso) return "لم يُفتح بعد";
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   if (mins < 60) return "فُتح قبل قليل";

@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -10,6 +12,7 @@ type Invite = Tables<"center_invites">;
 // makes their login) with that email and joins this centre — the same person can belong to more
 // than one centre. The link can be sent by email, WhatsApp or copied.
 export default function Invites() {
+  const { tx } = useI18n();
   const { supabase, center, showToast } = useApp();
   const [rows, setRows] = useState<Invite[] | null>(null);
   const [email, setEmail] = useState("");
@@ -29,14 +32,14 @@ export default function Invites() {
 
   const link = (t: string) => `${location.origin}/invite/${t}`;
   const message = (inv: Invite) =>
-    `السلام عليكم ورحمة الله${inv.name ? ` ${inv.name}` : ""}،\nدعوة للانضمام إلى ${center.name} على منصة تلاوة ${inv.role === "ADMIN" ? "مديرًا" : "معلّمًا"}.\nافتح الرابط وادخل ببريدك ${inv.email}:\n${link(inv.token)}`;
+    tx("السلام عليكم ورحمة الله{0}،\nدعوة للانضمام إلى {1} على منصة تلاوة {2}.\nافتح الرابط وادخل ببريدك {3}:\n{4}", [inv.name ? ` ${inv.name}` : "", center.name, inv.role === "ADMIN" ? tx("مديرًا") : tx("معلّمًا"), inv.email, link(inv.token)]);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     const em = email.trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return setError("اكتب بريدًا صحيحًا");
-    if (!navigator.onLine) return setError("الدعوات تحتاج اتصالًا بالإنترنت");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return setError(tx("اكتب بريدًا صحيحًا"));
+    if (!navigator.onLine) return setError(tx("الدعوات تحتاج اتصالًا بالإنترنت"));
     setBusy(true);
     const { data, error } = await supabase
       .from("center_invites")
@@ -45,7 +48,7 @@ export default function Invites() {
       .single();
     if (error || !data) {
       setBusy(false);
-      return setError(error?.message || "تعذّر إنشاء الدعوة");
+      return setError(error?.message || tx("تعذّر إنشاء الدعوة"));
     }
     // Ask the server to email it (Supabase's mailer). If email isn't set up, the link still works.
     const res = await fetch("/api/admin/invites", {
@@ -57,10 +60,10 @@ export default function Invites() {
     setEmail("");
     setName("");
     await load();
-    if (res?.ok) showToast("أُرسلت الدعوة إلى البريد");
+    if (res?.ok) showToast(tx("أُرسلت الدعوة إلى البريد"));
     else {
       await navigator.clipboard?.writeText(link(data.token)).catch(() => {});
-      showToast("أُنشئت الدعوة ونُسخ رابطها — أرسله بواتساب أو البريد");
+      showToast(tx("أُنشئت الدعوة ونُسخ رابطها — أرسله بواتساب أو البريد"));
     }
   }
 
@@ -71,70 +74,67 @@ export default function Invites() {
   }
 
   const state = (i: Invite) =>
-    i.revoked_at ? "ملغاة" : i.accepted_at ? "مقبولة" : new Date(i.expires_at) < new Date() ? "منتهية" : "بانتظار القبول";
+    i.revoked_at ? tx("ملغاة") : i.accepted_at ? tx("مقبولة") : new Date(i.expires_at) < new Date() ? tx("منتهية") : tx("بانتظار القبول");
 
   return (
     <div className="card">
-      <h3>✉️ دعوة مدير أو معلّم</h3>
+      <h3>{tx("✉️ دعوة مدير أو معلّم")}</h3>
       <form className="formgrid" onSubmit={create} noValidate>
         <div>
-          <label>البريد الإلكتروني</label>
+          <label>{tx("البريد الإلكتروني")}</label>
           <input type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div>
-          <label>الاسم (اختياري)</label>
+          <label>{tx("الاسم (اختياري)")}</label>
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
         </div>
         <div>
-          <label>الدور</label>
+          <label>{tx("الدور")}</label>
           <select value={role} onChange={(e) => setRole(e.target.value as "TEACHER" | "ADMIN")}>
-            <option value="TEACHER">محفّظ / معلّم</option>
-            <option value="ADMIN">مدير</option>
+            <option value="TEACHER">{tx("محفّظ / معلّم")}</option>
+            <option value="ADMIN">{tx("مدير")}</option>
           </select>
         </div>
         <div style={{ alignSelf: "end" }}>
           <button type="submit" disabled={busy} style={{ width: "100%" }}>
-            {busy ? "جارٍ الإنشاء..." : "إرسال دعوة"}
+            {busy ? tx("جارٍ الإنشاء...") : tx("إرسال دعوة")}
           </button>
         </div>
       </form>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
 
       {rows && rows.length > 0 && (
         <div className="table-wrap" style={{ marginTop: 12 }}>
           <table>
             <thead>
               <tr>
-                <th>البريد</th>
-                <th>الدور</th>
-                <th>الحالة</th>
+                <th>{tx("البريد")}</th>
+                <th>{tx("الدور")}</th>
+                <th>{tx("الحالة")}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((i) => {
-                const open = state(i) === "بانتظار القبول";
+                const open = !i.revoked_at && !i.accepted_at && new Date(i.expires_at) >= new Date();
                 return (
                   <tr key={i.id}>
-                    <td dir="ltr" style={{ textAlign: "right" }}>
+                    <td dir="ltr" style={{ textAlign: "start" }}>
                       {i.email}
                       {i.name && <div className="small muted">{i.name}</div>}
                     </td>
-                    <td>{i.role === "ADMIN" ? "مدير" : "محفّظ"}</td>
+                    <td>{i.role === "ADMIN" ? tx("مدير") : tx("محفّظ")}</td>
                     <td>{state(i)}</td>
                     <td style={{ whiteSpace: "nowrap" }}>
                       {open && (
                         <>
-                          <button type="button" className="link" onClick={() => navigator.clipboard?.writeText(link(i.token)).then(() => showToast("تم نسخ الرابط"), () => {})}>
-                            نسخ الرابط
-                          </button>{" "}
+                          <button type="button" className="link" onClick={() => navigator.clipboard?.writeText(link(i.token)).then(() => showToast(tx("تم نسخ الرابط")), () => {})}>
+                            {tx("نسخ الرابط")}</button>{" "}
                           <a href={`https://wa.me/?text=${encodeURIComponent(message(i))}`} target="_blank" rel="noreferrer">
-                            واتساب
-                          </a>{" "}
-                          <a href={`mailto:${i.email}?subject=${encodeURIComponent(`دعوة إلى ${center.name}`)}&body=${encodeURIComponent(message(i))}`}>بريد</a>{" "}
+                            {tx("واتساب")}</a>{" "}
+                          <a href={`mailto:${i.email}?subject=${encodeURIComponent(tx("دعوة إلى {0}", [center.name]))}&body=${encodeURIComponent(message(i))}`}>{tx("بريد")}</a>{" "}
                           <button type="button" className="link" style={{ color: "var(--danger)" }} onClick={() => revoke(i.id)}>
-                            إلغاء
-                          </button>
+                            {tx("إلغاء")}</button>
                         </>
                       )}
                     </td>

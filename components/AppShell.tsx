@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n, LanguageSwitch } from "@/components/LocaleProvider";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -65,6 +67,7 @@ type View = { page: Page; studentId: string | null };
 const HOME: View = { page: "students", studentId: null };
 
 export default function AppShell() {
+  const { tx, locale } = useI18n();
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -85,7 +88,7 @@ export default function AppShell() {
       } = await supabase.auth.getSession();
       if (!session) {
         if (navigator.onLine) router.replace("/");
-        else setBlockedMessage("أول تسجيل دخول يحتاج اتصالًا بالإنترنت.");
+        else setBlockedMessage(tx("أول تسجيل دخول يحتاج اتصالًا بالإنترنت."));
         return;
       }
       const userId = session.user.id;
@@ -164,7 +167,7 @@ export default function AppShell() {
         if (fresh) ({ p, c } = fresh);
       }
       if (!p) {
-        setBlockedMessage("تعذّر التحقق من الحساب. اتصل بالإنترنت وأعد المحاولة.");
+        setBlockedMessage(tx("تعذّر التحقق من الحساب. اتصل بالإنترنت وأعد المحاولة."));
         return;
       }
       await open(p, c);
@@ -216,7 +219,11 @@ export default function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revoked]);
 
-  const tracks = useMemo(() => tracksOf(ctx?.center), [ctx?.center]);
+  const tracks = useMemo(() => {
+    const base = tracksOf(ctx?.center);
+    return { ...base, label: (key: Parameters<typeof base.label>[0]) =>
+      key === "TALQEEN" && ctx?.center?.talqeen_label?.trim() ? base.label(key) : tx(base.label(key)) };
+  }, [ctx?.center, tx]);
   // The surahs ship with the app (lib/surahs.ts); the synced table is used once it is on the device.
   const synced = s.all("quran_surahs");
   const surahs = synced.length === 114 ? synced : SURAHS;
@@ -234,7 +241,7 @@ export default function AppShell() {
     if (!ctx || id === ctx.center?.id) return;
     if (navigator.onLine) await store.sync();
     if (store.status.pending + store.status.failed > 0) {
-      showToast("بعض التعديلات محفوظة على الجهاز ولم تُحفظ في الحساب بعد. اتصل بالإنترنت وانتظر «تم الحفظ ✓» ثم بدّل المركز");
+      showToast(tx("بعض التعديلات محفوظة على الجهاز ولم تُحفظ في الحساب بعد. اتصل بالإنترنت وانتظر «تم الحفظ ✓» ثم بدّل المركز"));
       return;
     }
     const { error } = await supabase.rpc("switch_center", { p_center_id: id });
@@ -250,7 +257,7 @@ export default function AppShell() {
     const unsent = store.status.pending + store.status.failed;
     if (unsent > 0) {
       const ok = confirm(
-        `لديك ${unsent} تعديل محفوظ على هذا الجهاز ولم يُحفظ في الحساب بعد. تسجيل الخروج الآن يحذفه نهائيًا.\n\nهل تريد تسجيل الخروج رغم ذلك؟`
+        tx("لديك {0} تعديل محفوظ على هذا الجهاز ولم يُحفظ في الحساب بعد. تسجيل الخروج الآن يحذفه نهائيًا.\n\nهل تريد تسجيل الخروج رغم ذلك؟", [unsent])
       );
       if (!ok) return;
     }
@@ -264,11 +271,11 @@ export default function AppShell() {
     return (
       <div className="login">
         <div className="loginbox">
-          <h1>تلاوة</h1>
-          <p className="center">{blockedMessage}</p>
+          <h1>{tx("تلاوة")}</h1>
+          <LanguageSwitch />
+          <p className="center">{tx(blockedMessage)}</p>
           <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/")}>
-            العودة إلى الصفحة الرئيسية
-          </button>
+            {tx("العودة إلى الصفحة الرئيسية")}</button>
         </div>
       </div>
     );
@@ -279,10 +286,10 @@ export default function AppShell() {
       <div className="login">
         <p className="muted center">
           {profile && !s.status.online
-            ? "بدون اتصال: البيانات لم تُنزَّل على هذا الجهاز بعد. اتصل بالإنترنت مرة واحدة."
+            ? tx("بدون اتصال: البيانات لم تُنزَّل على هذا الجهاز بعد. اتصل بالإنترنت مرة واحدة.")
             : s.status.lastError
-              ? `تعذّر تنزيل البيانات: ${s.status.lastError}`
-              : "جارٍ التحميل..."}
+              ? tx("تعذّر تنزيل البيانات: {0}", [s.status.lastError])
+              : tx("جارٍ التحميل...")}
         </p>
       </div>
     );
@@ -295,22 +302,22 @@ export default function AppShell() {
           <div className="brand-row">
             <CenterMark name={ctx?.center?.name ?? "تلاوة"} logo={ctx?.center?.logo_url} />
             <div className="brand-text">
-              <h1>{ctx?.center?.name ?? "تلاوة"}</h1>
+              <h1>{ctx?.center?.name ?? tx("تلاوة")}</h1>
               <div className="dates">
                 <span className="hijri">
-                  {greeting()} · {hijriToday()}
+                  {tx(greeting())} · {hijriToday(locale)}
                 </span>
-                <span className="gregorian">{gregorianToday()}</span>
+                <span className="gregorian">{gregorianToday(locale)}</span>
               </div>
             </div>
           </div>
           <div className="userbox">
             <span>
-              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : teacherTitle(profile.default_filter, s.all("circles"))}
+              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? tx("صاحب المركز") : tx("مدير")) : tx(teacherTitle(profile.default_filter, s.all("circles")))}
             </span>
             <div className="userbox-actions">
               {ctx && ctx.centers.filter((c) => c.active).length > 1 && (
-                <select className="center-switch" aria-label="المركز" value={ctx.center?.id} onChange={(e) => switchCenter(e.target.value)}>
+                <select className="center-switch" aria-label={tx("المركز")} value={ctx.center?.id} onChange={(e) => switchCenter(e.target.value)}>
                   {ctx.centers.filter((c) => c.active).map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -320,15 +327,15 @@ export default function AppShell() {
               )}
               {ctx?.is_platform_admin && (
                 <Link href="/super" className="btn ghost" style={{ padding: "5px 10px", fontSize: 12 }}>
-                  المنصة
-                </Link>
+                  {tx("المنصة")}</Link>
               )}
               <SyncBadge />
               <Appearance />
+              <LanguageSwitch />
               <button className="secondary" onClick={() => setPage(profile.role === "ADMIN" ? "dashboard" : "students")}>
-                {profile.role === "ADMIN" ? "لوحة المتابعة" : "الطلاب"}
+                {profile.role === "ADMIN" ? tx("لوحة المتابعة") : tx("الطلاب")}
               </button>
-              <button onClick={logout}>خروج</button>
+              <button onClick={logout}>{tx("خروج")}</button>
             </div>
           </div>
         </div>
@@ -338,17 +345,16 @@ export default function AppShell() {
         <SlidingIndicator active={page === "audit" || page === "trash" ? "manage" : page} />
         {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
           <button key={n.id} className={(page === n.id || (n.id === "manage" && (page === "audit" || page === "trash"))) ? "active" : ""} onClick={() => setPage(n.id)}>
-            {n.label}
+            {tx(n.label)}
           </button>
         ))}
       </nav>
 
       {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && (
         <div className="plan-banner no-print">
-          <span>أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.</span>
+          <span>{tx("أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.")}</span>
           <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
-            إكمال الإعداد
-          </Link>
+            {tx("إكمال الإعداد")}</Link>
         </div>
       )}
 
@@ -356,8 +362,7 @@ export default function AppShell() {
         {(page === "audit" || page === "trash") && (
           <div className="back-row no-print">
             <button type="button" className="link back-btn" onClick={() => setPage("manage")}>
-              → رجوع إلى الإدارة والإعدادات
-            </button>
+              {tx("→ رجوع إلى الإدارة والإعدادات")}</button>
           </div>
         )}
         <div className="no-print">
@@ -382,11 +387,11 @@ export default function AppShell() {
 }
 
 // e.g. "الخميس، ٨ تشرين الأول ٢٠٢٦ م" — ar-SY gives the Levantine month names.
-function gregorianToday(): string {
+function gregorianToday(locale: "ar" | "en"): string {
   try {
     return (
-      new Intl.DateTimeFormat("ar-SY", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()) +
-      " م"
+      new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()) +
+      (locale === "ar" ? " م" : "")
     );
   } catch {
     return "";
@@ -399,9 +404,9 @@ function greeting(): string {
 }
 
 // Today's date in the Umm al-Qura Hijri calendar, e.g. "١٦ ربيع الآخر ١٤٤٨ هـ".
-function hijriToday(): string {
+function hijriToday(locale: "ar" | "en"): string {
   try {
-    return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
   } catch {
     return "";
   }

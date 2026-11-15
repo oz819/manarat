@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { Fragment, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import Panel from "@/components/Panel";
@@ -19,18 +21,17 @@ import ImportStudents from "@/components/center/ImportStudents";
 // Admin-only actions (spec §5.4). These need a connection: they write straight to Supabase
 // (RLS re-checks is_admin()) and then refresh the local copy.
 export default function Manage({ openLog }: { openLog: (log: "audit" | "trash") => void }) {
+  const { tx } = useI18n();
   return (
     <section>
       <div className="card notice">
-        صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
-        الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
-      </div>
+        {tx("صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.")}</div>
       <div className="card">
-        <h3>السجلات</h3>
-        <p className="small muted">راجع تعديلات الفريق أو استرجع العناصر المحذوفة.</p>
+        <h3>{tx("السجلات")}</h3>
+        <p className="small muted">{tx("راجع تعديلات الفريق أو استرجع العناصر المحذوفة.")}</p>
         <div className="row-actions">
-          <button type="button" className="secondary" onClick={() => openLog("audit")}>📜 سجل التعديلات</button>
-          <button type="button" className="secondary" onClick={() => openLog("trash")}>🗑️ سجل المحذوفات</button>
+          <button type="button" className="secondary" onClick={() => openLog("audit")}>{tx("📜 سجل التعديلات")}</button>
+          <button type="button" className="secondary" onClick={() => openLog("trash")}>{tx("🗑️ سجل المحذوفات")}</button>
         </div>
       </div>
       {/* Same order as the Madaya centre; what a multi-centre platform adds comes after. */}
@@ -50,6 +51,7 @@ export default function Manage({ openLog }: { openLog: (log: "audit" | "trash") 
 }
 
 function Teachers() {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, profile, showToast } = useApp();
   const [name, setName] = useState("");
@@ -93,14 +95,14 @@ function Teachers() {
         body: JSON.stringify({ name: name.trim(), email: email.trim(), role: newRole }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) return setError(data.error || "تعذّر إضافة المحفّظ");
+      if (!res.ok) return setError(data.error || tx("تعذّر إضافة المحفّظ"));
       setName("");
       setEmail("");
       setNewRole("TEACHER");
       await refresh();
-      showToast(newRole === "ADMIN" ? "تمت إضافة المدير" : "تمت إضافة المحفّظ");
+      showToast(newRole === "ADMIN" ? tx("تمت إضافة المدير") : tx("تمت إضافة المحفّظ"));
     } catch {
-      setError("تحتاج اتصالًا بالإنترنت");
+      setError(tx("تحتاج اتصالًا بالإنترنت"));
     } finally {
       setBusy(false);
     }
@@ -148,13 +150,13 @@ function Teachers() {
           body: JSON.stringify({ email: patch.email }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) return setError(data.error || "تعذّر تغيير البريد");
+        if (!res.ok) return setError(data.error || tx("تعذّر تغيير البريد"));
       }
       setEditId(null);
       await Promise.all([refresh(), loadEmails()]);
-      showToast("تم حفظ التعديل");
+      showToast(tx("تم حفظ التعديل"));
     } catch {
-      setError("تحتاج اتصالًا بالإنترنت");
+      setError(tx("تحتاج اتصالًا بالإنترنت"));
     } finally {
       setBusy(false);
     }
@@ -162,9 +164,9 @@ function Teachers() {
 
   async function remove(id: string, personName: string) {
     const ok = await confirmDialog({
-      title: `حذف حساب «${personName}»؟`,
-      body: "ينتقل إلى سجل المحذوفات ولن يستطيع تسجيل الدخول. يمكنك استرجاعه من هناك، وتبقى كل سجلاته.",
-      ok: "حذف",
+      title: tx("حذف حساب «{0}»؟", [personName]),
+      body: tx("ينتقل إلى سجل المحذوفات ولن يستطيع تسجيل الدخول. يمكنك استرجاعه من هناك، وتبقى كل سجلاته."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
@@ -174,33 +176,33 @@ function Teachers() {
     setBusy(false);
     if (err) return setError(err);
     if (editId === id) setEditId(null);
-    showToast(`تم حذف «${personName}» — تجده في سجل المحذوفات`);
+    showToast(tx("تم حذف «{0}» — تجده في سجل المحذوفات", [personName]));
   }
 
   return (
     <div className="card">
-      <h3>👥 المحفّظون والمدراء</h3>
+      <h3>{tx("👥 المحفّظون والمدراء")}</h3>
       <div className="formgrid compact">
-        <input placeholder="الاسم" value={name} onChange={(e) => setName(e.target.value)} />
-        <input placeholder="البريد الإلكتروني" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <select aria-label="الصلاحية" value={newRole} onChange={(e) => setNewRole(e.target.value === "ADMIN" ? "ADMIN" : "TEACHER")}>
-          <option value="TEACHER">الصلاحية: محفّظ</option>
-          <option value="ADMIN">الصلاحية: مدير</option>
+        <input placeholder={tx("الاسم")} value={name} onChange={(e) => setName(e.target.value)} />
+        <input placeholder={tx("البريد الإلكتروني")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <select aria-label={tx("الصلاحية")} value={newRole} onChange={(e) => setNewRole(e.target.value === "ADMIN" ? "ADMIN" : "TEACHER")}>
+          <option value="TEACHER">{tx("الصلاحية: محفّظ")}</option>
+          <option value="ADMIN">{tx("الصلاحية: مدير")}</option>
         </select>
         <button onClick={add} disabled={busy}>
-          {newRole === "ADMIN" ? "إضافة مدير" : "إضافة محفّظ"}
+          {newRole === "ADMIN" ? tx("إضافة مدير") : tx("إضافة محفّظ")}
         </button>
       </div>
-      <p className="small muted">يدخل المحفّظ بعدها برمز يصله على بريده. لا يستطيع أحد غير مسجّل هنا إنشاء حساب بنفسه.</p>
-      {error && <p className="error-text">{error}</p>}
+      <p className="small muted">{tx("يدخل المحفّظ بعدها برمز يصله على بريده. لا يستطيع أحد غير مسجّل هنا إنشاء حساب بنفسه.")}</p>
+      {error && <p className="error-text">{tx(error)}</p>}
       <div style={{ overflow: "auto" }}>
         <table className="staff-table">
           <thead>
             <tr>
-              <th>الاسم</th>
-              <th>البريد</th>
-              <th>الدور</th>
-              <th>الحالة</th>
+              <th>{tx("الاسم")}</th>
+              <th>{tx("البريد")}</th>
+              <th>{tx("الدور")}</th>
+              <th>{tx("الحالة")}</th>
               <th></th>
             </tr>
           </thead>
@@ -211,49 +213,45 @@ function Teachers() {
                   <td>
                     {p.name}
                     {p.default_filter && effectiveFilter(p.default_filter, circles) !== "all" && (
-                      <div className="small muted">يفتح على: {filterLabel(effectiveFilter(p.default_filter, circles), circles)}</div>
+                      <div className="small muted">{tx("يفتح على:")} {effectiveFilter(p.default_filter, circles).startsWith("c:") ? filterLabel(effectiveFilter(p.default_filter, circles), circles) : tx(filterLabel(effectiveFilter(p.default_filter, circles), circles))}</div>
                     )}
                   </td>
-                  <td className="small" dir="ltr" style={{ textAlign: "right" }}>
+                  <td className="small" dir="ltr" style={{ textAlign: "start" }}>
                     {emails[p.id] ?? "—"}
                   </td>
-                  <td>{p.role === "ADMIN" ? "مدير" : teacherTitle(p.default_filter, circles)}</td>
-                  <td>{p.active ? "مفعّل" : "معطّل"}</td>
+                  <td>{p.role === "ADMIN" ? tx("مدير") : tx(teacherTitle(p.default_filter, circles))}</td>
+                  <td>{p.active ? tx("مفعّل") : tx("معطّل")}</td>
                   <td className="row-actions">
                     {p.id !== profile.id && (
                       <>
                         <button
                           className="link"
-                          onClick={() => update(p.id, { active: !p.active }, p.active ? "تم التعطيل" : "تم التفعيل")}
+                          onClick={() => update(p.id, { active: !p.active }, p.active ? tx("تم التعطيل") : tx("تم التفعيل"))}
                         >
-                          {p.active ? "تعطيل" : "تفعيل"}
+                          {p.active ? tx("تعطيل") : tx("تفعيل")}
                         </button>
                         {p.role === "TEACHER" ? (
                           <button
                             className="link"
-                            onClick={() => confirm(`ترقية ${p.name} إلى مدير؟`) && update(p.id, { role: "ADMIN" }, "تمت الترقية إلى مدير")}
+                            onClick={() => confirm(tx("ترقية {0} إلى مدير؟", [p.name])) && update(p.id, { role: "ADMIN" }, tx("تمت الترقية إلى مدير"))}
                           >
-                            ترقية لمدير
-                          </button>
+                            {tx("ترقية لمدير")}</button>
                         ) : (
                           <button
                             className="link"
                             onClick={() =>
-                              confirm(`إرجاع ${p.name} إلى محفّظ؟`) && update(p.id, { role: "TEACHER" }, "تم التحويل إلى محفّظ")
+                              confirm(tx("إرجاع {0} إلى محفّظ؟", [p.name])) && update(p.id, { role: "TEACHER" }, tx("تم التحويل إلى محفّظ"))
                             }
                           >
-                            إلغاء الإدارة
-                          </button>
+                            {tx("إلغاء الإدارة")}</button>
                         )}
                       </>
                     )}
                     <button className="link" onClick={() => startEdit(p.id, p.name, p.default_filter)}>
-                      تعديل
-                    </button>
+                      {tx("تعديل")}</button>
                     {p.id !== profile.id && (
                       <button className="link danger-link" disabled={busy} onClick={() => remove(p.id, p.name)}>
-                        حذف
-                      </button>
+                        {tx("حذف")}</button>
                     )}
                   </td>
                 </tr>
@@ -262,20 +260,20 @@ function Teachers() {
                     <td colSpan={5}>
                       <div className="formgrid compact">
                         <div>
-                          <label>الاسم</label>
+                          <label>{tx("الاسم")}</label>
                           <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                         </div>
                         <div>
-                          <label>البريد الإلكتروني (للدخول)</label>
+                          <label>{tx("البريد الإلكتروني (للدخول)")}</label>
                           <input type="email" dir="ltr" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
                         </div>
                         <div>
-                          <label>يفتح التطبيق على</label>
+                          <label>{tx("يفتح التطبيق على")}</label>
                           <select value={editFilter} onChange={(e) => setEditFilter(e.target.value)}>
-                            <option value="all">كل الطلاب</option>
+                            <option value="all">{tx("كل الطلاب")}</option>
                             {filterChoices.sections.map((sec) => (
                               <option key={sec} value={`s:${sec}`}>
-                                {SECTION_LABEL[sec]}
+                                {tx(SECTION_LABEL[sec])}
                               </option>
                             ))}
                             {filterChoices.circles.map((c) => (
@@ -287,11 +285,9 @@ function Teachers() {
                         </div>
                         <div className="row-actions" style={{ alignSelf: "end" }}>
                           <button disabled={busy || !editName.trim()} onClick={() => saveEdit(p.id, p.name, p.default_filter)}>
-                            حفظ
-                          </button>
+                            {tx("حفظ")}</button>
                           <button className="secondary" onClick={() => setEditId(null)}>
-                            إلغاء
-                          </button>
+                            {tx("إلغاء")}</button>
                         </div>
                       </div>
                     </td>
@@ -307,6 +303,7 @@ function Teachers() {
 }
 
 function Halaqat() {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, showToast } = useApp();
   const [adding, setAdding] = useState(false);
@@ -315,7 +312,7 @@ function Halaqat() {
   const count = (id: string) => s.all("students").filter((st) => st.active && st.circle_id === id).length;
 
   function friendly(msg: string) {
-    return /circles_name_unique|duplicate/i.test(msg) ? "يوجد حلقة بهذا الاسم (ربما في سجل المحذوفات — استرجعها من هناك)" : msg;
+    return /circles_name_unique|duplicate/i.test(msg) ? tx("يوجد حلقة بهذا الاسم (ربما في سجل المحذوفات — استرجعها من هناك)") : msg;
   }
 
 
@@ -329,7 +326,7 @@ function Halaqat() {
       .single();
     if (error) return setError(friendly(error.message));
     await store.applyRemote("circles", [data]);
-    showToast("تم الحفظ");
+    showToast(tx("تم الحفظ"));
   }
 
   // A circle's teacher = the account that opens on that circle (its «يفتح على» filter, as in «تعديل»).
@@ -348,60 +345,58 @@ function Halaqat() {
     }
     const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS);
     if (data) await store.applyRemote("profiles", data);
-    showToast(pid ? "تم تعيين محفّظ الحلقة" : "أُزيل محفّظ الحلقة");
+    showToast(pid ? tx("تم تعيين محفّظ الحلقة") : tx("أُزيل محفّظ الحلقة"));
   }
 
   async function remove(id: string, circleName: string) {
     const ok = await confirmDialog({
-      title: `حذف الحلقة «${circleName}»؟`,
-      body: "تنتقل إلى سجل المحذوفات وتختفي من كل القوائم. يمكنك استرجاعها من هناك.",
-      ok: "حذف",
+      title: tx("حذف الحلقة «{0}»؟", [circleName]),
+      body: tx("تنتقل إلى سجل المحذوفات وتختفي من كل القوائم. يمكنك استرجاعها من هناك."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
     setError("");
     const err = await adminSoftDelete(supabase, "circle", id);
     if (err) return setError(err);
-    showToast(`تم حذف «${circleName}»`);
+    showToast(tx("تم حذف «{0}»", [circleName]));
   }
 
   return (
     <div className="card">
-      <h3>🏫 الحلقات</h3>
+      <h3>{tx("🏫 الحلقات")}</h3>
       <p className="small muted">
-        اسم الحلقة نص حر، مثل «ذكور – الشيخ أحمد» أو «إناث 10–12». حدّد قسم كل حلقة (الذكور / الإناث)، فيظهر القسم في فرز الطلاب ويجمع
-        كل حلقاته.
-      </p>
+        {tx("اسم الحلقة نص حر، مثل «ذكور – الشيخ أحمد» أو «إناث 10–12». حدّد قسم كل حلقة (الذكور / الإناث)، فيظهر القسم في فرز الطلاب ويجمع كل حلقاته.")}</p>
       {adding ? (
-        <Panel title="🏫 حلقة جديدة مع طلابها" onClose={() => setAdding(false)} className="panel-inset">
+        <Panel title={tx("🏫 حلقة جديدة مع طلابها")} onClose={() => setAdding(false)} className="panel-inset">
           <CircleForm
             supabase={supabase}
             onCreated={async (c) => {
               await store.sync();
               setAdding(false);
-              showToast(c.students ? `تم إنشاء «${c.name}» مع ${c.students} طالبًا` : `تم إنشاء «${c.name}»`);
+              showToast(c.students ? tx("تم إنشاء «{0}» مع {1} طالبًا", [c.name, c.students]) : tx("تم إنشاء «{0}»", [c.name]));
             }}
             secondary={
               <button type="button" className="secondary" onClick={() => setAdding(false)}>
-                إلغاء
+                {tx("إلغاء")}
               </button>
             }
           />
         </Panel>
       ) : (
         <div className="row-actions" style={{ margin: "8px 0 12px" }}>
-          <button onClick={() => setAdding(true)}>+ حلقة جديدة</button>
+          <button onClick={() => setAdding(true)}>{tx("+ حلقة جديدة")}</button>
         </div>
       )}
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
       <div style={{ overflow: "auto" }}>
       <table>
         <thead>
           <tr>
-            <th>الحلقة</th>
-            <th>القسم</th>
-            <th>المحفّظ</th>
-            <th>الطلاب</th>
+            <th>{tx("الحلقة")}</th>
+            <th>{tx("القسم")}</th>
+            <th>{tx("المحفّظ")}</th>
+            <th>{tx("الطلاب")}</th>
             <th></th>
           </tr>
         </thead>
@@ -409,25 +404,25 @@ function Halaqat() {
           {circles.map((c) => (
             <tr key={c.id} className={c.active ? "" : "muted"}>
               <td>
-                {c.name} {!c.active && <span className="badge">مؤرشفة</span>}
+                {c.name} {!c.active && <span className="badge">{tx("مؤرشفة")}</span>}
               </td>
               <td>
                 <select
                   className="cell-select"
                   value={c.section ?? ""}
                   onChange={(e) => update(c.id, { section: e.target.value || null })}
-                  aria-label={`قسم ${c.name}`}
+                  aria-label={tx("قسم {0}", [c.name])}
                 >
                   <option value="">—</option>
                   {SECTIONS.map((sec) => (
                     <option key={sec} value={sec}>
-                      {SECTION_LABEL[sec]}
+                      {tx(SECTION_LABEL[sec])}
                     </option>
                   ))}
                 </select>
               </td>
               <td>
-                <select className="cell-select" value={teacherOf(c.id)} onChange={(e) => setTeacher(c.id, e.target.value)} aria-label={`محفّظ ${c.name}`}>
+                <select className="cell-select" value={teacherOf(c.id)} onChange={(e) => setTeacher(c.id, e.target.value)} aria-label={tx("محفّظ {0}", [c.name])}>
                   <option value="">—</option>
                   {staff.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -441,18 +436,16 @@ function Halaqat() {
                 <button
                   className="link"
                   onClick={() => {
-                    const n = prompt("الاسم الجديد للحلقة:", c.name);
+                    const n = prompt(tx("الاسم الجديد للحلقة:"), c.name);
                     if (n && n.trim() && n.trim() !== c.name) update(c.id, { name: n.trim() });
                   }}
                 >
-                  إعادة تسمية
-                </button>
+                  {tx("إعادة تسمية")}</button>
                 <button className="link" onClick={() => update(c.id, { active: !c.active })}>
-                  {c.active ? "أرشفة" : "استعادة"}
+                  {c.active ? tx("أرشفة") : tx("استعادة")}
                 </button>
                 <button className="link danger-link" onClick={() => remove(c.id, c.name)}>
-                  حذف
-                </button>
+                  {tx("حذف")}</button>
               </td>
             </tr>
           ))}
@@ -464,6 +457,7 @@ function Halaqat() {
 }
 
 function ArabicBooks() {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, showToast } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -484,26 +478,26 @@ function ArabicBooks() {
     e.preventDefault();
     setError("");
     const total = Number(pages);
-    if (!title.trim() || !Number.isInteger(total) || total < 1) return setError("أدخل العنوان وعدد الصفحات");
+    if (!title.trim() || !Number.isInteger(total) || total < 1) return setError(tx("أدخل العنوان وعدد الصفحات"));
     setBusy(true);
     try {
       if (editingId) {
         const { data, error } = await supabase.from("arabic_entries").select("to_page")
           .eq("book_id", editingId).is("deleted_at", null).order("to_page", { ascending: false }).limit(1);
         if (error) return setError(error.message);
-        if (data?.[0] && total < data[0].to_page) return setError(`يوجد درس مسجّل حتى الصفحة ${data[0].to_page}؛ لا يمكن تقليل عدد الصفحات عن ذلك.`);
+        if (data?.[0] && total < data[0].to_page) return setError(tx("يوجد درس مسجّل حتى الصفحة {0}؛ لا يمكن تقليل عدد الصفحات عن ذلك.", [data[0].to_page]));
       }
       const values = { title: title.trim(), total_pages: total };
       const query = editingId
         ? supabase.from("arabic_books").update({ ...values, edited_at: new Date().toISOString() }).eq("id", editingId)
         : supabase.from("arabic_books").insert(values);
       const { data, error } = await query.select().single();
-      if (error) return setError(/unique|duplicate/i.test(error.message) ? "يوجد كتاب بهذا العنوان (ربما في سجل المحذوفات)" : error.message);
+      if (error) return setError(/unique|duplicate/i.test(error.message) ? tx("يوجد كتاب بهذا العنوان (ربما في سجل المحذوفات)") : error.message);
       await store.applyRemote("arabic_books", [data]);
-      showToast(editingId ? "تم تعديل الكتاب" : "تمت إضافة الكتاب");
+      showToast(editingId ? tx("تم تعديل الكتاب") : tx("تمت إضافة الكتاب"));
       reset();
     } catch {
-      setError("تعذّر حفظ الكتاب. تحقق من الاتصال وحاول مرة أخرى.");
+      setError(tx("تعذّر حفظ الكتاب. تحقق من الاتصال وحاول مرة أخرى."));
     } finally {
       setBusy(false);
     }
@@ -522,37 +516,35 @@ function ArabicBooks() {
 
   async function remove(id: string, bookTitle: string) {
     const ok = await confirmDialog({
-      title: `حذف الكتاب «${bookTitle}»؟`,
-      body: "ينتقل إلى سجل المحذوفات ويختفي من القوائم. دروس الطلاب السابقة فيه تبقى.",
-      ok: "حذف",
+      title: tx("حذف الكتاب «{0}»؟", [bookTitle]),
+      body: tx("ينتقل إلى سجل المحذوفات ويختفي من القوائم. دروس الطلاب السابقة فيه تبقى."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
     setError("");
     const err = await adminSoftDelete(supabase, "arabic_book", id);
     if (err) return setError(err);
-    showToast(`تم حذف «${bookTitle}»`);
+    showToast(tx("تم حذف «{0}»", [bookTitle]));
   }
 
   return (
     <div className="card">
-      <h3>📘 كتب العربية</h3>
+      <h3>{tx("📘 كتب العربية")}</h3>
       <p className="small muted">
-        كل كتاب تضيفه هنا يظهر خيارًا عند إضافة طالب وفي قسم «العربية» داخل بطاقة الطالب. عدد الصفحات هو عدد صفحات النسخة
-        المستخدمة في المركز، ومنه يُحسب تقدّم الطالب.
-      </p>
-      <p className="small muted">اختر عنوانًا مقترحًا أو اكتب عنوانك، ثم أدخل عدد صفحات طبعتك. يمكنك تعديل العنوان والصفحات لاحقًا؛ هذه قائمة متابعة وليست ملفات الكتب.</p>
+        {tx("كل كتاب تضيفه هنا يظهر خيارًا عند إضافة طالب وفي قسم «العربية» داخل بطاقة الطالب. عدد الصفحات هو عدد صفحات النسخة المستخدمة في المركز، ومنه يُحسب تقدّم الطالب.")}</p>
+      <p className="small muted">{tx("اختر عنوانًا مقترحًا أو اكتب عنوانك، ثم أدخل عدد صفحات طبعتك. يمكنك تعديل العنوان والصفحات لاحقًا؛ هذه قائمة متابعة وليست ملفات الكتب.")}</p>
       <form onSubmit={save}>
         <div className="formgrid compact">
-          <input aria-label="عنوان الكتاب" list="arabic-book-suggestions" placeholder="عنوان الكتاب (مثال: الرشيدي)" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <input aria-label={tx("عنوان الكتاب")} list="arabic-book-suggestions" placeholder={tx("عنوان الكتاب (مثال: الرشيدي)")} value={title} onChange={(e) => setTitle(e.target.value)} required />
           <datalist id="arabic-book-suggestions">
             <option value="الرشيدي" />
             <option value="القاعدة النورانية" />
             <option value="العربية بين يديك — كتاب الطالب الأول، الجزء الأول" />
           </datalist>
           <input
-            aria-label="عدد صفحات الكتاب"
-            placeholder="عدد صفحات طبعتك"
+            aria-label={tx("عدد صفحات الكتاب")}
+            placeholder={tx("عدد صفحات طبعتك")}
             required
             type="number"
             inputMode="numeric"
@@ -560,17 +552,17 @@ function ArabicBooks() {
             value={pages}
             onChange={(e) => setPages(e.target.value)}
           />
-          <button type="submit" disabled={busy}>{busy ? "جارٍ الحفظ…" : editingId ? "حفظ تعديل الكتاب" : "إضافة كتاب"}</button>
-          {editingId && <button type="button" className="secondary" onClick={reset} disabled={busy}>إلغاء التعديل</button>}
+          <button type="submit" disabled={busy}>{busy ? tx("جارٍ الحفظ…") : editingId ? tx("حفظ تعديل الكتاب") : tx("إضافة كتاب")}</button>
+          {editingId && <button type="button" className="secondary" onClick={reset} disabled={busy}>{tx("إلغاء التعديل")}</button>}
         </div>
       </form>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
       {books.length > 0 && (
         <table>
           <thead>
             <tr>
-              <th>الكتاب</th>
-              <th>الصفحات</th>
+              <th>{tx("الكتاب")}</th>
+              <th>{tx("الصفحات")}</th>
               <th></th>
             </tr>
           </thead>
@@ -580,13 +572,12 @@ function ArabicBooks() {
                 <td>{b.title}</td>
                 <td>{b.total_pages}</td>
                 <td className="row-actions">
-                  <button type="button" className="link" disabled={busy} onClick={() => { setEditingId(b.id); setTitle(b.title); setPages(String(b.total_pages)); setError(""); }}>تعديل</button>
+                  <button type="button" className="link" disabled={busy} onClick={() => { setEditingId(b.id); setTitle(b.title); setPages(String(b.total_pages)); setError(""); }}>{tx("تعديل")}</button>
                   <button className="link" onClick={() => toggle(b.id, !b.active)}>
-                    {b.active ? "أرشفة" : "استعادة"}
+                    {b.active ? tx("أرشفة") : tx("استعادة")}
                   </button>
                   <button className="link danger-link" onClick={() => remove(b.id, b.title)}>
-                    حذف
-                  </button>
+                    {tx("حذف")}</button>
                 </td>
               </tr>
             ))}

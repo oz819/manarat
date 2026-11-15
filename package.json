@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:spreadsheets": "node --test tests/studentImport.test.mjs tests/xlsx.test.mjs",
-    "test:db": "node supabase/tests/isolation.test.mjs"
+    "test:db": "node supabase/tests/isolation.test.mjs",
+    "test:i18n": "node --test tests/i18n.test.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.16",

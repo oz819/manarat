@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useApp } from "@/components/AppContext";
 import MiniChart from "@/components/ranking/MiniChart";
 import { useRankData } from "@/components/ranking/useRankData";
@@ -23,6 +25,7 @@ export default function StudentProgress({
   settings: RankingSettings;
   onBack: () => void;
 }) {
+  const { tx } = useI18n();
   const { mushaf } = useApp();
   const today = todayStr();
   const start = settings.courseStart ?? addDays(today, -55);
@@ -63,21 +66,19 @@ export default function StudentProgress({
     <section>
       <div className="card">
         <div className="title">
-          <h3>📈 تقدّم {student.name}</h3>
+          <h3>{tx("📈 تقدّم")} {student.name}</h3>
           <button className="secondary no-print" onClick={onBack}>
-            → رجوع للترتيب
-          </button>
+            {tx("→ رجوع للترتيب")}</button>
         </div>
         <p className="muted">
-          أسبوعًا بأسبوع منذ بداية الدورة ({start}). الترتيب بين طلاب الفرز الحالي.
-        </p>
-        {partial && <div className="notice">بدون اتصال: الأسابيع الأقدم من بيانات هذا الجهاز فقط وقد تكون ناقصة.</div>}
+          {tx("أسبوعًا بأسبوع منذ بداية الدورة (")}{start}{tx("). الترتيب بين طلاب الفرز الحالي.")}</p>
+        {partial && <div className="notice">{tx("بدون اتصال: الأسابيع الأقدم من بيانات هذا الجهاز فقط وقد تكون ناقصة.")}</div>}
         <div className="charts">
-          <MiniChart title="الحفظ التراكمي (آية)" points={rows.map((r) => ({ label: r.label, value: r.cumulative }))} />
-          <MiniChart title="معدل التقدير" points={rows.map((r) => ({ label: r.label, value: r.grade }))} max={100} color="var(--gold)" />
-          <MiniChart title="نسبة الحضور" points={rows.map((r) => ({ label: r.label, value: r.attendance }))} max={100} unit="%" color="var(--blue)" />
+          <MiniChart title={tx("الحفظ التراكمي (آية)")} points={rows.map((r) => ({ label: r.label, value: r.cumulative }))} />
+          <MiniChart title={tx("معدل التقدير")} points={rows.map((r) => ({ label: r.label, value: r.grade }))} max={100} color="var(--gold)" />
+          <MiniChart title={tx("نسبة الحضور")} points={rows.map((r) => ({ label: r.label, value: r.attendance }))} max={100} unit="%" color="var(--blue)" />
           <MiniChart
-            title="الترتيب (1 = الأول)"
+            title={tx("الترتيب (1 = الأول)")}
             points={rows.map((r) => ({ label: r.label, value: r.rank }))}
             max={Math.max(2, ...rows.map((r) => r.of))}
             invert
@@ -86,17 +87,17 @@ export default function StudentProgress({
         </div>
       </div>
       <div className="card">
-        <h3>التفاصيل</h3>
+        <h3>{tx("التفاصيل")}</h3>
         <div style={{ overflow: "auto" }}>
           <table>
             <thead>
               <tr>
-                <th>الأسبوع</th>
-                <th>الحفظ التراكمي</th>
-                <th>معدل التقدير</th>
-                <th>الحضور</th>
-                <th>المعدل النهائي</th>
-                <th>الترتيب</th>
+                <th>{tx("الأسبوع")}</th>
+                <th>{tx("الحفظ التراكمي")}</th>
+                <th>{tx("معدل التقدير")}</th>
+                <th>{tx("الحضور")}</th>
+                <th>{tx("المعدل النهائي")}</th>
+                <th>{tx("الترتيب")}</th>
               </tr>
             </thead>
             <tbody>
@@ -105,11 +106,11 @@ export default function StudentProgress({
                   <td>
                     {r.from} ← {r.to}
                   </td>
-                  <td>{r.cumulative} آية</td>
+                  <td>{r.cumulative}  {tx("آية")}</td>
                   <td>{r.grade ?? "—"}</td>
                   <td>{r.attendance == null ? "—" : `${r.attendance}%`}</td>
                   <td>{r.total ?? "—"}</td>
-                  <td>{r.rank ? `${r.rank} من ${r.of}` : <span className="muted">{r.reason || "—"}</span>}</td>
+                  <td>{r.rank ? tx("{0} من {1}", [r.rank, r.of]) : <span className="muted">{r.reason || "—"}</span>}</td>
                 </tr>
               ))}
             </tbody>

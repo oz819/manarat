@@ -24,18 +24,19 @@ export function juzTitle(n: number): string {
   return `الجزء ${ORDINALS[n - 1] ?? n}${JUZ_NAMES[n] ? ` (${JUZ_NAMES[n]})` : ""}`;
 }
 
-export function examTitle(x: Pick<Exam, "kind" | "juz_no" | "surah_no">, mushaf: Mushaf): string {
+export function examTitle(x: Pick<Exam, "kind" | "juz_no" | "surah_no">, mushaf: Mushaf, locale: "ar" | "en" = "ar"): string {
+  if (locale === "en") return x.kind === "JUZ" ? `Juz ${x.juz_no} exam` : x.kind === "SURAH" ? `Surah ${mushaf.name(x.surah_no)} exam` : "Monthly assessment";
   if (x.kind === "JUZ") return `اختبار الجزء ${x.juz_no}`;
   if (x.kind === "SURAH") return `اختبار سورة ${mushaf.name(x.surah_no)}`;
   return "السبر الشهري";
 }
 
 /** Lines for the month summary: «نجح في اختبار الجزء 30 (95)». */
-export function examLines(exams: Exam[], studentId: string, from: string, to: string, mushaf: Mushaf): string[] {
+export function examLines(exams: Exam[], studentId: string, from: string, to: string, mushaf: Mushaf, locale: "ar" | "en" = "ar"): string[] {
   return exams
     .filter((x) => x.student_id === studentId && !x.deleted_at && x.exam_date >= from && x.exam_date <= to)
     .sort((a, b) => a.exam_date.localeCompare(b.exam_date))
-    .map((x) => `${x.passed ? "نجح في" : "تقدّم إلى"} ${examTitle(x, mushaf)} (${Number(x.score)})`);
+    .map((x) => locale === "en" ? `${x.passed ? "Passed" : "Took"} ${examTitle(x, mushaf, locale)} (${Number(x.score)})` : `${x.passed ? "نجح في" : "تقدّم إلى"} ${examTitle(x, mushaf)} (${Number(x.score)})`);
 }
 
 export type ReadyForExam = { student: Student; juz: number };

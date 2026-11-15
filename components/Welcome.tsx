@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import Panel from "@/components/Panel";
@@ -10,6 +12,7 @@ import { store, useStore } from "@/lib/offline/store";
 // أول دخول لمركز فارغ: three steps, one button each — add a halaqa, add its students, invite a teacher.
 // The admin sees it on «الطلاب» until the centre has students; a teacher is told the admin sets things up.
 export default function Welcome({ onAddStudent }: { onAddStudent: () => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, profile, center, showToast } = useApp();
   const [step, setStep] = useState<"circle" | "invite" | null>(null);
@@ -20,22 +23,22 @@ export default function Welcome({ onAddStudent }: { onAddStudent: () => void }) 
   if (profile.role !== "ADMIN") {
     return (
       <div className="card welcome">
-        <h3>مرحبًا بك في {center.name}</h3>
-        <p className="muted">لم تُضَف حلقات ولا طلاب بعد. يضيفها مدير المركز، ثم تظهر هنا.</p>
+        <h3>{tx("مرحبًا بك في")} {center.name}</h3>
+        <p className="muted">{tx("لم تُضَف حلقات ولا طلاب بعد. يضيفها مدير المركز، ثم تظهر هنا.")}</p>
       </div>
     );
   }
 
   const steps = [
-    { done: circles > 0, title: "أضف حلقة", text: "اسم الحلقة وقسمها، ويمكنك كتابة أسماء طلابها مباشرة.", button: "أضف حلقة", act: () => setStep("circle") },
-    { done: students > 0, title: "أضف طلابها", text: "اسم في كل سطر عند إنشاء الحلقة، أو طالبًا طالبًا.", button: "أضف طالبًا", act: onAddStudent, needs: circles > 0 },
-    { done: people > 1, title: "ادعُ معلّمًا", text: "يصله رابط بالبريد أو واتساب، ويدخل إلى حلقاته.", button: "ادعُ معلّمًا", act: () => setStep("invite") },
+    { done: circles > 0, title: tx("أضف حلقة"), text: tx("اسم الحلقة وقسمها، ويمكنك كتابة أسماء طلابها مباشرة."), button: tx("أضف حلقة"), act: () => setStep("circle") },
+    { done: students > 0, title: tx("أضف طلابها"), text: tx("اسم في كل سطر عند إنشاء الحلقة، أو طالبًا طالبًا."), button: tx("أضف طالبًا"), act: onAddStudent, needs: circles > 0 },
+    { done: people > 1, title: tx("ادعُ معلّمًا"), text: tx("يصله رابط بالبريد أو واتساب، ويدخل إلى حلقاته."), button: tx("ادعُ معلّمًا"), act: () => setStep("invite") },
   ];
 
   return (
     <div className="card welcome">
-      <h3>مرحبًا بك في تلاوة</h3>
-      <p className="muted">ثلاث خطوات ويصبح مركزك جاهزًا:</p>
+      <h3>{tx("مرحبًا بك في تلاوة")}</h3>
+      <p className="muted">{tx("ثلاث خطوات ويصبح مركزك جاهزًا:")}</p>
       <ol className="welcome-steps">
         {steps.map((st, i) => (
           <li key={st.title} className={st.done ? "done" : ""}>
@@ -53,19 +56,19 @@ export default function Welcome({ onAddStudent }: { onAddStudent: () => void }) 
         ))}
       </ol>
       {step === "circle" && (
-        <Panel title="حلقة جديدة" onClose={() => setStep(null)} className="panel-inset">
+        <Panel title={tx("حلقة جديدة")} onClose={() => setStep(null)} className="panel-inset">
           <CircleForm
             supabase={supabase}
             onCreated={async (c) => {
               await store.sync();
               setStep(null);
-              showToast(c.students ? `أُنشئت «${c.name}» مع ${c.students} طالبًا` : `أُنشئت «${c.name}»`);
+              showToast(c.students ? tx("أُنشئت «{0}» مع {1} طالبًا", [c.name, c.students]) : tx("أُنشئت «{0}»", [c.name]));
             }}
           />
         </Panel>
       )}
       {step === "invite" && (
-        <Panel title="دعوة معلّم" onClose={() => setStep(null)} className="panel-inset">
+        <Panel title={tx("دعوة معلّم")} onClose={() => setStep(null)} className="panel-inset">
           <Invites />
         </Panel>
       )}

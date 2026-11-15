@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -12,6 +14,7 @@ import { todayStr, type Exam, type ExamKind } from "@/lib/types";
 // الاختبارات in the student card: record a juz' / surah / monthly exam (date, examiner, score,
 // notes). Pass or fail follows the admin's pass mark. A passed juz' exam has a certificate.
 export default function ExamsSection({ studentId, exams, initialJuz }: { studentId: string; exams: Exam[]; initialJuz?: number }) {
+  const { tx, locale, date: formatDate } = useI18n();
   const { mushaf, profile, supabase, showToast } = useApp();
   const { passMark } = useRankingSettings(supabase);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -47,7 +50,7 @@ export default function ExamsSection({ studentId, exams, initialJuz }: { student
 
   async function save() {
     const n = Number(score);
-    if (score.trim() === "" || !Number.isFinite(n) || n < 0 || n > 100) return setError("العلامة رقم من 0 إلى 100");
+    if (score.trim() === "" || !Number.isFinite(n) || n < 0 || n > 100) return setError(tx("العلامة رقم من 0 إلى 100"));
     setError("");
     const old = editingId ? exams.find((x) => x.id === editingId) : undefined;
     const row = {
@@ -65,15 +68,15 @@ export default function ExamsSection({ studentId, exams, initialJuz }: { student
       deleted_at: null,
     };
     await store.save("exams", row, `${EXAM_KIND_LABEL[kind]}: ${n}`);
-    showToast(row.passed ? `ناجح (${n}) ✅` : `تم الحفظ — العلامة ${n} أقل من علامة النجاح ${passMark}`);
+    showToast(row.passed ? tx("ناجح ({0}) ✅", [n]) : tx("تم الحفظ — العلامة {0} أقل من علامة النجاح {1}", [n, passMark]));
     reset();
   }
 
   async function remove(x: Exam) {
     const ok = await confirmDialog({
-      title: `حذف ${examTitle(x, mushaf)}؟`,
-      body: `${x.exam_date} · العلامة ${Number(x.score)}`,
-      ok: "حذف",
+      title: tx("حذف {0}؟", [examTitle(x, mushaf, locale)]),
+      body: tx("{0} · العلامة {1}", [x.exam_date, Number(x.score)]),
+      ok: tx("حذف"),
       danger: true,
     });
     if (ok) await store.softDelete("exams", x.id, "حذف اختبار");
@@ -84,22 +87,22 @@ export default function ExamsSection({ studentId, exams, initialJuz }: { student
       <div className="entry-form">
         <div className="formgrid compact">
           <div>
-            <label>نوع الاختبار</label>
+            <label>{tx("نوع الاختبار")}</label>
             <select value={kind} onChange={(e) => setKind(e.target.value as ExamKind)}>
               {(["JUZ", "SURAH", "MONTHLY"] as ExamKind[]).map((k) => (
                 <option key={k} value={k}>
-                  {EXAM_KIND_LABEL[k]}
+                  {tx(EXAM_KIND_LABEL[k])}
                 </option>
               ))}
             </select>
           </div>
           {kind === "JUZ" && (
             <div>
-              <label>الجزء</label>
-              <select value={juz} onChange={(e) => setJuz(Number(e.target.value))} aria-label="الجزء">
+              <label>{tx("الجزء")}</label>
+              <select value={juz} onChange={(e) => setJuz(Number(e.target.value))} aria-label={tx("الجزء")}>
                 {Array.from({ length: 30 }, (_, i) => 30 - i).map((n) => (
                   <option key={n} value={n}>
-                    الجزء {n}
+                    {tx("الجزء")} {n}
                   </option>
                 ))}
               </select>
@@ -107,8 +110,8 @@ export default function ExamsSection({ studentId, exams, initialJuz }: { student
           )}
           {kind === "SURAH" && (
             <div>
-              <label>السورة</label>
-              <select value={surah} onChange={(e) => setSurah(Number(e.target.value))} aria-label="السورة">
+              <label>{tx("السورة")}</label>
+              <select value={surah} onChange={(e) => setSurah(Number(e.target.value))} aria-label={tx("السورة")}>
                 {mushaf.surahs.map((s) => (
                   <option key={s.surah_no} value={s.surah_no}>
                     {s.surah_no}. {s.name}
@@ -118,32 +121,31 @@ export default function ExamsSection({ studentId, exams, initialJuz }: { student
             </div>
           )}
           <div>
-            <label>التاريخ</label>
+            <label>{tx("التاريخ")}</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
-            <label>المختبِر</label>
+            <label>{tx("المختبِر")}</label>
             <input value={examiner} onChange={(e) => setExaminer(e.target.value)} />
           </div>
           <div>
-            <label>العلامة من 100</label>
-            <input type="number" inputMode="decimal" min={0} max={100} value={score} onChange={(e) => setScore(e.target.value)} aria-label="العلامة" />
+            <label>{tx("العلامة من 100")}</label>
+            <input type="number" inputMode="decimal" min={0} max={100} value={score} onChange={(e) => setScore(e.target.value)} aria-label={tx("العلامة")} />
           </div>
           <div className="wide">
-            <label>ملاحظات</label>
+            <label>{tx("ملاحظات")}</label>
             <input value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
         </div>
         <div className="row-actions">
-          <button onClick={save}>{editingId ? "حفظ التعديل" : "تسجيل الاختبار"}</button>
+          <button onClick={save}>{editingId ? tx("حفظ التعديل") : tx("تسجيل الاختبار")}</button>
           {editingId && (
             <button className="secondary" onClick={reset}>
-              إلغاء
-            </button>
+              {tx("إلغاء")}</button>
           )}
-          <span className="muted small">علامة النجاح: {passMark}</span>
+          <span className="muted small">{tx("علامة النجاح:")} {passMark}</span>
         </div>
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className="error-text">{tx(error)}</p>}
       </div>
 
       {list.length ? (
@@ -151,32 +153,29 @@ export default function ExamsSection({ studentId, exams, initialJuz }: { student
           {list.map((x) => (
             <li key={x.id} className={editingId === x.id ? "editing" : ""}>
               <div>
-                <b>{examTitle(x, mushaf)}</b>
-                <span className="muted"> · {x.exam_date}</span>
+                <b>{examTitle(x, mushaf, locale)}</b>
+                <span className="muted"> · {formatDate(x.exam_date ?? "")}</span>
                 <span className={`badge ${x.passed ? "excellent" : "redo"}`}>
-                  {Number(x.score)} · {x.passed ? "ناجح" : "لم ينجح"}
+                  {Number(x.score)} · {x.passed ? tx("ناجح") : tx("لم ينجح")}
                 </span>
-                {x.examiner && <div className="small muted">المختبِر: {x.examiner}</div>}
+                {x.examiner && <div className="small muted">{tx("المختبِر:")} {x.examiner}</div>}
                 {x.notes && <div className="small muted">{x.notes}</div>}
               </div>
               <div className="row-actions">
                 {x.passed && x.kind === "JUZ" && (
                   <button className="secondary" onClick={() => setCert(x)}>
-                    🎓 الشهادة
-                  </button>
+                    {tx("🎓 الشهادة")}</button>
                 )}
                 <button className="link" onClick={() => startEdit(x)}>
-                  تعديل
-                </button>
+                  {tx("تعديل")}</button>
                 <button className="link danger-link" onClick={() => remove(x)}>
-                  حذف
-                </button>
+                  {tx("حذف")}</button>
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="muted">لا توجد اختبارات بعد.</p>
+        <p className="muted">{tx("لا توجد اختبارات بعد.")}</p>
       )}
       {cert && <Certificate exam={cert} onClose={() => setCert(null)} />}
     </div>

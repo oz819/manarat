@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo } from "react";
 import { useApp } from "@/components/AppContext";
 import { useStore } from "@/lib/offline/store";
@@ -10,6 +12,7 @@ import type { Student } from "@/lib/types";
 // المرحلة 11: who finished memorizing a whole juz' and hasn't passed its exam yet.
 // «سجّل الاختبار» opens their card on the exams tab with that juz' chosen.
 export default function ReadyForExam({ students, open }: { students: Student[]; open: (id: string) => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { mushaf } = useApp();
   const quranBy = s.byStudent("quran_entries");
@@ -19,13 +22,13 @@ export default function ReadyForExam({ students, open }: { students: Student[]; 
 
   return (
     <div className="card insight ready-card">
-      <h3>🎓 جاهزون للاختبار</h3>
-      <p className="muted">أتمّوا حفظ جزء كامل ولم يُختبروا فيه بعد</p>
+      <h3>{tx("🎓 جاهزون للاختبار")}</h3>
+      <p className="muted">{tx("أتمّوا حفظ جزء كامل ولم يُختبروا فيه بعد")}</p>
       <ul className="insight-list">
         {list.map(({ student, juz }) => (
           <li key={`${student.id}-${juz}`}>
             <span className="absent-name" onClick={() => open(student.id)}>
-              {student.name} <span className="badge excellent">الجزء {juz}</span>
+              {student.name} <span className="badge excellent">{tx("الجزء")} {juz}</span>
             </span>
             <button
               className="secondary"
@@ -34,8 +37,7 @@ export default function ReadyForExam({ students, open }: { students: Student[]; 
                 open(student.id);
               }}
             >
-              سجّل الاختبار
-            </button>
+              {tx("سجّل الاختبار")}</button>
           </li>
         ))}
       </ul>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { usePersistentState } from "@/lib/usePersistentState";
@@ -15,6 +17,7 @@ type Tick = { checked: boolean; notes: string };
 // Talqeen session (spec §5.2): record a passage once for everyone present. Shown inside «الطلاب»
 // in a folding card (`embedded`), which carries the title.
 export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { mushaf, showToast } = useApp();
   // A session is for one halaqa: offer the ones the shared filter covers.
@@ -71,7 +74,7 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
     const msg = mushaf.validate(range);
     if (msg) return setError(msg);
     const ticked = roster.filter((st) => effectiveTicks[st.id]?.checked);
-    if (!ticked.length) return setError("اختر طالبًا واحدًا على الأقل");
+    if (!ticked.length) return setError(tx("اختر طالبًا واحدًا على الأقل"));
     await store.saveTalqeen(
       {
         id: sessionId ?? newId(),
@@ -85,27 +88,27 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
       },
       ticked.map((st) => ({ student_id: st.id, notes: effectiveTicks[st.id].notes.trim() || null }))
     );
-    showToast(`تم حفظ التلقين لـ ${ticked.length} طالب`);
+    showToast(tx("تم حفظ التلقين لـ {0} طالب", [ticked.length]));
     resetForm();
   }
 
   async function removeSession(t: TalqeenSession) {
     const ok = await confirmDialog({
-      title: `حذف جلسة التلقين «${s.get("circles", t.circle_id)?.name ?? ""}» بتاريخ ${t.session_date}؟`,
-      body: `${mushaf.formatRange({ from: { surah: t.from_surah_no, ayah: t.from_ayah }, to: { surah: t.to_surah_no, ayah: t.to_ayah } })} — تُحذف معها إدخالات التلقين للطلاب.\n` + "ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك.",
-      ok: "حذف",
+      title: tx("حذف جلسة التلقين «{0}» بتاريخ {1}؟", [s.get("circles", t.circle_id)?.name ?? "", t.session_date]),
+      body: tx("{0} — تُحذف معها إدخالات التلقين للطلاب.\n", [mushaf.formatRange({ from: { surah: t.from_surah_no, ayah: t.from_ayah }, to: { surah: t.to_surah_no, ayah: t.to_ayah } }, locale)]) + tx("ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
     await store.saveTalqeen({ ...t, deleted_at: new Date().toISOString() }, []);
     if (sessionId === t.id) resetForm();
-    showToast("تم حذف الجلسة");
+    showToast(tx("تم حذف الجلسة"));
   }
 
   if (!circles.length) {
     return (
       <section>
-        <div className="card notice">لا توجد حلقات بعد. يُنشئها المدير من شاشة الإدارة.</div>
+        <div className="card notice">{tx("لا توجد حلقات بعد. يُنشئها المدير من شاشة الإدارة.")}</div>
       </section>
     );
   }
@@ -115,10 +118,10 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
   return (
     <section>
       <div className="card">
-        {!embedded && <h3>🎙️ جلسة تلقين</h3>}
+        {!embedded && <h3>{tx("🎙️ جلسة تلقين")}</h3>}
         <div className="formgrid compact">
           <div>
-            <label>الحلقة</label>
+            <label>{tx("الحلقة")}</label>
             <select
               value={circleId}
               onChange={(e) => {
@@ -134,7 +137,7 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
             </select>
           </div>
           <div>
-            <label>التاريخ</label>
+            <label>{tx("التاريخ")}</label>
             <input
               type="date"
               value={date}
@@ -148,21 +151,20 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
 
         {sessions.length > 0 && (
           <div className="recent" style={{ marginTop: 10 }}>
-            <span className="muted">جلسات هذا اليوم:</span>
+            <span className="muted">{tx("جلسات هذا اليوم:")}</span>
             {sessions.map((t) => (
               <span key={t.id} className={`chip ${sessionId === t.id ? "on" : ""}`}>
                 <button className="link" onClick={() => openSession(t)}>
-                  {mushaf.formatRange({ from: { surah: t.from_surah_no, ayah: t.from_ayah }, to: { surah: t.to_surah_no, ayah: t.to_ayah } })}
+                  {mushaf.formatRange({ from: { surah: t.from_surah_no, ayah: t.from_ayah }, to: { surah: t.to_surah_no, ayah: t.to_ayah } }, locale)}
                 </button>
-                <button className="link danger-link" onClick={() => removeSession(t)} title="حذف">
+                <button className="link danger-link" onClick={() => removeSession(t)} title={tx("حذف")}>
                   ✕
                 </button>
               </span>
             ))}
             {sessionId && (
               <button className="link" onClick={resetForm}>
-                + جلسة جديدة
-              </button>
+                {tx("+ جلسة جديدة")}</button>
             )}
           </div>
         )}
@@ -171,7 +173,7 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
           <RangePicker mushaf={mushaf} value={range} onChange={setRange} />
         </div>
         <div style={{ marginTop: 8 }}>
-          <label>ملاحظة الجلسة</label>
+          <label>{tx("ملاحظة الجلسة")}</label>
           <input value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
       </div>
@@ -179,15 +181,13 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
       <div className="card">
         <div className="title">
           <h3>
-            الطلاب ({tickedCount}/{roster.length})
+            {tx("الطلاب (")}{tickedCount}/{roster.length})
           </h3>
           <div className="row-actions">
             <button className="link" onClick={() => setTicks(Object.fromEntries(roster.map((st) => [st.id, { checked: true, notes: effectiveTicks[st.id]?.notes ?? "" }])))}>
-              تحديد الكل
-            </button>
+              {tx("تحديد الكل")}</button>
             <button className="link" onClick={() => setTicks(Object.fromEntries(roster.map((st) => [st.id, { checked: false, notes: effectiveTicks[st.id]?.notes ?? "" }])))}>
-              إلغاء الكل
-            </button>
+              {tx("إلغاء الكل")}</button>
           </div>
         </div>
         {roster.length ? (
@@ -201,7 +201,7 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
                 {effectiveTicks[st.id]?.checked && (
                   <input
                     className="note-input"
-                    placeholder="ملاحظة (اختياري)"
+                    placeholder={tx("ملاحظة (اختياري)")}
                     value={effectiveTicks[st.id].notes}
                     onChange={(e) => toggle(st.id, { notes: e.target.value })}
                   />
@@ -210,12 +210,12 @@ export default function Talqeen({ embedded = false }: { embedded?: boolean }) {
             ))}
           </ul>
         ) : (
-          <p className="muted">لا يوجد طلاب في هذه الحلقة.</p>
+          <p className="muted">{tx("لا يوجد طلاب في هذه الحلقة.")}</p>
         )}
         <button onClick={save} style={{ marginTop: 10, width: "100%" }}>
-          {sessionId ? "حفظ تعديل الجلسة" : "حفظ التلقين"}
+          {sessionId ? tx("حفظ تعديل الجلسة") : tx("حفظ التلقين")}
         </button>
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className="error-text">{tx(error)}</p>}
       </div>
     </section>
   );

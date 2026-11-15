@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { useScope } from "@/components/FilterBar";
@@ -17,6 +19,7 @@ import { ATTENDANCE_LABEL, todayStr, type AttendanceStatus, type Circle, type Qu
 // التسميع اليومي: the teacher's day in one screen — the halaqa's roll call (the screen's one main
 // button), today's lesson, and who has / hasn't been heard today. Tapping a student opens their card.
 export default function Daily({ onOpen }: { onOpen: (id: string) => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { showToast } = useApp();
   const { inScope, scopedCircles } = useScope();
@@ -41,12 +44,12 @@ export default function Daily({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <section>
       <ScreenHead
-        title="التسميع اليومي"
-        text="سجّل حضور حلقتك ودرس اليوم، وتابع من سمّع اليوم ومن لم يسمّع."
+        title={tx("التسميع اليومي")}
+        text={tx("سجّل حضور حلقتك ودرس اليوم، وتابع من سمّع اليوم ومن لم يسمّع.")}
         action={
           active.length > 0 && (
             <button className={rollCall ? "on" : ""} aria-pressed={rollCall} onClick={() => setRollCall(true)}>
-              تحضير الحلقة
+              {tx("تحضير الحلقة")}
             </button>
           )
         }
@@ -54,27 +57,27 @@ export default function Daily({ onOpen }: { onOpen: (id: string) => void }) {
 
       <FilterBar />
 
-      {rollCall && <RollCall circles={scopedCircles} onClose={() => setRollCall(false)} onDone={(n) => showToast(`تم تحضير ${n} طالب`)} />}
+      {rollCall && <RollCall circles={scopedCircles} onClose={() => setRollCall(false)} onDone={(n) => showToast(tx("تم تحضير {0} طالب", [n]))} />}
 
       <LessonCard circles={scopedCircles} />
 
       <div className="card">
         <div className="title">
-          <h3>طلاب اليوم</h3>
+          <h3>{tx("طلاب اليوم")}</h3>
           <span className="muted small">
-            حضر {present} · سمّع {recorded} من {active.length}
+            {tx("حضر")} {present}  {tx("· سمّع")} {recorded}  {tx("من")} {active.length}
           </span>
         </div>
         <div className="recent">
           {(
             [
-              ["all", "الكل"],
-              ["noAtt", "لم يُحضَّروا"],
-              ["noRec", "لم يسمّعوا"],
+              ["all", tx("الكل")],
+              ["noAtt", tx("لم يُحضَّروا")],
+              ["noRec", tx("لم يسمّعوا")],
             ] as const
           ).map(([id, label]) => (
             <button key={id} className={`chip ${show === id ? "on" : ""}`} onClick={() => setShow(id)}>
-              {label}
+              {tx(label)}
             </button>
           ))}
         </div>
@@ -90,16 +93,16 @@ export default function Daily({ onOpen }: { onOpen: (id: string) => void }) {
                   </div>
                   <span className="day-badges">
                     {status && (
-                      <span className={`badge ${status === "ABSENT" ? "redo" : status === "EXCUSED" ? "warn" : "excellent"}`}>{ATTENDANCE_LABEL[status]}</span>
+                      <span className={`badge ${status === "ABSENT" ? "redo" : status === "EXCUSED" ? "warn" : "excellent"}`}>{tx(ATTENDANCE_LABEL[status])}</span>
                     )}
-                    {heard(st.id) ? <span className="badge excellent">✓ سمّع</span> : <span className="badge">لم يسمّع</span>}
+                    {heard(st.id) ? <span className="badge excellent">{tx("✓ سمّع")}</span> : <span className="badge">{tx("لم يسمّع")}</span>}
                   </span>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p className="muted">{active.length ? "لا يوجد طلاب في هذا العرض." : "لا يوجد طلاب بعد. أضفهم من صفحة «الطلاب»."}</p>
+          <p className="muted">{active.length ? tx("لا يوجد طلاب في هذا العرض.") : tx("لا يوجد طلاب بعد. أضفهم من صفحة «الطلاب».")}</p>
         )}
       </div>
 
@@ -113,6 +116,7 @@ const ROLL_STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT
 // Mark today's attendance for a whole circle on one screen instead of opening each student card.
 // Offers the halaqat the shared filter covers.
 function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: () => void; onDone: (n: number) => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const today = todayStr();
   const [savedCid, setCid] = useState(circles[0]?.id ?? "");
@@ -133,10 +137,10 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
   }
 
   return (
-    <Panel title="📋 تحضير اليوم" onClose={onClose} className="rollcall">
+    <Panel title={tx("📋 تحضير اليوم")} onClose={onClose} className="rollcall">
       <div className="formgrid compact">
         <div>
-          <label>الحلقة</label>
+          <label>{tx("الحلقة")}</label>
           <select value={cid} onChange={(e) => setCid(e.target.value)}>
             {circles.map((c) => (
               <option key={c.id} value={c.id}>
@@ -147,7 +151,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
         </div>
         <div style={{ alignSelf: "end" }}>
           <button onClick={allPresent} disabled={!unmarked.length}>
-            ✅ الباقون حاضرون ({unmarked.length})
+            {tx("✅ الباقون حاضرون (")}{unmarked.length})
           </button>
         </div>
       </div>
@@ -165,7 +169,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
                       className={`chip ${cur === stt ? `on ${stt.toLowerCase()}` : ""}`}
                       onClick={() => store.setAttendance(st.id, today, cur === stt ? null : stt)}
                     >
-                      {ATTENDANCE_LABEL[stt]}
+                      {tx(ATTENDANCE_LABEL[stt])}
                     </button>
                   ))}
                 </div>
@@ -174,7 +178,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
           })}
         </ul>
       ) : (
-        <p className="muted">لا يوجد طلاب في هذه الحلقة.</p>
+        <p className="muted">{tx("لا يوجد طلاب في هذه الحلقة.")}</p>
       )}
     </Panel>
   );
@@ -183,6 +187,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
 // Two on-device insights from the locally synced window: students absent on their last few
 // recorded days (تنبيه الغياب, with a message to the family), and this month's top memorizers.
 function Insights({ students, open }: { students: Student[]; open: (id: string) => void }) {
+  const { tx } = useI18n();
   const s = useStore();
   const { mushaf, tracks } = useApp();
   const quranBy = s.byStudent("quran_entries");
@@ -205,8 +210,8 @@ function Insights({ students, open }: { students: Student[]; open: (id: string) 
       {tracks.has("EXAMS") && <ReadyForExam students={students} open={open} />}
       {stars.length > 0 && (
         <div className="card insight star-card">
-          <h3>🏆 نجوم الحفظ هذا الشهر</h3>
-          <p className="muted">بما حفظوه هذا الشهر</p>
+          <h3>{tx("🏆 نجوم الحفظ هذا الشهر")}</h3>
+          <p className="muted">{tx("بما حفظوه هذا الشهر")}</p>
           <ul className="insight-list">
             {stars.map(({ st, text }, i) => (
               <li key={st.id} onClick={() => open(st.id)}>

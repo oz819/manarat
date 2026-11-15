@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 
@@ -18,6 +20,7 @@ type Report = {
 // التقارير الواردة (ملاحظة 5): the halaqa reports teachers send with «إرسال للإدارة». Newest first;
 // unread ones stand out, and opening one marks it read.
 export default function ReportsInbox() {
+  const { tx, locale } = useI18n();
   const { supabase, profile } = useApp();
   const [list, setList] = useState<Report[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -64,17 +67,16 @@ export default function ReportsInbox() {
   return (
     <div className="card">
       <div className="title">
-        <h3>التقارير الواردة {unread > 0 && <span className="badge warn">{unread} جديد</span>}</h3>
+        <h3>{tx("التقارير الواردة")} {unread > 0 && <span className="badge warn">{unread}  {tx("جديد")}</span>}</h3>
         <button className="link" onClick={load}>
-          تحديث
-        </button>
+          {tx("تحديث")}</button>
       </div>
-      <p className="muted small">تقارير الحلقات التي أرسلها المعلّمون من شاشة «التقارير».</p>
-      {error && <p className="error-text">{error}</p>}
+      <p className="muted small">{tx("تقارير الحلقات التي أرسلها المعلّمون من شاشة «التقارير».")}</p>
+      {error && <p className="error-text">{tx(error)}</p>}
       {list === null && !error ? (
-        <p className="muted">جارٍ التحميل…</p>
+        <p className="muted">{tx("جارٍ التحميل…")}</p>
       ) : list && list.length === 0 ? (
-        <p className="muted">لم يصل أي تقرير بعد.</p>
+        <p className="muted">{tx("لم يصل أي تقرير بعد.")}</p>
       ) : (
         <ul className="inbox">
           {list?.map((r) => (
@@ -82,7 +84,7 @@ export default function ReportsInbox() {
               <button type="button" className="inbox-row" onClick={() => open(r)} aria-expanded={openId === r.id}>
                 <b>{r.scope_label}</b>
                 <span className="muted small">
-                  {period(r)} · {r.sent_by_name ?? "معلّم"} · {new Date(r.created_at).toLocaleString("ar", { dateStyle: "short", timeStyle: "short" })}
+                  {period(r)} · {r.sent_by_name ?? tx("معلّم")} · {new Date(r.created_at).toLocaleString(locale === "ar" ? "ar-SY" : "en-GB", { dateStyle: "short", timeStyle: "short" })}
                 </span>
               </button>
               {openId === r.id && <pre className="inbox-body">{r.body}</pre>}

@@ -1,40 +1,45 @@
 "use client";
 
+import { staffText, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { store, useStore } from "@/lib/offline/store";
 
-function timeAgo(iso: string | null): string {
-  if (!iso) return "لم يتم بعد";
+function timeAgo(locale: Locale, iso: string | null): string {
+  const tx = (source: string, values?: readonly (string | number | null | undefined)[]) => staffText(locale, source, values);
+  if (!iso) return tx("لم يتم بعد");
   const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return "الآن";
-  if (mins < 60) return `قبل ${mins} دقيقة`;
+  if (mins < 1) return tx("الآن");
+  if (mins < 60) return tx("قبل {0} دقيقة", [mins]);
   const h = Math.round(mins / 60);
-  return h < 24 ? `قبل ${h} ساعة` : new Date(iso).toLocaleString("ar");
+  return h < 24 ? tx("قبل {0} ساعة", [h]) : new Date(iso).toLocaleString(locale === "ar" ? "ar-SY" : "en-GB");
 }
 
 // Whether the work is saved. The words are about saving, never "sync" (users asked "sync… with what?"):
 // saved ✓ / saving… / kept on this device until the connection is back. The mechanism (outbox) is unchanged.
 export default function SyncBadge() {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const [open, setOpen] = useState(false);
   const st = s.status;
 
   let cls = "ok";
-  let text = "تم الحفظ ✓";
+  let text = tx("تم الحفظ ✓");
   if (st.failed) {
     cls = "bad";
-    text = `⚠ لم يُحفظ ${st.failed}`;
+    text = tx("⚠ لم يُحفظ {0}", [st.failed]);
   } else if (st.authProblem) {
     cls = "warn";
-    text = "🔒 محفوظ على الجهاز، سجّل الدخول ليُحفظ في الحساب";
+    text = tx("🔒 محفوظ على الجهاز، سجّل الدخول ليُحفظ في الحساب");
   } else if (st.pending) {
     cls = "warn";
-    text = st.online ? "جارٍ الحفظ…" : "محفوظ على الجهاز، سيُحفظ في الحساب عند الاتصال";
+    text = st.online ? tx("جارٍ الحفظ…") : tx("محفوظ على الجهاز، سيُحفظ في الحساب عند الاتصال");
   } else if (!st.online) {
     cls = "off";
-    text = "تم الحفظ ✓ · بلا اتصال";
+    text = tx("تم الحفظ ✓ · بلا اتصال");
   } else if (st.syncing) {
-    text = "جارٍ الحفظ…";
+    text = tx("جارٍ الحفظ…");
   }
 
   return (
@@ -45,43 +50,40 @@ export default function SyncBadge() {
       {open && (
         <div className="sync-panel" role="dialog">
           <div className="title">
-            <b>حالة الحفظ</b>
+            <b>{tx("حالة الحفظ")}</b>
             <button className="link" onClick={() => setOpen(false)}>
-              إغلاق
-            </button>
+              {tx("إغلاق")}</button>
           </div>
           <p className="small muted">
-            {st.online ? "متصل بالإنترنت." : "بلا اتصال: التعديلات محفوظة على الجهاز، وتُحفظ في حساب المركز تلقائيًا عند عودة الاتصال."}
+            {st.online ? tx("متصل بالإنترنت.") : tx("بلا اتصال: التعديلات محفوظة على الجهاز، وتُحفظ في حساب المركز تلقائيًا عند عودة الاتصال.")}
             <br />
-            آخر حفظ في الحساب: {timeAgo(st.lastSyncAt)}
+            {tx("آخر حفظ في الحساب:")} {timeAgo(locale, st.lastSyncAt)}
           </p>
           {st.authProblem && (
-            <p className="notice small">انتهت جلسة الدخول. سجّل الدخول من جديد وتُحفظ التعديلات في الحساب تلقائيًا.</p>
+            <p className="notice small">{tx("انتهت جلسة الدخول. سجّل الدخول من جديد وتُحفظ التعديلات في الحساب تلقائيًا.")}</p>
           )}
           {st.lastError && !st.failed && <p className="small error-text">{st.lastError}</p>}
           <button className="secondary" onClick={() => store.sync()} disabled={st.syncing || !st.online} style={{ width: "100%" }}>
-            {st.syncing ? "جارٍ الحفظ…" : "حفظ الآن"}
+            {st.syncing ? tx("جارٍ الحفظ…") : tx("حفظ الآن")}
           </button>
           {s.outboxItems().length > 0 && (
             <ul className="outbox">
               {s.outboxItems().map((o) => (
                 <li key={o.seq} className={o.status}>
                   <div>
-                    <b>{o.label}</b>
-                    <div className="small muted">{new Date(o.createdAt).toLocaleString("ar")}</div>
-                    {o.error && <div className="small error-text">السبب: {o.error}</div>}
+                    <b>{tx(o.label)}</b>
+                    <div className="small muted">{new Date(o.createdAt).toLocaleString(locale === "ar" ? "ar-SY" : "en-GB")}</div>
+                    {o.error && <div className="small error-text">{tx("السبب:")} {o.error}</div>}
                   </div>
                   {o.status === "failed" && (
                     <div className="row-actions">
                       <button className="link" onClick={() => store.retry(o.seq!)}>
-                        إعادة المحاولة
-                      </button>
+                        {tx("إعادة المحاولة")}</button>
                       <button
                         className="link danger-link"
-                        onClick={() => confirm("تجاهل هذا التغيير واستعادة نسخة الخادم؟") && store.discard(o.seq!)}
+                        onClick={() => confirm(tx("تجاهل هذا التغيير واستعادة نسخة الخادم؟")) && store.discard(o.seq!)}
                       >
-                        تجاهل
-                      </button>
+                        {tx("تجاهل")}</button>
                     </div>
                   )}
                 </li>

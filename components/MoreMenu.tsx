@@ -1,9 +1,12 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 
 // «⋯ المزيد»: the screen's less-used commands, so each screen keeps a single prominent button.
 export default function MoreMenu({ items, label = "المزيد" }: { items: { label: string; onClick: () => void }[]; label?: string }) {
+  const { tx } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -20,7 +23,7 @@ export default function MoreMenu({ items, label = "المزيد" }: { items: { l
   return (
     <div className="more" ref={ref}>
       <button type="button" className="link more-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        ⋯ {label}
+        ⋯ {tx(label)}
       </button>
       {open && (
         <div className="more-menu" role="menu">
@@ -35,7 +38,7 @@ export default function MoreMenu({ items, label = "المزيد" }: { items: { l
                 it.onClick();
               }}
             >
-              {it.label}
+              {tx(it.label)}
             </button>
           ))}
         </div>

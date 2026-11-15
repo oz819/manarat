@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { CenterMark } from "@/components/center/Geo";
@@ -37,6 +39,7 @@ const FIELDS: [keyof Form, string, string?][] = [
 // بيانات المركز (المرحلة 0): the name, logo, about paragraph and contacts on the centre's public
 // page, and its colours — edited here instead of being written in the code.
 export default function CenterProfile() {
+  const { tx } = useI18n();
   const { supabase, center, showToast, refreshCenter } = useApp();
   const [saved, setSaved] = useState<Form | null>(null);
   const [f, setF] = useState<Form | null>(null);
@@ -86,7 +89,7 @@ export default function CenterProfile() {
   }, [center]);
   useEffect(() => () => applyPalette(savedLook.current), []);
 
-  if (!f) return <div className="card">{error ? <p className="error-text">{error}</p> : <p className="muted">جارٍ التحميل...</p>}</div>;
+  if (!f) return <div className="card">{error ? <p className="error-text">{tx(error)}</p> : <p className="muted">{tx("جارٍ التحميل...")}</p>}</div>;
   const dirty = JSON.stringify(f) !== JSON.stringify(saved);
   const preview = (next: Form) => {
     setF(next);
@@ -109,8 +112,8 @@ export default function CenterProfile() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!f) return;
-    if (f.name.trim().length < 2) return setError("اكتب اسم المركز");
-    if (!navigator.onLine) return setError("حفظ بيانات المركز يحتاج اتصالًا بالإنترنت");
+    if (f.name.trim().length < 2) return setError(tx("اكتب اسم المركز"));
+    if (!navigator.onLine) return setError(tx("حفظ بيانات المركز يحتاج اتصالًا بالإنترنت"));
     setBusy(true);
     const clean = (v: string) => v.trim() || null;
     const { error } = await supabase
@@ -133,51 +136,48 @@ export default function CenterProfile() {
       })
       .eq("id", center.id);
     setBusy(false);
-    if (error) return setError(error.message.includes("check") ? "تحقق من الحقول (الروابط تبدأ بـ https://)" : error.message);
+    if (error) return setError(error.message.includes("check") ? tx("تحقق من الحقول (الروابط تبدأ بـ https://)") : error.message);
     setError("");
     setSaved(f);
     await refreshCenter();
-    showToast("تم حفظ بيانات المركز");
+    showToast(tx("تم حفظ بيانات المركز"));
   }
 
   return (
     <form className="card" onSubmit={save} noValidate>
-      <h3>🏛️ بيانات المركز والهوية</h3>
+      <h3>{tx("🏛️ بيانات المركز والهوية")}</h3>
       <p className="small muted">
-        تظهر في صفحة المركز العامة <span dir="ltr">/{center.slug}</span> وفي التطبيق وصفحات الأهل.
-      </p>
+        {tx("تظهر في صفحة المركز العامة")} <span dir="ltr">/{center.slug}</span>  {tx("وفي التطبيق وصفحات الأهل.")}</p>
 
       <div className="logo-pick" style={{ margin: "10px 0" }}>
         <CenterMark name={f.name} logo={f.logo_url} size={64} />
         <label className="btn ghost" style={{ margin: 0, cursor: "pointer" }}>
-          رفع شعار
-          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={pickLogo} hidden />
+          {tx("رفع شعار")}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={pickLogo} hidden />
         </label>
         {f.logo_url && (
           <button type="button" className="link" onClick={() => setF({ ...f, logo_url: null })}>
-            إزالة الشعار
-          </button>
+            {tx("إزالة الشعار")}</button>
         )}
       </div>
 
       <div className="formgrid">
         <div className="wide" style={{ gridColumn: "1 / -1" }}>
-          <label>اسم المركز</label>
+          <label>{tx("اسم المركز")}</label>
           <input value={f.name} onChange={set("name")} maxLength={120} />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <label>نبذة مختصرة</label>
+          <label>{tx("نبذة مختصرة")}</label>
           <textarea rows={4} value={f.about} onChange={set("about")} maxLength={2000} />
         </div>
         {FIELDS.map(([k, label, ph]) => (
           <div key={k}>
-            <label>{label}</label>
+            <label>{tx(label)}</label>
             <input value={f[k] as string} onChange={set(k)} placeholder={ph} dir={["whatsapp", "contact_phone", "contact_email", "instagram", "facebook"].includes(k) ? "ltr" : undefined} />
           </div>
         ))}
       </div>
 
-      <label style={{ marginTop: 14 }}>الألوان</label>
+      <label style={{ marginTop: 14 }}>{tx("الألوان")}</label>
       <div className="palettes">
         {PALETTES.map((p) => (
           <button
@@ -191,15 +191,14 @@ export default function CenterProfile() {
                 <b key={c} style={{ background: c }} />
               ))}
             </i>
-            <span className="small">{p.label}</span>
+            <span className="small">{tx(p.label)}</span>
           </button>
         ))}
       </div>
 
       <div className="color-pick">
         <label style={{ margin: 0 }} htmlFor="cp-color">
-          أو لون خاص بالمركز
-        </label>
+          {tx("أو لون خاص بالمركز")}</label>
         <input
           id="cp-color"
           type="color"
@@ -208,29 +207,28 @@ export default function CenterProfile() {
         />
         {f.primary_color ? (
           <button type="button" className="link" onClick={() => preview({ ...f, primary_color: "" })}>
-            الرجوع لألوان اللوحة
-          </button>
+            {tx("الرجوع لألوان اللوحة")}</button>
         ) : (
-          <span className="small muted">اختياري — يغيّر لون الأزرار والعناوين</span>
+          <span className="small muted">{tx("اختياري — يغيّر لون الأزرار والعناوين")}</span>
         )}
       </div>
 
-      <div className="brand-preview" aria-label="معاينة">
+      <div className="brand-preview" aria-label={tx("معاينة")}>
         <CenterMark name={f.name || center.name} logo={f.logo_url} size={40} />
         <b>{f.name || center.name}</b>
-        <button type="button" tabIndex={-1}>زر</button>
-        <span className="badge">شارة</span>
-        <span className="small muted">هكذا تظهر في التطبيق وصفحات الأهل</span>
+        <button type="button" tabIndex={-1}>{tx("زر")}</button>
+        <span className="badge">{tx("شارة")}</span>
+        <span className="small muted">{tx("هكذا تظهر في التطبيق وصفحات الأهل")}</span>
       </div>
 
       <div style={{ marginTop: 14 }}>
-        <label>ملاحظات إضافية تظهر في صفحة المركز</label>
-        <textarea rows={3} value={f.extra_notes} onChange={set("extra_notes")} maxLength={4000} placeholder="مثلًا: مواعيد الدوام، شروط التسجيل، إعلان..." />
+        <label>{tx("ملاحظات إضافية تظهر في صفحة المركز")}</label>
+        <textarea rows={3} value={f.extra_notes} onChange={set("extra_notes")} maxLength={4000} placeholder={tx("مثلًا: مواعيد الدوام، شروط التسجيل، إعلان...")} />
       </div>
 
       <div className="row-actions" style={{ marginTop: 12 }}>
         <button type="submit" disabled={!dirty || busy}>
-          {busy ? "جارٍ الحفظ..." : "حفظ"}
+          {busy ? tx("جارٍ الحفظ...") : tx("حفظ")}
         </button>
         {dirty && (
           <button
@@ -241,14 +239,12 @@ export default function CenterProfile() {
               applyPalette({ palette: saved?.palette, primary_color: saved?.primary_color || null });
             }}
           >
-            تراجع
-          </button>
+            {tx("تراجع")}</button>
         )}
         <a className="btn ghost" href={`/${center.slug}`} target="_blank" rel="noreferrer">
-          فتح صفحة المركز
-        </a>
+          {tx("فتح صفحة المركز")}</a>
       </div>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
     </form>
   );
 }

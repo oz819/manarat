@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n, LanguageSwitch } from "@/components/LocaleProvider";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -24,6 +26,7 @@ export default function LoginDialog({
   allowCreate?: boolean;
   onClose?: () => void;
 }) {
+  const { tx } = useI18n();
   const router = useRouter();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState(defaultEmail);
@@ -48,7 +51,7 @@ export default function LoginDialog({
     setError("");
     // Read the field off the form: some autofill fills the DOM value without a React onChange.
     const submitted = (new FormData(e.currentTarget).get("email") as string | null)?.trim() ?? "";
-    if (!submitted) return setError("الرجاء إدخال البريد الإلكتروني.");
+    if (!submitted) return setError(tx("الرجاء إدخال البريد الإلكتروني."));
     setEmail(submitted);
     setLoading(true);
     try {
@@ -62,17 +65,17 @@ export default function LoginDialog({
         }
         return setError(
           error.code === "signup_disabled" || error.code === "otp_disabled"
-            ? "التسجيل مغلق حاليًا. أعد المحاولة لاحقًا أو تواصل مع إدارة المنصة."
+            ? tx("التسجيل مغلق حاليًا. أعد المحاولة لاحقًا أو تواصل مع إدارة المنصة.")
             : error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
-              ? "تم إرسال عدد كبير من الطلبات. انتظر قليلًا ثم أعد المحاولة."
+              ? tx("تم إرسال عدد كبير من الطلبات. انتظر قليلًا ثم أعد المحاولة.")
               : error.code === "unexpected_failure"
-                ? "تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا."
-                : `تعذّر إرسال الكود (${error.code ?? error.status ?? "خطأ غير معروف"}).`
+                ? tx("تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا.")
+                : tx("تعذّر إرسال الكود ({0}).", [error.code ?? error.status ?? tx("خطأ غير معروف")])
         );
       }
       setStep("code");
     } catch {
-      setError("تعذّر الاتصال. تحقق من الإنترنت ثم أعد المحاولة.");
+      setError(tx("تعذّر الاتصال. تحقق من الإنترنت ثم أعد المحاولة."));
     } finally {
       setLoading(false);
     }
@@ -84,46 +87,46 @@ export default function LoginDialog({
     setLoading(true);
     const { error } = await createClient().auth.verifyOtp({ email: email.trim(), token: code.trim(), type: "email" });
     setLoading(false);
-    if (error) return setError(error.code === "otp_expired" ? "الكود غير صحيح أو منتهي الصلاحية." : `تعذّر تأكيد الكود (${error.code ?? error.status}).`);
+    if (error) return setError(error.code === "otp_expired" ? tx("الكود غير صحيح أو منتهي الصلاحية.") : tx("تعذّر تأكيد الكود ({0}).", [error.code ?? error.status]));
     done();
   }
 
   const box = (
-    <div className="loginbox" role="dialog" aria-modal="true" aria-label="تسجيل الدخول" onClick={(e) => e.stopPropagation()}>
+    <div className="loginbox" role="dialog" aria-modal="true" aria-label={tx("تسجيل الدخول")} onClick={(e) => e.stopPropagation()}>
       {onClose && (
-        <button type="button" className="login-close" onClick={onClose} aria-label="إغلاق">
+        <button type="button" className="login-close" onClick={onClose} aria-label={tx("إغلاق")}>
           ✕
         </button>
       )}
+      <LanguageSwitch />
       <div className="lg-head">
         <CenterMark name={title} logo={logo} size={64} />
         <h2>{title}</h2>
-        <p>{subtitle ?? "دخول الإدارة والمعلّمين"}</p>
+        <p>{subtitle ?? tx("دخول الإدارة والمعلّمين")}</p>
       </div>
 
       {process.env.NEXT_PUBLIC_DEMO === "1" && (
         <p className="notice" style={{ marginTop: 12 }}>
-          نسخة تجريبية ببيانات وهمية: <b dir="ltr">admin@demo.com</b> (مركز النور) أو <b dir="ltr">doha@demo.com</b> (الدوحة) أو{" "}
-          <b dir="ltr">both@demo.com</b> (معلّم بالمركزين) أو <b dir="ltr">super@demo.com</b> (إدارة المنصة) — كود الدخول <b dir="ltr">123456</b>.
+          {tx("نسخة تجريبية ببيانات وهمية:")} <b dir="ltr">admin@demo.com</b>  {tx("(مركز النور) أو")} <b dir="ltr">doha@demo.com</b>  {tx("(الدوحة) أو")}{" "}
+          <b dir="ltr">both@demo.com</b>  {tx("(معلّم بالمركزين) أو")} <b dir="ltr">super@demo.com</b>  {tx("(إدارة المنصة) — كود الدخول")} <b dir="ltr">123456</b>.
         </p>
       )}
       {step === "email" ? (
         <form onSubmit={sendCode}>
           <div className="field">
-            <label htmlFor="lg-email">البريد الإلكتروني</label>
+            <label htmlFor="lg-email">{tx("البريد الإلكتروني")}</label>
             <input id="lg-email" type="email" name="email" defaultValue={email} required autoFocus={!!onClose} autoComplete="email" dir="ltr" />
           </div>
           <button type="submit" className="btn-block" disabled={loading}>
-            {loading ? "جارٍ الإرسال..." : "إرسال كود الدخول"}
+            {loading ? tx("جارٍ الإرسال...") : tx("إرسال كود الدخول")}
           </button>
         </form>
       ) : (
         <form onSubmit={verifyCode}>
           <div className="notice" style={{ marginTop: 12 }}>
-            أُرسل كود من 6 أرقام إلى <b dir="ltr">{email}</b>. تفقّد بريدك (والرسائل غير المرغوبة أيضًا).
-          </div>
+            {tx("أُرسل كود من 6 أرقام إلى")} <b dir="ltr">{email}</b>{tx(". تفقّد بريدك (والرسائل غير المرغوبة أيضًا).")}</div>
           <div className="field">
-            <label htmlFor="lg-code">كود الدخول</label>
+            <label htmlFor="lg-code">{tx("كود الدخول")}</label>
             <input
               id="lg-code"
               type="text"
@@ -138,14 +141,13 @@ export default function LoginDialog({
             />
           </div>
           <button type="submit" className="btn-block" disabled={loading || code.length !== 6}>
-            {loading ? "جارٍ التحقق..." : "تأكيد الدخول"}
+            {loading ? tx("جارٍ التحقق...") : tx("تأكيد الدخول")}
           </button>
           <button type="button" className="secondary btn-block" style={{ marginTop: 8 }} onClick={() => { setStep("email"); setCode(""); setError(""); }} disabled={loading}>
-            تغيير البريد الإلكتروني
-          </button>
+            {tx("تغيير البريد الإلكتروني")}</button>
         </form>
       )}
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
     </div>
   );
 

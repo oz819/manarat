@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -28,6 +30,7 @@ export function usePendingRegistrations(): number | null {
 // طلبات التسجيل: requests from the public form (/register). The admin picks a halaqa of the
 // requested section and accepts (the student is created with the guardian's number) or rejects.
 export default function Registrations() {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, showToast, center } = useApp();
   const [rows, setRows] = useState<Request[] | null>(null);
@@ -58,7 +61,7 @@ export default function Registrations() {
       setOpen(!v);
       return setError(error.message);
     }
-    showToast(v ? "أصبح نموذج التسجيل يستقبل الطلبات" : "تم إغلاق نموذج التسجيل");
+    showToast(v ? tx("أصبح نموذج التسجيل يستقبل الطلبات") : tx("تم إغلاق نموذج التسجيل"));
   }
 
   async function load() {
@@ -68,28 +71,28 @@ export default function Registrations() {
   }
   useEffect(() => {
     if (navigator.onLine) load();
-    else setError("طلبات التسجيل تحتاج اتصالًا بالإنترنت");
+    else setError(tx("طلبات التسجيل تحتاج اتصالًا بالإنترنت"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function accept(r: Request) {
     setError("");
     const circleId = circleFor[r.id] ?? circlesOf(r)[0]?.id;
-    if (!circleId) return setError(`اختر حلقة لـ ${r.student_name}`);
+    if (!circleId) return setError(tx("اختر حلقة لـ {0}", [r.student_name]));
     const { error } = await supabase.rpc("admin_accept_registration", { p_id: r.id, p_circle_id: circleId });
     if (error) return setError(error.message);
     await store.sync();
-    showToast(`أُضيف ${r.student_name} إلى ${s.get("circles", circleId)?.name ?? "الحلقة"}`);
+    showToast(tx("أُضيف {0} إلى {1}", [r.student_name, s.get("circles", circleId)?.name ?? "الحلقة"]));
     load();
   }
 
   async function reject(r: Request) {
-    const ok = await confirmDialog({ title: `رفض طلب «${r.student_name}»؟`, body: "يبقى الطلب في السجل مع حالة «مرفوض».", ok: "رفض", danger: true });
+    const ok = await confirmDialog({ title: tx("رفض طلب «{0}»؟", [r.student_name]), body: tx("يبقى الطلب في السجل مع حالة «مرفوض»."), ok: tx("رفض"), danger: true });
     if (!ok) return;
     setError("");
     const { error } = await supabase.rpc("admin_reject_registration", { p_id: r.id });
     if (error) return setError(error.message);
-    showToast("تم رفض الطلب");
+    showToast(tx("تم رفض الطلب"));
     load();
   }
 
@@ -106,35 +109,34 @@ export default function Registrations() {
 
   return (
     <div className="card registrations">
-      <h3>📝 طلبات التسجيل {pending.length > 0 && <span className="badge redo">{pending.length} جديد</span>}</h3>
+      <h3>{tx("📝 طلبات التسجيل")} {pending.length > 0 && <span className="badge redo">{pending.length}  {tx("جديد")}</span>}</h3>
       <p className="small muted">
-        أرسلوا للأهل رابط التسجيل: <span dir="ltr">{link}</span>{" "}
+        {tx("أرسلوا للأهل رابط التسجيل:")} <span dir="ltr">{link}</span>{" "}
         <button
           type="button"
           className="link"
-          onClick={() => navigator.clipboard?.writeText(link).then(() => showToast("تم نسخ رابط التسجيل"), () => {})}
+          onClick={() => navigator.clipboard?.writeText(link).then(() => showToast(tx("تم نسخ رابط التسجيل")), () => {})}
         >
-          نسخ
-        </button>
+          {tx("نسخ")}</button>
       </p>
       {open !== null && (
         <label className="switch-row reg-toggle">
           <input type="checkbox" checked={open} onChange={(e) => toggleOpen(e.target.checked)} />
-          {open ? "النموذج يستقبل طلبات جديدة" : "النموذج مغلق — يرى الأهل «التسجيل مغلق حاليًا»"}
+          {open ? tx("النموذج يستقبل طلبات جديدة") : tx("النموذج مغلق — يرى الأهل «التسجيل مغلق حاليًا»")}
         </label>
       )}
-      {error && <p className="error-text">{error}</p>}
-      {rows && !pending.length && <p className="muted">لا توجد طلبات جديدة.</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
+      {rows && !pending.length && <p className="muted">{tx("لا توجد طلبات جديدة.")}</p>}
       <ul className="reg-list">
         {pending.map((r) => (
           <li key={r.id}>
             <RequestInfo r={r} />
             <div className="reg-actions">
               {!circlesOf(r).length ? (
-                <span className="small muted">لا توجد حلقة لقسم {SECTION_LABEL[r.section as Section] ?? ""} — أنشئها من «الحلقات» أولًا.</span>
+                <span className="small muted">{tx("لا توجد حلقة لقسم")} {tx(SECTION_LABEL[r.section as Section] ?? "")}  {tx("— أنشئها من «الحلقات» أولًا.")}</span>
               ) : (
               <select
-                aria-label={`حلقة ${r.student_name}`}
+                aria-label={tx("حلقة {0}", [r.student_name])}
                 value={circleFor[r.id] ?? circlesOf(r)[0]?.id ?? ""}
                 onChange={(e) => setCircleFor({ ...circleFor, [r.id]: e.target.value })}
               >
@@ -146,11 +148,9 @@ export default function Registrations() {
               </select>
               )}
               <button onClick={() => accept(r)} disabled={!circlesOf(r).length}>
-                قبول
-              </button>
+                {tx("قبول")}</button>
               <button className="danger" onClick={() => reject(r)}>
-                رفض
-              </button>
+                {tx("رفض")}</button>
             </div>
           </li>
         ))}
@@ -158,7 +158,7 @@ export default function Registrations() {
       {done.length > 0 && (
         <>
           <button className="link" onClick={() => setShowDone(!showDone)}>
-            {showDone ? "إخفاء" : "عرض"} الطلبات السابقة ({done.length})
+            {showDone ? tx("إخفاء") : tx("عرض")}  {tx("الطلبات السابقة (")}{done.length})
           </button>
           {showDone && (
             <ul className="reg-list done">
@@ -166,7 +166,7 @@ export default function Registrations() {
                 <li key={r.id}>
                   <RequestInfo r={r} />
                   <span className={`badge ${r.status === "ACCEPTED" ? "excellent" : "redo"}`}>
-                    {r.status === "ACCEPTED" ? `مقبول${r.student_id ? ` — ${s.get("circles", s.get("students", r.student_id)?.circle_id ?? "")?.name ?? ""}` : ""}` : "مرفوض"}
+                    {r.status === "ACCEPTED" ? tx("مقبول{0}", [r.student_id ? ` — ${s.get("circles", s.get("students", r.student_id)?.circle_id ?? "")?.name ?? ""}` : ""]) : tx("مرفوض")}
                   </span>
                 </li>
               ))}
@@ -179,21 +179,22 @@ export default function Registrations() {
 }
 
 function RequestInfo({ r }: { r: Request }) {
-  const when = new Intl.DateTimeFormat("ar-SY", { day: "numeric", month: "long" }).format(new Date(r.created_at));
+  const { tx, locale } = useI18n();
+  const when = new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { day: "numeric", month: "long" }).format(new Date(r.created_at));
   return (
     <div className="reg-info">
       <b>{r.student_name}</b>{" "}
       <span className="muted small">
-        {SECTION_LABEL[r.section as Section] ?? ""}
-        {r.age ? ` · ${r.age} سنة` : ""} · {when}
+        {tx(SECTION_LABEL[r.section as Section] ?? "")}
+        {r.age ? tx(" · {0} سنة", [r.age]) : ""} · {when}
       </span>
       <div className="small">
-        ولي الأمر: {r.guardian_name ? `${r.guardian_name} · ` : ""}
-        <a href={waLink(`السلام عليكم ورحمة الله، بخصوص طلب تسجيل ${r.student_name} في حلقات القرآن…`, r.guardian_phone)} target="_blank" rel="noreferrer" dir="ltr">
+        {tx("ولي الأمر:")} {r.guardian_name ? `${r.guardian_name} · ` : ""}
+        <a href={waLink(tx("السلام عليكم ورحمة الله، بخصوص طلب تسجيل {0} في حلقات القرآن…", [r.student_name]), r.guardian_phone)} target="_blank" rel="noreferrer" dir="ltr">
           {formatPhone(r.guardian_phone)}
         </a>
       </div>
-      {r.memorized && <div className="small muted">يحفظ: {r.memorized}</div>}
+      {r.memorized && <div className="small muted">{tx("يحفظ:")} {r.memorized}</div>}
     </div>
   );
 }

@@ -1,5 +1,8 @@
 "use client";
 
+import { staffText, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo } from "react";
 import { useApp } from "@/components/AppContext";
 import { useScope } from "@/components/FilterBar";
@@ -17,6 +20,7 @@ import { addDays, todayStr, type Attendance, type Circle } from "@/lib/types";
 // 📈 اللوحة (admin): the centre at a glance, within the fixed filter. Everything is computed on
 // the device from the synced window (the last 60 days), so it also opens offline.
 export default function Dashboard({ openStudent, openManage }: { openStudent: (id: string) => void; openManage: () => void }) {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { supabase, mushaf, isPlatformAdmin } = useApp();
   const settings = useRankingSettings(supabase);
@@ -90,21 +94,21 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
   return (
     <section className="dashboard">
       <div className="grid dash-tiles">
-        <Tile icon="👨‍🎓" label="الطلاب" value={String(students.length)}>
+        <Tile icon="👨‍🎓" label={tx("الطلاب")} value={String(students.length)}>
           <span className="muted">
-            {bySection.map((x) => `${SECTION_LABEL[x.sec]} ${x.n}`).join(" · ")}
-            {noSection ? `${bySection.length ? " · " : ""}بلا قسم ${noSection}` : ""}
+            {bySection.map((x) => `${tx(SECTION_LABEL[x.sec])} ${x.n}`).join(" · ")}
+            {noSection ? tx("{0}بلا قسم {1}", [bySection.length ? " · " : "", noSection]) : ""}
           </span>
         </Tile>
-        <Tile icon="📅" label="الحضور هذا الأسبوع" value={pct(weekRate)} progress={weekRate} />
-        <Tile icon="🗓️" label="الحضور هذا الشهر" value={pct(monthRate)} progress={monthRate} />
+        <Tile icon="📅" label={tx("الحضور هذا الأسبوع")} value={pct(weekRate)} progress={weekRate} />
+        <Tile icon="🗓️" label={tx("الحضور هذا الشهر")} value={pct(monthRate)} progress={monthRate} />
         {pendingRegs !== null && (
           <button className="card stat stat-tile tile-button" onClick={openManage}>
             <span className="stat-icon" aria-hidden="true">
               📝
             </span>
             <div>
-              <span className="muted">طلبات تسجيل جديدة</span>
+              <span className="muted">{tx("طلبات تسجيل جديدة")}</span>
               <b>{pendingRegs}</b>
             </div>
           </button>
@@ -113,15 +117,15 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
 
       {quiet.length > 0 && (
         <div className="card insight warn-card quiet-card">
-          <h3>⏳ لم تُسجَّل تقارير اليوم</h3>
-          <p className="muted">حلقات بلا حضور ولا تسميع ولا درس اليوم، ومعها آخر من سجّل فيها</p>
+          <h3>{tx("⏳ لم تُسجَّل تقارير اليوم")}</h3>
+          <p className="muted">{tx("حلقات بلا حضور ولا تسميع ولا درس اليوم، ومعها آخر من سجّل فيها")}</p>
           <ul className="insight-list">
             {quiet.map(({ circle }) => {
               const last = lastRecord(circle);
               return (
                 <li key={circle.id}>
                   <b>{circle.name}</b>
-                  <span className="muted">{last ? `آخر تسجيل: ${last.teacher} · ${dayAgo(last.date, today)}` : "لا تسجيلات بعد"}</span>
+                  <span className="muted">{last ? tx("آخر تسجيل: {0} · {1}", [last.teacher, dayAgo(locale, last.date, today)]) : tx("لا تسجيلات بعد")}</span>
                 </li>
               );
             })}
@@ -135,18 +139,18 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
       {isPlatformAdmin && <BackupStatus />}
 
       <div className="card">
-        <h3>🏫 الحلقات</h3>
-        <p className="muted">مرتّبة بالآيات المحفوظة هذا الشهر</p>
+        <h3>{tx("🏫 الحلقات")}</h3>
+        <p className="muted">{tx("مرتّبة بالآيات المحفوظة هذا الشهر")}</p>
         <div className="table-scroll">
           <table className="dash-table">
             <thead>
               <tr>
                 <th>#</th>
-                <th>الحلقة</th>
-                <th>الطلاب</th>
-                <th>آيات الشهر</th>
-                <th>حضور الأسبوع</th>
-                <th>حضور الشهر</th>
+                <th>{tx("الحلقة")}</th>
+                <th>{tx("الطلاب")}</th>
+                <th>{tx("آيات الشهر")}</th>
+                <th>{tx("حضور الأسبوع")}</th>
+                <th>{tx("حضور الشهر")}</th>
               </tr>
             </thead>
             <tbody>
@@ -155,7 +159,7 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
                   <td>{x.ayahs > 0 ? ["🥇", "🥈", "🥉"][i] ?? i + 1 : "—"}</td>
                   <td>
                     {x.circle.name}
-                    {x.circle.section && <span className="muted"> · {SECTION_LABEL[x.circle.section as Section]}</span>}
+                    {x.circle.section && <span className="muted"> · {tx(SECTION_LABEL[x.circle.section as Section])}</span>}
                   </td>
                   <td>{x.count}</td>
                   <td>{x.ayahs}</td>
@@ -166,20 +170,21 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
             </tbody>
           </table>
         </div>
-        {!byAyahs.length && <p className="muted">لا توجد حلقات فيها طلاب ضمن هذا الفرز.</p>}
+        {!byAyahs.length && <p className="muted">{tx("لا توجد حلقات فيها طلاب ضمن هذا الفرز.")}</p>}
       </div>
     </section>
   );
 }
 
 function Tile({ icon, label, value, progress, children }: { icon: string; label: string; value: string; progress?: number | null; children?: React.ReactNode }) {
+  const { tx } = useI18n();
   return (
     <div className="card stat stat-tile">
       <span className="stat-icon" aria-hidden="true">
         {icon}
       </span>
       <div>
-        <span className="muted">{label}</span>
+        <span className="muted">{tx(label)}</span>
         <b>{value}</b>
         {progress != null && (
           <div className="progress">
@@ -208,9 +213,10 @@ function pct(r: number | null): string {
   return r === null ? "—" : `${Math.round(r * 100)}%`;
 }
 
-function dayAgo(date: string, today: string): string {
-  if (date === addDays(today, -1)) return "أمس";
-  if (date === addDays(today, -2)) return "قبل يومين";
+function dayAgo(locale: Locale, date: string, today: string): string {
+  const tx = (source: string, values?: readonly (string | number | null | undefined)[]) => staffText(locale, source, values);
+  if (date === addDays(today, -1)) return tx("أمس");
+  if (date === addDays(today, -2)) return tx("قبل يومين");
   const [y, m, d] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("ar-SY", { weekday: "long", day: "numeric", month: "long" }).format(new Date(y, m - 1, d));
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date(y, m - 1, d));
 }

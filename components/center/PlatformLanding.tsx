@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import LoginDialog from "@/components/center/LoginDialog";
@@ -7,13 +8,13 @@ import StarField from "@/components/center/StarField";
 import { AboutBody } from "@/components/center/PlatformAbout";
 import { createClient } from "@/utils/supabase/client";
 import { useReveal } from "@/components/landing/useReveal";
-import { T, Icon, ManaratMark, amiri, display, type Locale } from "@/components/landing/manarat";
+import { T, Icon, ManaratMark, amiri, display } from "@/components/landing/manarat";
 import "@/app/landing.css";
 
 // تلاوة — the platform's address. First screen: the living night scene (the mushaf's pages turning,
 // lanterns swaying) behind the sign-in form. Scrolling down shows the whole platform page (AboutBody).
 export default function PlatformLanding() {
-  const [locale, setLocale] = useState<Locale>("ar");
+  const { locale, setLocale } = useI18n();
   const tr = T[locale];
   // Who is already signed in on this device (null = nobody, undefined = still checking).
   const [me, setMe] = useState<string | null | undefined>(undefined);

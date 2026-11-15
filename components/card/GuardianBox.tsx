@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { store, useStore } from "@/lib/offline/store";
@@ -8,6 +10,7 @@ import { formatPhone, guardianMessage, guardianUrl, sinceLabel, waLink } from "@
 // رابط ولي الأمر in the student card: who the guardian is, the family's private page link
 // (copy / send on WhatsApp), when they last opened it, and — admin only — a new link.
 export default function GuardianBox({ studentId, onEdit }: { studentId: string; onEdit: () => void }) {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { supabase, profile, showToast } = useApp();
   const student = s.get("students", studentId)!;
@@ -18,32 +21,32 @@ export default function GuardianBox({ studentId, onEdit }: { studentId: string; 
     if (!link) return;
     try {
       await navigator.clipboard.writeText(guardianUrl(link.token));
-      showToast("تم نسخ رابط ولي الأمر");
+      showToast(tx("تم نسخ رابط ولي الأمر"));
     } catch {
-      prompt("انسخ الرابط:", guardianUrl(link.token));
+      prompt(tx("انسخ الرابط:"), guardianUrl(link.token));
     }
   }
 
   async function rotate() {
     const ok = await confirmDialog({
-      title: "إلغاء الرابط الحالي وتوليد رابط جديد؟",
-      body: "الرابط القديم يتوقف عن العمل فورًا، ويجب إرسال الرابط الجديد للأهل.",
-      ok: "رابط جديد",
+      title: tx("إلغاء الرابط الحالي وتوليد رابط جديد؟"),
+      body: tx("الرابط القديم يتوقف عن العمل فورًا، ويجب إرسال الرابط الجديد للأهل."),
+      ok: tx("رابط جديد"),
       danger: true,
     });
     if (!ok) return;
     const { error } = await supabase.rpc("rotate_guardian_link", { p_student_id: studentId });
-    if (error) return showToast(/fetch|network/i.test(error.message) ? "تحتاج اتصالًا بالإنترنت" : error.message);
+    if (error) return showToast(/fetch|network/i.test(error.message) ? tx("تحتاج اتصالًا بالإنترنت") : error.message);
     const { data } = await supabase.from("guardian_links").select("*").eq("student_id", studentId);
     if (data) await store.applyRemote("guardian_links", data);
-    showToast("تم توليد رابط جديد — أرسله للأهل");
+    showToast(tx("تم توليد رابط جديد — أرسله للأهل"));
   }
 
   return (
     <div className="guardian-box">
-      <p className="small muted">رابط خاص لمتابعة هذا الطالب بلا تسجيل دخول: الحفظ والحضور وآخر الدروس والاختبارات. أرسله لولي الأمر فقط؛ الإرسال على واتساب يفتح رسالة جاهزة لتراجعها وترسلها بنفسك.</p>
+      <p className="small muted">{tx("رابط خاص لمتابعة هذا الطالب بلا تسجيل دخول: الحفظ والحضور وآخر الدروس والاختبارات. أرسله لولي الأمر فقط؛ الإرسال على واتساب يفتح رسالة جاهزة لتراجعها وترسلها بنفسك.")}</p>
       <div>
-        <span className="muted">ولي الأمر: </span>
+        <span className="muted">{tx("ولي الأمر:")} </span>
         {student.guardian_name || phone ? (
           <b>
             {student.guardian_name ?? ""}
@@ -55,27 +58,23 @@ export default function GuardianBox({ studentId, onEdit }: { studentId: string; 
           </b>
         ) : (
           <button className="link" onClick={onEdit}>
-            + أضف اسم ولي الأمر ورقمه
-          </button>
+            {tx("+ أضف اسم ولي الأمر ورقمه")}</button>
         )}
-        {link && <div className="small muted">صفحة المتابعة: {sinceLabel(link.last_opened_at)}{link.open_count > 1 ? ` · ${link.open_count} مرة` : ""}</div>}
+        {link && <div className="small muted">{tx("صفحة المتابعة:")} {sinceLabel(link.last_opened_at, locale)}{link.open_count > 1 ? tx(" · {0} مرة", [link.open_count]) : ""}</div>}
       </div>
       {link ? (
         <div className="row-actions">
           <button className="secondary" onClick={copy}>
-            🔗 نسخ رابط ولي الأمر
-          </button>
-          <a className="btn secondary" href={waLink(guardianMessage(student.name, link.token), phone)} target="_blank" rel="noreferrer">
-            إرسال على واتساب
-          </a>
+            {tx("🔗 نسخ رابط ولي الأمر")}</button>
+          <a className="btn secondary" href={waLink(guardianMessage(student.name, link.token, locale), phone)} target="_blank" rel="noreferrer">
+            {tx("إرسال على واتساب")}</a>
           {profile.role === "ADMIN" && (
             <button className="link danger-link" onClick={rotate}>
-              رابط جديد
-            </button>
+              {tx("رابط جديد")}</button>
           )}
         </div>
       ) : (
-        <span className="small muted">يظهر الرابط بعد حفظ الطالب في الحساب (عند الاتصال بالإنترنت).</span>
+        <span className="small muted">{tx("يظهر الرابط بعد حفظ الطالب في الحساب (عند الاتصال بالإنترنت).")}</span>
       )}
     </div>
   );

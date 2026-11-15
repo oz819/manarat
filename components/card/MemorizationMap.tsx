@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import JuzGrid from "@/components/JuzGrid";
@@ -23,6 +25,7 @@ export default function MemorizationMap({
   entries: QuranEntry[];
   onReview: (r: QuranRange) => void;
 }) {
+  const { tx } = useI18n();
   const { mushaf, supabase } = useApp();
   const s = useStore();
   const settings = useRankingSettings(supabase);
@@ -45,34 +48,35 @@ export default function MemorizationMap({
     <div className="memo-map">
       <div className="grid map-stats">
         <div className="stat">
-          <span className="muted">الإنجاز من المصحف</span>
+          <span className="muted">{tx("الإنجاز من المصحف")}</span>
           <b>{percent}%</b>
-          <span className="small muted">{memorized} آية</span>
+          <span className="small muted">{memorized}  {tx("آية")}</span>
         </div>
         <div className="stat">
-          <span className="muted">حفظ هذا الشهر</span>
-          <b>{monthAyat} آية</b>
+          <span className="muted">{tx("حفظ هذا الشهر")}</span>
+          <b>{monthAyat}  {tx("آية")}</b>
         </div>
         <div className="stat">
-          <span className="muted">أجزاء كاملة</span>
+          <span className="muted">{tx("أجزاء كاملة")}</span>
           <b>{full}</b>
         </div>
       </div>
 
       <Goal studentId={studentId} goal={student.weekly_goal_ayahs} done={weekAyat} />
 
-      <h4>الأجزاء الثلاثون</h4>
+      <h4>{tx("الأجزاء الثلاثون")}</h4>
       <JuzGrid juz={juz} selected={selected} onSelect={(n) => setSelected(selected === n ? null : n)} />
-      <p className="small muted">الأخضر: محفوظ كاملًا · الملوّن جزئيًا: بدأ حفظه · اضغط على جزء لترى سوره</p>
+      <p className="small muted">{tx("الأخضر: محفوظ كاملًا · الملوّن جزئيًا: بدأ حفظه · اضغط على جزء لترى سوره")}</p>
       {selected && <JuzDetail juz={selected} ranges={ranges} />}
 
-      <h4>🔁 مراجعة اليوم المقترحة</h4>
+      <h4>{tx("🔁 مراجعة اليوم المقترحة")}</h4>
       <ReviewSuggestions entries={entries} onReview={onReview} />
     </div>
   );
 }
 
 function JuzDetail({ juz, ranges }: { juz: number; ranges: QuranRange[] }) {
+  const { tx } = useI18n();
   const { mushaf } = useApp();
   const [a, b] = juzSpan(mushaf, juz);
   const spans = mergeSpans(ranges.map((r) => [mushaf.index(r.from), mushaf.index(r.to)] as [number, number]));
@@ -89,13 +93,13 @@ function JuzDetail({ juz, ranges }: { juz: number; ranges: QuranRange[] }) {
   }
   return (
     <div className="juz-detail">
-      <b>الجزء {juz}</b>
+      <b>{tx("الجزء")} {juz}</b>
       <ul>
         {rows.map((r) => (
           <li key={r.surah}>
             <span>{mushaf.name(r.surah)}</span>
             <span className={`badge ${r.done === r.total ? "excellent" : r.done ? "warn" : ""}`}>
-              {r.done === r.total ? "محفوظة" : r.done ? `${r.done} من ${r.total} آية` : "لم تُحفظ"}
+              {r.done === r.total ? tx("محفوظة") : r.done ? tx("{0} من {1} آية", [r.done, r.total]) : tx("لم تُحفظ")}
             </span>
           </li>
         ))}
@@ -106,39 +110,38 @@ function JuzDetail({ juz, ranges }: { juz: number; ranges: QuranRange[] }) {
 
 // هدف الأسبوع: an optional number of new ayat; the bar fills with this week's hifz.
 function Goal({ studentId, goal, done }: { studentId: string; goal: number | null; done: number }) {
+  const { tx } = useI18n();
   const { showToast } = useApp();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(String(goal ?? ""));
 
   async function save() {
     const n = value.trim() ? Number(value) : null;
-    if (n !== null && (!Number.isInteger(n) || n < 1 || n > 1000)) return showToast("الهدف عدد آيات بين 1 و1000");
+    if (n !== null && (!Number.isInteger(n) || n < 1 || n > 1000)) return showToast(tx("الهدف عدد آيات بين 1 و1000"));
     const st = store.get("students", studentId)!;
     await store.save("students", { ...st, weekly_goal_ayahs: n }, n ? `هدف أسبوعي: ${n} آية` : "إلغاء الهدف الأسبوعي");
     setEditing(false);
-    showToast(n ? "تم حفظ الهدف" : "تم إلغاء الهدف");
+    showToast(n ? tx("تم حفظ الهدف") : tx("تم إلغاء الهدف"));
   }
 
   if (editing) {
     return (
       <div className="goal-box">
-        <label>هدف الحفظ الأسبوعي (آيات)</label>
+        <label>{tx("هدف الحفظ الأسبوعي (آيات)")}</label>
         <div className="inline-phone">
-          <input type="number" inputMode="numeric" min={1} max={1000} value={value} onChange={(e) => setValue(e.target.value)} placeholder="مثال: 10" aria-label="هدف الحفظ الأسبوعي" />
-          <button onClick={save}>حفظ</button>
+          <input type="number" inputMode="numeric" min={1} max={1000} value={value} onChange={(e) => setValue(e.target.value)} placeholder={tx("مثال: 10")} aria-label={tx("هدف الحفظ الأسبوعي")} />
+          <button onClick={save}>{tx("حفظ")}</button>
           <button className="secondary" onClick={() => setEditing(false)}>
-            إلغاء
-          </button>
+            {tx("إلغاء")}</button>
         </div>
-        <p className="small muted">اتركه فارغًا لإلغاء الهدف.</p>
+        <p className="small muted">{tx("اتركه فارغًا لإلغاء الهدف.")}</p>
       </div>
     );
   }
   if (!goal) {
     return (
       <button className="link" onClick={() => setEditing(true)}>
-        🎯 حدّد هدف حفظ أسبوعي لهذا الطالب
-      </button>
+        {tx("🎯 حدّد هدف حفظ أسبوعي لهذا الطالب")}</button>
     );
   }
   const pct = Math.min(100, Math.round((done / goal) * 100));
@@ -146,12 +149,11 @@ function Goal({ studentId, goal, done }: { studentId: string; goal: number | nul
     <div className="goal-box">
       <div className="day-head">
         <span>
-          🎯 هدف الأسبوع: <b>{Math.min(done, goal)} من {goal} آية</b>
+          {tx("🎯 هدف الأسبوع:")} <b>{Math.min(done, goal)}  {tx("من")} {goal}  {tx("آية")}</b>
           {done >= goal && " ✅"}
         </span>
         <button className="link" onClick={() => setEditing(true)}>
-          تعديل
-        </button>
+          {tx("تعديل")}</button>
       </div>
       <div className="progress">
         <i style={{ width: `${pct}%` }} />
@@ -161,20 +163,20 @@ function Goal({ studentId, goal, done }: { studentId: string; goal: number | nul
 }
 
 export function ReviewSuggestions({ entries, onReview }: { entries: QuranEntry[]; onReview: (r: QuranRange) => void }) {
+  const { tx, locale } = useI18n();
   const { mushaf } = useApp();
   const list = useMemo(() => suggestReview(mushaf, entries, todayStr()), [mushaf, entries]);
-  if (!list.length) return <p className="muted small">لا يوجد اقتراح: لم يُسجَّل له حفظ سابق بعد، أو روجع كل حفظه مؤخرًا.</p>;
+  if (!list.length) return <p className="muted small">{tx("لا يوجد اقتراح: لم يُسجَّل له حفظ سابق بعد، أو روجع كل حفظه مؤخرًا.")}</p>;
   return (
     <ul className="review-list">
       {list.map((r, i) => (
         <li key={i}>
           <div>
-            <b>{mushaf.formatRange(r.range)}</b> <span className="muted small">({r.ayat} آية)</span>
-            <div className="small muted">{r.reason}</div>
+            <b>{mushaf.formatRange(r.range, locale)}</b> <span className="muted small">({r.ayat}  {tx("آية)")}</span>
+            <div className="small muted">{r.daysAgo === 0 ? tx("رُوجع اليوم") : tx("آخر مرة قبل {0} أيام", [r.daysAgo])}{r.lastQuality && ` · ${tx("التقدير الأخير: {0}", [tx(r.lastQuality)])}`}</div>
           </div>
           <button className="secondary" onClick={() => onReview(r.range)}>
-            سجّل هذه المراجعة
-          </button>
+            {tx("سجّل هذه المراجعة")}</button>
         </li>
       ))}
     </ul>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { useStore } from "@/lib/offline/store";
@@ -14,6 +16,7 @@ type TableName = keyof Database["public"]["Tables"];
 // تصدير Excel (admin): one .xlsx with the students, the Quran reports, attendance and exams of a
 // period, read straight from the server (the whole history, not just this device's copy).
 export default function ExportExcel() {
+  const { tx, locale } = useI18n();
   const s = useStore();
   const { supabase, mushaf } = useApp();
   const today = todayStr();
@@ -38,8 +41,8 @@ export default function ExportExcel() {
 
   async function run() {
     setError("");
-    if (!from || !to || from > to) return setError("اختر فترة صحيحة");
-    if (!navigator.onLine) return setError("التصدير يحتاج اتصالًا بالإنترنت");
+    if (!from || !to || from > to) return setError(tx("اختر فترة صحيحة"));
+    if (!navigator.onLine) return setError(tx("التصدير يحتاج اتصالًا بالإنترنت"));
     setBusy(true);
     try {
       type R = Record<string, unknown>;
@@ -58,9 +61,9 @@ export default function ExportExcel() {
 
       const sheets: Sheet[] = [
         {
-          name: "الطلاب",
+          name: tx("الطلاب"),
           rows: [
-            ["الطالب", "الحلقة", "القسم", "الحالة", "ولي الأمر", "رقم ولي الأمر", "تاريخ الإضافة"],
+            [tx("الطالب"), tx("الحلقة"), tx("القسم"), tx("الحالة"), tx("ولي الأمر"), tx("رقم ولي الأمر"), tx("تاريخ الإضافة")],
             ...students
               .sort((a, b) => circle(a.id).localeCompare(circle(b.id), "ar") || String(a.name).localeCompare(String(b.name), "ar"))
               .map((x) => {
@@ -68,8 +71,8 @@ export default function ExportExcel() {
                 return [
                   x.name as string,
                   c?.name ?? "",
-                  c?.section ? SECTION_LABEL[c.section as Section] : "",
-                  x.active ? "نشط" : "مؤرشف",
+                  c?.section ? tx(SECTION_LABEL[c.section as Section]) : "",
+                  x.active ? tx("نشط") : tx("مؤرشف"),
                   (x.guardian_name as string) ?? "",
                   x.guardian_phone ? `+${x.guardian_phone}` : "",
                   String(x.created_at).slice(0, 10),
@@ -78,85 +81,83 @@ export default function ExportExcel() {
           ],
         },
         {
-          name: "التقارير",
+          name: tx("التقارير"),
           rows: [
-            ["التاريخ", "الطالب", "الحلقة", "النوع", "من", "إلى", "التقدير", "ملاحظات", "المحفّظ"],
+            [tx("التاريخ"), tx("الطالب"), tx("الحلقة"), tx("النوع"), tx("من"), tx("إلى"), tx("التقدير"), tx("ملاحظات"), tx("المحفّظ")],
             ...quran.map((e) => [
               e.entry_date as string,
               name(e.student_id),
               circle(e.student_id),
-              TRACK_LABEL[e.track as QuranTrack] ?? (e.track as string),
+              tx(TRACK_LABEL[e.track as QuranTrack] ?? (e.track as string)),
               pos(e.from_surah_no, e.from_ayah),
               pos(e.to_surah_no, e.to_ayah),
-              (e.quality as string) ?? "",
+              tx((e.quality as string) ?? ""),
               (e.notes as string) ?? "",
               teacher(e.teacher_id),
             ]),
           ],
         },
         {
-          name: "الحضور",
+          name: tx("الحضور"),
           rows: [
-            ["التاريخ", "الطالب", "الحلقة", "الحالة", "المحفّظ"],
+            [tx("التاريخ"), tx("الطالب"), tx("الحلقة"), tx("الحالة"), tx("المحفّظ")],
             ...att.map((a) => [
               a.att_date as string,
               name(a.student_id),
               circle(a.student_id),
-              ATTENDANCE_LABEL[a.status as AttendanceStatus] ?? (a.status as string),
+              tx(ATTENDANCE_LABEL[a.status as AttendanceStatus] ?? (a.status as string)),
               teacher(a.teacher_id),
             ]),
           ],
         },
         {
-          name: "الاختبارات",
+          name: tx("الاختبارات"),
           rows: [
-            ["التاريخ", "الطالب", "الحلقة", "النوع", "الاختبار", "العلامة", "النتيجة", "المختبِر", "ملاحظات"],
+            [tx("التاريخ"), tx("الطالب"), tx("الحلقة"), tx("النوع"), tx("الاختبار"), tx("العلامة"), tx("النتيجة"), tx("المختبِر"), tx("ملاحظات")],
             ...exams.map((x) => [
               x.exam_date as string,
               name(x.student_id),
               circle(x.student_id),
-              EXAM_KIND_LABEL[x.kind as ExamKind] ?? (x.kind as string),
-              examTitle({ kind: x.kind as string, juz_no: x.juz_no as number | null, surah_no: x.surah_no as number | null }, mushaf),
+              tx(EXAM_KIND_LABEL[x.kind as ExamKind] ?? (x.kind as string)),
+              examTitle({ kind: x.kind as string, juz_no: x.juz_no as number | null, surah_no: x.surah_no as number | null }, mushaf, locale),
               x.score as number,
-              x.passed ? "ناجح" : "لم ينجح",
+              x.passed ? tx("ناجح") : tx("لم ينجح"),
               (x.examiner as string) ?? "",
               (x.notes as string) ?? "",
             ]),
           ],
         },
       ];
-      const url = URL.createObjectURL(xlsxBlob(sheets));
+      const url = URL.createObjectURL(xlsxBlob(sheets.map(sheet => ({ ...sheet, rtl: locale === "ar" }))));
       const a = document.createElement("a");
       a.href = url;
-      a.download = `حلقات-القرآن-${from}-إلى-${to}.xlsx`;
+      a.download = tx("حلقات-القرآن-{0}-إلى-{1}.xlsx", [from, to]);
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (e) {
-      setError(`تعذّر التصدير: ${(e as Error).message}`);
+      setError(tx("تعذّر التصدير: {0}", [(e as Error).message]));
     }
     setBusy(false);
   }
 
   return (
     <div className="card export-excel">
-      <h3>📤 تصدير Excel</h3>
-      <p className="small muted">ملف Excel بصيغة ‎.xlsx فيه جميع الطلاب، وتقارير القرآن والحضور والاختبارات للفترة التي تختارها. يحتاج اتصالًا بالإنترنت ويصدّر البيانات المحفوظة في الحساب؛ انتظر «تم الحفظ ✓» أولًا.</p>
+      <h3>{tx("📤 تصدير Excel")}</h3>
+      <p className="small muted">{tx("ملف Excel بصيغة ‎.xlsx فيه جميع الطلاب، وتقارير القرآن والحضور والاختبارات للفترة التي تختارها. يحتاج اتصالًا بالإنترنت ويصدّر البيانات المحفوظة في الحساب؛ انتظر «تم الحفظ ✓» أولًا.")}</p>
       <div className="export-row">
         <label>
-          من
-          <input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
+          {tx("من")}<input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
         </label>
         <label>
-          إلى
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          {tx("إلى")}<input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
         <button onClick={run} disabled={busy}>
-          {busy ? "جارٍ التجهيز..." : "⬇️ تنزيل الملف"}
+          {busy ? tx("جارٍ التجهيز...") : tx("⬇️ تنزيل الملف")}
         </button>
       </div>
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="error-text">{tx(error)}</p>}
     </div>
   );
 }

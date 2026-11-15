@@ -65,7 +65,7 @@ export class Mushaf {
     return null;
   }
 
-  formatRange(r: QuranRange | null): string {
+  formatRange(r: QuranRange | null, locale: "ar" | "en" = "ar"): string {
     if (!r) return "—";
     // One surah: «البقرة (1 - 15)»; across surahs: «من البقرة (آية 284) إلى آل عمران (آية 10)».
     if (r.from.surah === r.to.surah) {
@@ -73,6 +73,7 @@ export class Mushaf {
         ? `${this.name(r.from.surah)} (${r.from.ayah})`
         : `${this.name(r.from.surah)} (${r.from.ayah} - ${r.to.ayah})`;
     }
+    if (locale === "en") return `From ${this.name(r.from.surah)} (verse ${r.from.ayah}) to ${this.name(r.to.surah)} (verse ${r.to.ayah})`;
     return `من ${this.name(r.from.surah)} (آية ${r.from.ayah}) إلى ${this.name(r.to.surah)} (آية ${r.to.ayah})`;
   }
 

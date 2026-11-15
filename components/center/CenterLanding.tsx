@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n, LanguageSwitch } from "@/components/LocaleProvider";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/SocialIcons";
@@ -13,6 +14,7 @@ import { accentStyle, applyPalette, whatsappLink, type PublicCenter } from "@/li
 // all from the centre's settings, nothing hard-coded. `base` is where its other public pages live
 // ("" on its own domain, "/{slug}" on the platform).
 export default function CenterLanding({ center, base }: { center: PublicCenter; base: string }) {
+  const { tx, locale, dir } = useI18n();
   const [showLogin, setShowLogin] = useState(false);
   useEffect(() => applyPalette(center), [center]);
 
@@ -23,20 +25,21 @@ export default function CenterLanding({ center, base }: { center: PublicCenter; 
     center.contact_phone && { href: `tel:${center.contact_phone.replace(/[^\d+]/g, "")}`, label: "هاتف", value: center.contact_phone, icon: <PhoneIcon /> },
     center.contact_email && { href: `mailto:${center.contact_email}`, label: "البريد", value: center.contact_email, icon: <MailIcon /> },
     center.instagram && { href: center.instagram, label: "انستغرام", value: handle(center.instagram), icon: <InstagramIcon /> },
-    center.facebook && { href: center.facebook, label: "فيسبوك", value: "صفحتنا", icon: <FacebookIcon /> },
+    center.facebook && { href: center.facebook, label: "فيسبوك", value: tx("صفحتنا"), icon: <FacebookIcon /> },
     center.address && { href: null, label: "العنوان", value: center.address, icon: <PinIcon /> },
   ].filter(Boolean) as { href: string | null; label: string; value: string; icon: React.ReactNode }[];
 
   return (
-    <div className="cx" data-palette={center.palette} style={accentStyle(center)} dir="rtl" lang="ar">
+    <div className="cx" data-palette={center.palette} style={accentStyle(center)} dir={dir} lang={locale}>
       <header className="cx-nav">
         <a href="#top" className="cx-brand">
           <CenterMark name={center.name} logo={center.logo_url} size={38} />
           <span>{center.name}</span>
         </a>
         <div className="cx-nav-actions">
+          <LanguageSwitch />
           <button type="button" className="secondary" onClick={() => setShowLogin(true)} aria-haspopup="dialog">
-            تسجيل الدخول
+            {tx("تسجيل الدخول")}
           </button>
         </div>
       </header>
@@ -49,15 +52,15 @@ export default function CenterLanding({ center, base }: { center: PublicCenter; 
             {center.about && <p className="lead">{center.about}</p>}
             <div className="cx-cta">
               <Link href={`${base}/register`} className="btn">
-                <span>سجّل في الحلقات</span>
+                <span>{tx("سجّل في الحلقات")}</span>
                 <span aria-hidden="true">←</span>
               </Link>
               <button type="button" className="btn ghost" onClick={() => setShowLogin(true)}>
-                دخول المعلّمين والإدارة
+                {tx("دخول المعلّمين والإدارة")}
               </button>
               {center.honor_enabled && (
                 <Link href={`${base}/honor`} className="btn ghost">
-                  لوحة الشرف
+                  {tx("لوحة الشرف")}
                 </Link>
               )}
             </div>
@@ -71,14 +74,14 @@ export default function CenterLanding({ center, base }: { center: PublicCenter; 
         </section>
 
         {contacts.length > 0 && (
-          <section className="cx-section" aria-label="التواصل">
+          <section className="cx-section" aria-label={tx("التواصل")}>
             <div className="cx-contact">
               {contacts.map((c) =>
                 c.href ? (
                   <a key={c.label} href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
                     {c.icon}
                     <span>
-                      <small>{c.label}</small>
+                      <small>{tx(c.label)}</small>
                       <span dir="auto">{c.value}</span>
                     </span>
                   </a>
@@ -86,7 +89,7 @@ export default function CenterLanding({ center, base }: { center: PublicCenter; 
                   <div key={c.label}>
                     {c.icon}
                     <span>
-                      <small>{c.label}</small>
+                      <small>{tx(c.label)}</small>
                       {c.value}
                     </span>
                   </div>

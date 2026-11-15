@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -17,6 +19,7 @@ export default function ArabicSection({
   enrollments: ArabicEnrollment[];
   entries: ArabicEntry[];
 }) {
+  const { tx, date: formatDate } = useI18n();
   const s = useStore();
   const { showToast } = useApp();
   const books = s.all("arabic_books").filter((b) => b.active);
@@ -66,15 +69,15 @@ export default function ArabicSection({
       reset(0);
     }
     setEnrollBook("");
-    showToast(finished ? "سُجّل الكتاب كمنتهٍ" : "تم التسجيل في الكتاب");
+    showToast(finished ? tx("سُجّل الكتاب كمنتهٍ") : tx("تم التسجيل في الكتاب"));
   }
 
   async function setFinished(en: ArabicEnrollment, finished: boolean) {
     const title = s.get("arabic_books", en.book_id)?.title ?? "";
     const ok = await confirmDialog({
-      title: finished ? `إنهاء كتاب «${title}»؟` : `إرجاع «${title}» إلى «يدرسه»؟`,
-      body: finished ? "يُسجَّل أن الطالب أنهى الكتاب اليوم، ويبقى ظاهرًا في كتب الطالب." : "يعود الكتاب إلى الكتب التي يدرسها الطالب الآن.",
-      ok: finished ? "إنهاء" : "إرجاع",
+      title: finished ? tx("إنهاء كتاب «{0}»؟", [title]) : tx("إرجاع «{0}» إلى «يدرسه»؟", [title]),
+      body: finished ? tx("يُسجَّل أن الطالب أنهى الكتاب اليوم، ويبقى ظاهرًا في كتب الطالب.") : tx("يعود الكتاب إلى الكتب التي يدرسها الطالب الآن."),
+      ok: finished ? tx("إنهاء") : tx("إرجاع"),
     });
     if (!ok) return;
     await store.save(
@@ -84,13 +87,13 @@ export default function ArabicSection({
     );
     if (finished && en.book_id === bookId) setBookId(active.find((a) => a.id !== en.id)?.book_id ?? "");
     if (!finished && !book) setBookId(en.book_id);
-    showToast(finished ? `أنهى «${title}»` : `«${title}»: يدرسه`);
+    showToast(finished ? tx("أنهى «{0}»", [title]) : tx("«{0}»: يدرسه", [title]));
   }
 
   async function save() {
-    if (!book) return setError("اختر الكتاب");
+    if (!book) return setError(tx("اختر الكتاب"));
     if (fromPage < 1 || toPage < fromPage || toPage > book.total_pages) {
-      return setError(`رقم الصفحة خارج حدود الكتاب (${book.total_pages} صفحة)`);
+      return setError(tx("رقم الصفحة خارج حدود الكتاب ({0} صفحة)", [book.total_pages]));
     }
     await store.save(
       "arabic_entries",
@@ -108,7 +111,7 @@ export default function ArabicSection({
       `العربية: ص ${fromPage}–${toPage}`
     );
     if (!editingId) await store.ensurePresent(studentId, date);
-    showToast(editingId ? "تم التعديل" : "تم حفظ درس العربية");
+    showToast(editingId ? tx("تم التعديل") : tx("تم حفظ درس العربية"));
     reset(Math.max(lastPage, toPage));
   }
 
@@ -124,9 +127,9 @@ export default function ArabicSection({
   async function remove(e: ArabicEntry) {
     const who = s.get("students", studentId)?.name ?? "";
     const ok = await confirmDialog({
-      title: `حذف درس العربية «${who}»؟`,
-      body: `${e.entry_date} · ${s.get("arabic_books", e.book_id)?.title ?? ""} ص${e.from_page}–${e.to_page}\n` + "ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك.",
-      ok: "حذف",
+      title: tx("حذف درس العربية «{0}»؟", [who]),
+      body: tx("{0} · {1} ص{2}–{3}\n", [e.entry_date, s.get("arabic_books", e.book_id)?.title ?? "", e.from_page, e.to_page]) + tx("ينتقل إلى سجل المحذوفات، ويستطيع المدير استرجاعه من هناك."),
+      ok: tx("حذف"),
       danger: true,
     });
     if (!ok) return;
@@ -140,23 +143,23 @@ export default function ArabicSection({
 
   return (
     <div className="track">
-      {!active.length && books.length > 0 && <p className="muted">لبدء تسجيل الدروس، اختر كتابًا من «إضافة كتاب للطالب» ثم اضغط «يدرسه». بعدها أدخل الصفحات التي درسها.</p>}
+      {!active.length && books.length > 0 && <p className="muted">{tx("لبدء تسجيل الدروس، اختر كتابًا من «إضافة كتاب للطالب» ثم اضغط «يدرسه». بعدها أدخل الصفحات التي درسها.")}</p>}
       {mine.length > 0 && (
         <div className="book-status">
-          <label>كتب الطالب</label>
+          <label>{tx("كتب الطالب")}</label>
           <ul className="history">
             {mine.map((en) => (
               <li key={en.id}>
                 <div>
                   <b>{s.get("arabic_books", en.book_id)?.title ?? "—"}</b>
                   {en.finished_on ? (
-                    <span className="badge excellent">✅ أنهاه · {en.finished_on}</span>
+                    <span className="badge excellent">{tx("✅ أنهاه ·")} {formatDate(en.finished_on ?? "")}</span>
                   ) : (
-                    <span className="badge warn">📖 يدرسه · منذ {en.started_on}</span>
+                    <span className="badge warn">{tx("📖 يدرسه · منذ")} {formatDate(en.started_on ?? "")}</span>
                   )}
                 </div>
                 <button className="link" onClick={() => setFinished(en, !en.finished_on)}>
-                  {en.finished_on ? "إرجاع لـ «يدرسه»" : "✅ أنهى الكتاب"}
+                  {en.finished_on ? tx("إرجاع لـ «يدرسه»") : tx("✅ أنهى الكتاب")}
                 </button>
               </li>
             ))}
@@ -167,7 +170,7 @@ export default function ArabicSection({
       {active.length > 0 && (
         <div className="formgrid compact">
           <div>
-            <label>الكتاب</label>
+            <label>{tx("الكتاب")}</label>
             <select value={bookId} onChange={(e) => (setBookId(e.target.value), reset(0))}>
               {active.map((en) => (
                 <option key={en.id} value={en.book_id}>
@@ -178,12 +181,12 @@ export default function ArabicSection({
           </div>
           {book && (
             <div>
-              <label>التقدّم</label>
+              <label>{tx("التقدّم")}</label>
               <div className="progress">
                 <i style={{ width: `${Math.round((lastPage / book.total_pages) * 100)}%` }} />
               </div>
               <span className="small">
-                ص {lastPage} / {book.total_pages} ({Math.round((lastPage / book.total_pages) * 100)}%)
+                {tx("ص")} {lastPage} / {book.total_pages} ({Math.round((lastPage / book.total_pages) * 100)}%)
               </span>
             </div>
           )}
@@ -194,58 +197,55 @@ export default function ArabicSection({
         <div className="entry-form">
           <div className="formgrid compact">
             <div>
-              <label>من صفحة</label>
+              <label>{tx("من صفحة")}</label>
               <input type="number" inputMode="numeric" min={1} max={book.total_pages} value={fromPage || ""} onChange={(e) => setFromPage(Number(e.target.value))} />
             </div>
             <div>
-              <label>إلى صفحة</label>
+              <label>{tx("إلى صفحة")}</label>
               <input type="number" inputMode="numeric" min={1} max={book.total_pages} value={toPage || ""} onChange={(e) => setToPage(Number(e.target.value))} />
             </div>
             <div>
-              <label>التاريخ</label>
+              <label>{tx("التاريخ")}</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div>
-              <label>التقدير</label>
+              <label>{tx("التقدير")}</label>
               <select value={quality} onChange={(e) => setQuality(e.target.value)}>
                 <option value="">—</option>
                 {QUALITIES.map((q) => (
-                  <option key={q}>{q}</option>
+                  <option key={q} value={q}>{tx(q)}</option>
                 ))}
               </select>
             </div>
             <div className="wide">
-              <label>ملاحظة</label>
+              <label>{tx("ملاحظة")}</label>
               <input value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
           </div>
           <div className="row-actions">
-            <button onClick={save}>{editingId ? "حفظ التعديل" : "إضافة درس"}</button>
+            <button onClick={save}>{editingId ? tx("حفظ التعديل") : tx("إضافة درس")}</button>
             {editingId && (
               <button className="secondary" onClick={() => reset()}>
-                إلغاء
-              </button>
+                {tx("إلغاء")}</button>
             )}
           </div>
-          {error && <p className="error-text">{error}</p>}
+          {error && <p className="error-text">{tx(error)}</p>}
           <ul className="history">
             {forBook.slice(0, 8).map((e) => (
               <li key={e.id}>
                 <div>
                   <b>
-                    ص {e.from_page}–{e.to_page}
+                    {tx("ص")} {e.from_page}–{e.to_page}
                   </b>
-                  <span className="muted"> · {e.entry_date}</span>
-                  {e.quality && <span className="badge">{e.quality}</span>}
+                  <span className="muted"> · {formatDate(e.entry_date ?? "")}</span>
+                  {e.quality && <span className="badge">{tx(e.quality)}</span>}
                   {e.notes && <div className="small muted">{e.notes}</div>}
                 </div>
                 <div className="row-actions">
                   <button className="link" onClick={() => startEdit(e)}>
-                    تعديل
-                  </button>
+                    {tx("تعديل")}</button>
                   <button className="link danger-link" onClick={() => remove(e)}>
-                    حذف
-                  </button>
+                    {tx("حذف")}</button>
                 </div>
               </li>
             ))}
@@ -256,22 +256,19 @@ export default function ArabicSection({
       {notEnrolled.length > 0 && (
         <div className="row-actions" style={{ marginTop: 8 }}>
           <select value={enrollBook} onChange={(e) => setEnrollBook(e.target.value)} style={{ maxWidth: 260 }}>
-            <option value="">إضافة كتاب للطالب…</option>
+            <option value="">{tx("إضافة كتاب للطالب…")}</option>
             {notEnrolled.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.title} ({b.total_pages} ص)
-              </option>
+                {b.title} ({b.total_pages}  {tx("ص)")}</option>
             ))}
           </select>
           <button className="secondary" onClick={() => enroll(false)} disabled={!enrollBook}>
-            📖 يدرسه
-          </button>
+            {tx("📖 يدرسه")}</button>
           <button className="secondary" onClick={() => enroll(true)} disabled={!enrollBook}>
-            ✅ أنهاه
-          </button>
+            {tx("✅ أنهاه")}</button>
         </div>
       )}
-      {!books.length && <p className="muted">لا توجد كتب عربية بعد. يضيفها المدير من «الإدارة والإعدادات ← كتب العربية»، ثم تختار الكتاب هنا وتضغط «يدرسه».</p>}
+      {!books.length && <p className="muted">{tx("لا توجد كتب عربية بعد. يضيفها المدير من «الإدارة والإعدادات ← كتب العربية»، ثم تختار الكتاب هنا وتضغط «يدرسه».")}</p>}
     </div>
   );
 }

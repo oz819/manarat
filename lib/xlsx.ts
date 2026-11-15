@@ -1,9 +1,9 @@
 // A small .xlsx writer (no library): each sheet is a table of text/number cells, laid out
-// right-to-left with a bold, frozen header row. The parts are packed in an uncompressed zip,
+// right-to-left by default with a bold, frozen header row. The parts are packed in an uncompressed zip,
 // which Excel, LibreOffice and Google Sheets all open.
 
 export type Cell = string | number | null | undefined;
-export type Sheet = { name: string; rows: Cell[][] };
+export type Sheet = { name: string; rows: Cell[][]; rtl?: boolean };
 
 export function xlsxBlob(sheets: Sheet[]): Blob {
   const files: [string, string][] = [
@@ -36,14 +36,14 @@ export function xlsxBlob(sheets: Sheet[]): Blob {
       "xl/styles.xml",
       `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE8F3EE"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf/><xf fontId="1" fillId="2" applyFont="1" applyFill="1"/></cellXfs></styleSheet>`,
     ],
-    ...sheets.map((s, i): [string, string] => [`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s.rows)]),
+    ...sheets.map((s, i): [string, string] => [`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s.rows, s.rtl ?? true)]),
   ];
   return new Blob([zip(files.map(([name, text]) => [name, new TextEncoder().encode(text)]))], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 }
 
-function sheetXml(rows: Cell[][]): string {
+function sheetXml(rows: Cell[][], rtl: boolean): string {
   const widths = (rows[0] ?? []).map((_, c) => Math.min(60, Math.max(8, ...rows.slice(0, 200).map((r) => String(r[c] ?? "").length + 2))));
   const body = rows
     .map(
@@ -59,7 +59,7 @@ function sheetXml(rows: Cell[][]): string {
           .join("")}</row>`
     )
     .join("");
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0" rightToLeft="1"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>${
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0" rightToLeft="${rtl ? 1 : 0}"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>${
     widths.length ? `<cols>${widths.map((w, c) => `<col min="${c + 1}" max="${c + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : ""
   }<sheetData>${body}</sheetData></worksheet>`;
 }

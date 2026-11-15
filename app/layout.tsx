@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import "./theme.css";
+import LocaleProvider from "@/components/LocaleProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 
 // Body text font for the whole app (exposed as --font-body, see the 2026 theme in globals.css).
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ar" dir="rtl" data-palette="navy">
       <body className={plex.variable}>
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
         <ServiceWorker />
       </body>
     </html>

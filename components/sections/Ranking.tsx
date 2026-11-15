@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { useScope } from "@/components/FilterBar";
@@ -29,6 +31,7 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 
 // ⭐ المتفوقون: weekly and period rankings of the students in the shared filter.
 export default function Ranking() {
+  const { tx } = useI18n();
   const [tab, setTab] = usePersistentState<Tab>("ranking.tab", "ranking");
   const { supabase } = useApp();
   const settings = useRankingSettings(supabase);
@@ -38,13 +41,13 @@ export default function Ranking() {
       <div className="tabs no-print ranking-tabs">
         {(
           [
-            ["ranking", "🏆 الترتيب"],
-            ["activities", "🎯 الدورات والأنشطة"],
-            ["settings", "⚙️ الإعدادات"],
+            ["ranking", tx("🏆 الترتيب")],
+            ["activities", tx("🎯 الدورات والأنشطة")],
+            ["settings", tx("⚙️ الإعدادات")],
           ] as [Tab, string][]
         ).map(([id, label]) => (
           <button key={id} className={`chip ${tab === id ? "active" : ""}`} onClick={() => setTab(id)}>
-            {label}
+            {tx(label)}
           </button>
         ))}
       </div>
@@ -56,6 +59,7 @@ export default function Ranking() {
 }
 
 function RankingTab() {
+  const { tx } = useI18n();
   const s = useStore();
   const { supabase, mushaf, profile, showToast } = useApp();
   const settings = useRankingSettings(supabase);
@@ -87,7 +91,7 @@ function RankingTab() {
   const result = computeRanking(pool, data, used, mushaf, period.from, period.to, history.circleOn);
   const prev = period.prev ? computeRanking(pool, data, used, mushaf, period.prev.from, period.prev.to, history.circleOn) : null;
   const prevRank = new Map(prev?.ranked.map((r) => [r.student.id, r.rank!]) ?? []);
-  const scopeName = filter === "all" ? "كل الطلاب" : filterName;
+  const scopeName = filter === "all" ? tx("كل الطلاب") : filterName;
 
   const student = studentId ? pool.find((st) => st.id === studentId) : null;
   if (student) {
@@ -99,35 +103,35 @@ function RankingTab() {
 
   async function calculate(e: React.FormEvent) {
     e.preventDefault();
-    if (ITEMS.some((i) => !Number.isFinite(w[i.key]) || w[i.key] < 0)) return setWeightError("كل نسبة يجب أن تكون رقمًا من 0 إلى 100.");
-    if (sum !== 100) return setWeightError(`مجموع النسب يجب أن يكون 100%، وهو الآن ${sum}%.`);
+    if (ITEMS.some((i) => !Number.isFinite(w[i.key]) || w[i.key] < 0)) return setWeightError(tx("كل نسبة يجب أن تكون رقمًا من 0 إلى 100."));
+    if (sum !== 100) return setWeightError(tx("مجموع النسب يجب أن يكون 100%، وهو الآن {0}%.", [sum]));
     setWeightError("");
     if (admin) {
       const err = await rankingSettings.save(supabase, { ...settings, weights: w });
       if (err) return setWeightError(err);
       setTrial(null);
-      showToast("تم الحساب وحفظ النسب");
+      showToast(tx("تم الحساب وحفظ النسب"));
     } else {
       setTrial(w);
-      showToast("تم الحساب بالنسب الجديدة (للتجربة فقط)");
+      showToast(tx("تم الحساب بالنسب الجديدة (للتجربة فقط)"));
     }
     setDraft(null);
   }
 
   const periodText = `${period.from} ← ${period.to > today ? today : period.to}`;
   const top = result.ranked.filter((r) => r.rank! <= topN);
-  const title = kind === "week" || kind === "lastWeek" ? "متفوقو الأسبوع" : "المتفوقون";
+  const title = kind === "week" || kind === "lastWeek" ? tx("متفوقو الأسبوع") : tx("المتفوقون");
 
   function whatsapp() {
-    let out = `🏆 ${title} — ${scopeName}\n📅 ${PERIOD_LABEL[kind]} (${periodText})\n`;
+    let out = `🏆 ${title} — ${scopeName}\n📅 ${tx(PERIOD_LABEL[kind])} (${periodText})\n`;
     for (const r of top) out += `\n${MEDALS[r.rank! - 1] ?? `${r.rank}.`} ${r.student.name} — ${r.total}`;
-    out += "\n\nبارك الله فيهم وجعلهم من أهل القرآن 🌿";
+    out += tx("\n\nبارك الله فيهم وجعلهم من أهل القرآن 🌿");
     navigator.clipboard?.writeText(out);
-    showToast("تم نسخ الرسالة");
+    showToast(tx("تم نسخ الرسالة"));
   }
 
   function csv() {
-    const header = ["الترتيب", "الطالب", ...ITEMS.map((i) => i.label), "المعدل", "ملاحظة"];
+    const header = [tx("الترتيب"), tx("الطالب"), ...ITEMS.map((i) => tx(i.label)), tx("المعدل"), tx("ملاحظة")];
     const line = (r: StudentScore) => [r.rank ? String(r.rank) : "", r.student.name, ...ITEMS.map((i) => cell(r.items[i.key])), r.total == null ? "" : String(r.total), r.reason];
     const lines = [header, ...result.ranked.map(line), ...result.unranked.map(line)];
     const body = lines.map((l) => l.map((v) => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -142,14 +146,14 @@ function RankingTab() {
   return (
     <>
       <div className="card no-print">
-        <h3>🏆 ترتيب المتفوقين</h3>
+        <h3>{tx("🏆 ترتيب المتفوقين")}</h3>
         <div className="formgrid compact">
           <div>
-            <label>الفترة</label>
+            <label>{tx("الفترة")}</label>
             <select value={kind} onChange={(e) => setKind(e.target.value as PeriodKind)}>
               {(Object.keys(PERIOD_LABEL) as PeriodKind[]).map((k) => (
                 <option key={k} value={k}>
-                  {PERIOD_LABEL[k]}
+                  {tx(PERIOD_LABEL[k])}
                 </option>
               ))}
             </select>
@@ -157,30 +161,30 @@ function RankingTab() {
           {kind === "range" && (
             <>
               <div>
-                <label>من</label>
+                <label>{tx("من")}</label>
                 <input type="date" value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} />
               </div>
               <div>
-                <label>إلى</label>
+                <label>{tx("إلى")}</label>
                 <input type="date" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} />
               </div>
             </>
           )}
           <div>
-            <label>عدد المتفوقين</label>
+            <label>{tx("عدد المتفوقين")}</label>
             <select value={topN} onChange={(e) => setTopN(Number(e.target.value))}>
-              <option value={3}>أول 3</option>
-              <option value={5}>أول 5</option>
+              <option value={3}>{tx("أول 3")}</option>
+              <option value={5}>{tx("أول 5")}</option>
             </select>
           </div>
         </div>
 
         <form className="weights" onSubmit={calculate}>
-          <h4>نسبة كل بند</h4>
+          <h4>{tx("نسبة كل بند")}</h4>
           <div className="weights-grid">
             {ITEMS.map((i) => (
               <label key={i.key} className="weight">
-                <span>{i.label}</span>
+                <span>{tx(i.label)}</span>
                 <span className="weight-input">
                   <input
                     type="number"
@@ -189,7 +193,7 @@ function RankingTab() {
                     inputMode="numeric"
                     value={Number.isFinite(w[i.key]) ? w[i.key] : ""}
                     onChange={(e) => setDraft({ ...w, [i.key]: e.target.value === "" ? NaN : Number(e.target.value) })}
-                    aria-label={`نسبة ${i.label}`}
+                    aria-label={tx("نسبة {0}", [tx(i.label)])}
                   />
                   %
                 </span>
@@ -197,8 +201,8 @@ function RankingTab() {
             ))}
           </div>
           <div className="weights-foot">
-            <span className={sum === 100 ? "pos" : "neg"}>المجموع: {Number.isFinite(sum) ? sum : "—"}%</span>
-            <button type="submit">احسب</button>
+            <span className={sum === 100 ? "pos" : "neg"}>{tx("المجموع:")} {Number.isFinite(sum) ? sum : "—"}%</span>
+            <button type="submit">{tx("احسب")}</button>
             {(draft || trial) && (
               <button
                 type="button"
@@ -209,22 +213,20 @@ function RankingTab() {
                   setWeightError("");
                 }}
               >
-                رجوع للنسب المحفوظة
-              </button>
+                {tx("رجوع للنسب المحفوظة")}</button>
             )}
           </div>
-          {weightError && <p className="error-text">{weightError}</p>}
-          {!admin && <p className="muted">يمكنك تجربة نسب مختلفة ومشاهدة الترتيب، لكن النسب المحفوظة للجميع يحددها المدير.</p>}
-          {trial && <p className="muted">الترتيب الآن بنسب تجريبية غير محفوظة.</p>}
+          {weightError && <p className="error-text">{tx(weightError)}</p>}
+          {!admin && <p className="muted">{tx("يمكنك تجربة نسب مختلفة ومشاهدة الترتيب، لكن النسب المحفوظة للجميع يحددها المدير.")}</p>}
+          {trial && <p className="muted">{tx("الترتيب الآن بنسب تجريبية غير محفوظة.")}</p>}
         </form>
       </div>
 
-      {partial && <div className="notice no-print">بدون اتصال: الترتيب من بيانات هذا الجهاز فقط (آخر 60 يومًا) وقد يكون ناقصًا.</div>}
-      {error && <p className="error-text">{error}</p>}
+      {partial && <div className="notice no-print">{tx("بدون اتصال: الترتيب من بيانات هذا الجهاز فقط (آخر 60 يومًا) وقد يكون ناقصًا.")}</div>}
+      {error && <p className="error-text">{tx(error)}</p>}
       {result.skipped.length > 0 && (
         <div className="notice no-print">
-          لا توجد بيانات في هذه الفترة عن: {result.skipped.map((k) => ITEMS.find((i) => i.key === k)!.label).join("، ")}. وزنها توزّع على باقي البنود.
-        </div>
+          {tx("لا توجد بيانات في هذه الفترة عن:")} {result.skipped.map((k) => tx(ITEMS.find((i) => i.key === k)!.label)).join("، ")}{tx(". وزنها توزّع على باقي البنود.")}</div>
       )}
 
       <div className="print-area">
@@ -235,18 +237,16 @@ function RankingTab() {
             </h3>
             <div className="row-actions no-print">
               <button className="secondary" onClick={whatsapp} disabled={!top.length}>
-                نسخ رسالة واتساب
-              </button>
+                {tx("نسخ رسالة واتساب")}</button>
               <button className="secondary" onClick={() => window.print()}>
-                طباعة / PDF
-              </button>
+                {tx("طباعة / PDF")}</button>
               <button className="secondary" onClick={csv}>
                 CSV
               </button>
             </div>
           </div>
           <p className="muted">
-            {PERIOD_LABEL[kind]} ({periodText}){prev ? " · السهم مقارنةً بالفترة السابقة" : ""}
+            {tx(PERIOD_LABEL[kind])} ({periodText}){prev ? tx(" · السهم مقارنةً بالفترة السابقة") : ""}
           </p>
           {top.length ? (
             <ol className="podium">
@@ -262,7 +262,7 @@ function RankingTab() {
               ))}
             </ol>
           ) : (
-            <p className="muted">لا يوجد طلاب بيانات كافية في هذه الفترة بعد.</p>
+            <p className="muted">{tx("لا يوجد طلاب بيانات كافية في هذه الفترة بعد.")}</p>
           )}
         </div>
 
@@ -277,12 +277,13 @@ function cell(v: number | null): string {
 }
 
 function Move({ now, before, hasPrev }: { now: number; before: number | undefined; hasPrev: boolean }) {
+  const { tx } = useI18n();
   if (!hasPrev) return null;
-  if (before == null) return <span className="move new" title="لم يكن في ترتيب الفترة السابقة">جديد</span>;
-  if (before === now) return <span className="move same" title="نفس الترتيب">–</span>;
+  if (before == null) return <span className="move new" title={tx("لم يكن في ترتيب الفترة السابقة")}>{tx("جديد")}</span>;
+  if (before === now) return <span className="move same" title={tx("نفس الترتيب")}>–</span>;
   const up = before > now;
   return (
-    <span className={`move ${up ? "up" : "down"}`} title={`كان ${before}`}>
+    <span className={`move ${up ? "up" : "down"}`} title={tx("كان {0}", [before])}>
       {up ? "↑" : "↓"}
       {Math.abs(before - now)}
     </span>
@@ -300,20 +301,21 @@ function FullTable({
   hasPrev: boolean;
   onOpen: (id: string) => void;
 }) {
+  const { tx } = useI18n();
   return (
     <div className="card">
-      <h3>الترتيب الكامل</h3>
-      <p className="muted no-print">كل بند من 100. اضغط على اسم الطالب لترى تقدّمه أسبوعًا بأسبوع.</p>
+      <h3>{tx("الترتيب الكامل")}</h3>
+      <p className="muted no-print">{tx("كل بند من 100. اضغط على اسم الطالب لترى تقدّمه أسبوعًا بأسبوع.")}</p>
       <div style={{ overflow: "auto" }}>
         <table className="rank-table">
           <thead>
             <tr>
               <th>#</th>
-              <th>الطالب</th>
+              <th>{tx("الطالب")}</th>
               {ITEMS.map((i) => (
-                <th key={i.key}>{i.label}</th>
+                <th key={i.key}>{tx(i.label)}</th>
               ))}
-              <th>المعدل</th>
+              <th>{tx("المعدل")}</th>
             </tr>
           </thead>
           <tbody>
@@ -330,7 +332,7 @@ function FullTable({
                 {ITEMS.map((i) => (
                   <td key={i.key} className={r.items[i.key] == null ? "muted" : ""}>
                     {cell(r.items[i.key])}
-                    <div className="small muted">{detail(r, i.key)}</div>
+                    <div className="small muted">{i.key === "hifz" && r.items.hifz != null ? tx("{0} آية", [r.ayat]) : detail(r, i.key)}</div>
                   </td>
                 ))}
                 <td>
@@ -343,14 +345,14 @@ function FullTable({
       </div>
       {result.unranked.length > 0 && (
         <>
-          <h4>بيانات غير كافية (خارج الترتيب)</h4>
+          <h4>{tx("بيانات غير كافية (خارج الترتيب)")}</h4>
           <ul className="history unranked">
             {result.unranked.map((r) => (
               <li key={r.student.id}>
                 <button className="link" onClick={() => onOpen(r.student.id)}>
                   {r.student.name}
                 </button>
-                <span className="badge warn">{r.reason}</span>
+                <span className="badge warn">{r.days && r.attended / r.days < 0.5 ? tx("حضر {0} من {1} أيام (أقل من النصف)", [r.attended, r.days]) : tx(r.reason)}</span>
               </li>
             ))}
           </ul>
@@ -361,7 +363,7 @@ function FullTable({
 }
 
 function detail(r: StudentScore, key: (typeof ITEMS)[number]["key"]): string {
-  if (key === "hifz") return r.items.hifz == null ? "" : `${r.ayat} آية`;
+
   if (key === "attendance") return r.days ? `${r.attended}/${r.days}` : "";
   if (key === "activities") return r.activitiesTotal ? `${r.activitiesAttended}/${r.activitiesTotal}` : "";
   return "";

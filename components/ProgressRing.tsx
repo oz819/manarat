@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/LocaleProvider";
 import { useEffect, useState } from "react";
 
 // Adapted from 21st.dev "Circular Progress Card" (kavikatiyar) — rewritten without
@@ -18,6 +19,7 @@ export default function ProgressRing({
   total: number;
   color?: string;
 }) {
+  const { number } = useI18n();
   const pct = total > 0 ? Math.round(Math.min(Math.max((value / total) * 100, 0), 100)) : 0;
   // Start empty, then fill on the next frame so the transition animates in.
   const [shown, setShown] = useState(0);
@@ -47,9 +49,9 @@ export default function ProgressRing({
           </g>
         </svg>
         <div className="ring-text">
-          <b>{total > 0 ? `${pct}%` : "—"}</b>
+          <b>{total > 0 ? `${number(pct)}%` : "—"}</b>
           <span className="muted">
-            {value} / {total}
+            {number(value)} / {number(total)}
           </span>
         </div>
       </div>

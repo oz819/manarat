@@ -1,5 +1,8 @@
 "use client";
 
+import { staffText, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/components/LocaleProvider";
+
 import { useEffect, useState } from "react";
 
 // 💾 النسخة الاحتياطية (admin dashboard): the nightly backup's last runs, read from GitHub's public
@@ -12,6 +15,7 @@ const STALE_HOURS = 30;
 type Run = { status: string; conclusion: string | null; created_at: string; html_url: string };
 
 export default function BackupStatus() {
+  const { tx, locale } = useI18n();
   const [runs, setRuns] = useState<{ list: Run[]; at: number } | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -30,8 +34,8 @@ export default function BackupStatus() {
   if (failed) {
     return (
       <div className="card backup-card">
-        <h3>💾 النسخة الاحتياطية</h3>
-        <p className="muted">تعذّر الوصول إلى GitHub الآن لمعرفة حالة النسخ.</p>
+        <h3>{tx("💾 النسخة الاحتياطية")}</h3>
+        <p className="muted">{tx("تعذّر الوصول إلى GitHub الآن لمعرفة حالة النسخ.")}</p>
       </div>
     );
   }
@@ -46,36 +50,35 @@ export default function BackupStatus() {
   return (
     <div className={`card backup-card ${ok ? "" : "warn-card"}`}>
       <h3>
-        💾 النسخة الاحتياطية <span className={`badge ${ok ? "excellent" : "redo"}`}>{ok ? "✓ تعمل" : "⚠️ تحتاج انتباه"}</span>
+        {tx("💾 النسخة الاحتياطية")} <span className={`badge ${ok ? "excellent" : "redo"}`}>{ok ? tx("✓ تعمل") : tx("⚠️ تحتاج انتباه")}</span>
       </h3>
       {good ? (
         <p>
-          آخر نسخة ناجحة: <b>{when(good.created_at)}</b>{" "}
+          {tx("آخر نسخة ناجحة:")} <b>{when(locale, good.created_at)}</b>{" "}
           <a href={good.html_url} target="_blank" rel="noreferrer">
-            تنزيلها
-          </a>
+            {tx("تنزيلها")}</a>
         </p>
       ) : (
-        <p>لا توجد نسخة ناجحة بعد.</p>
+        <p>{tx("لا توجد نسخة ناجحة بعد.")}</p>
       )}
       {latestFailed && latest && (
         <p className="error-text">
-          آخر محاولة فشلت ({when(latest.created_at)}).{" "}
+          {tx("آخر محاولة فشلت (")}{when(locale, latest.created_at)}).{" "}
           <a href={latest.html_url} target="_blank" rel="noreferrer">
-            التفاصيل
-          </a>
+            {tx("التفاصيل")}</a>
         </p>
       )}
-      {latest?.status !== "completed" && latest && <p className="muted">نسخة قيد التنفيذ الآن…</p>}
-      <p className="small muted">تُؤخذ تلقائيًا كل ليلة الساعة 3:00 وتُحفظ مشفّرة 30 يومًا. للتنزيل افتح الرابط ثم «Artifacts» أسفل الصفحة.</p>
+      {latest?.status !== "completed" && latest && <p className="muted">{tx("نسخة قيد التنفيذ الآن…")}</p>}
+      <p className="small muted">{tx("تُؤخذ تلقائيًا كل ليلة الساعة 3:00 وتُحفظ مشفّرة 30 يومًا. للتنزيل افتح الرابط ثم «Artifacts» أسفل الصفحة.")}</p>
     </div>
   );
 }
 
-function when(iso: string): string {
+function when(locale: Locale, iso: string): string {
+  const tx = (source: string, values?: readonly (string | number | null | undefined)[]) => staffText(locale, source, values);
   const d = new Date(iso);
   const opts: Intl.DateTimeFormatOptions = { timeZone: "Asia/Damascus" };
-  const day = new Intl.DateTimeFormat("ar-SY", { ...opts, weekday: "long", day: "numeric", month: "long" }).format(d);
-  const time = new Intl.DateTimeFormat("ar-SY", { ...opts, hour: "numeric", minute: "2-digit" }).format(d);
-  return `${day}، الساعة ${time}`;
+  const day = new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { ...opts, weekday: "long", day: "numeric", month: "long" }).format(d);
+  const time = new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", { ...opts, hour: "numeric", minute: "2-digit" }).format(d);
+  return tx("{0}، الساعة {1}", [day, time]);
 }

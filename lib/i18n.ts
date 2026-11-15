@@ -1,5 +1,7 @@
+import staffEnglish from "./staff-en.json";
+
 // تعدد اللغات: a tiny dictionary-based i18n, set up from the start so every new screen can be
-// translated. Arabic is the source language; English covers the platform pages for now.
+// translated. Arabic is the source language; English covers platform pages and the staff interface.
 // Usage: const t = useT(locale); t("signup.title")
 
 export type Locale = "ar" | "en";
@@ -94,4 +96,26 @@ export function t(locale: Locale, key: Key): string {
 
 export function dirOf(locale: Locale): "rtl" | "ltr" {
   return locale === "ar" ? "rtl" : "ltr";
+}
+
+// Staff copy uses the original Arabic as an explicit, searchable message key. Only call this
+// for UI labels, never arbitrary names, Quran text or user content. Substitutions stay opaque.
+export function staffText(locale: Locale, source: string, values: readonly (string | number | undefined | null)[] = []): string {
+  const template = locale === "en" && Object.hasOwn(staffEnglish, source) ? (staffEnglish as Record<string, string>)[source] : source;
+  return template.replace(/\{(\d+)\}/g, (match, index: string) => {
+    const value = values[Number(index)];
+    return value == null ? match : typeof value === "number" ? formatNumber(locale, value) : value;
+  });
+}
+
+export function formatNumber(locale: Locale, value: number): string {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SY" : "en-GB").format(value);
+}
+
+/** Parse date-only records in local time so timezone offsets cannot move the recorded day. */
+export function formatDate(locale: Locale, value: string | Date, options?: Intl.DateTimeFormatOptions): string {
+  const date = typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T12:00:00`) : new Date(value);
+  if (!Number.isFinite(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", options ?? { day: "numeric", month: "short", year: "numeric" }).format(date);
 }

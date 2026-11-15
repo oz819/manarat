@@ -41,6 +41,7 @@ export default function GuardianBox({ studentId, onEdit }: { studentId: string; 
 
   return (
     <div className="guardian-box">
+      <p className="small muted">رابط خاص لمتابعة هذا الطالب بلا تسجيل دخول: الحفظ والحضور وآخر الدروس والاختبارات. أرسله لولي الأمر فقط؛ الإرسال على واتساب يفتح رسالة جاهزة لتراجعها وترسلها بنفسك.</p>
       <div>
         <span className="muted">ولي الأمر: </span>
         {student.guardian_name || phone ? (

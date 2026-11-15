@@ -15,16 +15,23 @@ import CenterProfile from "@/components/center/CenterProfile";
 import { TalqeenSetting } from "@/components/center/CenterTracks";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
-import DevCredit from "@/components/landing/DevCredit";
 
 // Admin-only actions (spec §5.4). These need a connection: they write straight to Supabase
 // (RLS re-checks is_admin()) and then refresh the local copy.
-export default function Manage() {
+export default function Manage({ openLog }: { openLog: (log: "audit" | "trash") => void }) {
   return (
     <section>
       <div className="card notice">
         صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
         الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
+      </div>
+      <div className="card">
+        <h3>السجلات</h3>
+        <p className="small muted">راجع تعديلات الفريق أو استرجع العناصر المحذوفة.</p>
+        <div className="row-actions">
+          <button type="button" className="secondary" onClick={() => openLog("audit")}>📜 سجل التعديلات</button>
+          <button type="button" className="secondary" onClick={() => openLog("trash")}>🗑️ سجل المحذوفات</button>
+        </div>
       </div>
       {/* Same order as the Madaya centre; what a multi-centre platform adds comes after. */}
       <Registrations />
@@ -38,7 +45,6 @@ export default function Manage() {
       <CenterProfile />
       <Invites />
       <ImportStudents />
-      <DevCredit />
     </section>
   );
 }
@@ -460,22 +466,47 @@ function Halaqat() {
 function ArabicBooks() {
   const s = useStore();
   const { supabase, showToast } = useApp();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
   const [pages, setPages] = useState("");
   const [error, setError] = useState("");
   const books = s.all("arabic_books").sort((a, b) => Number(b.active) - Number(a.active) || a.title.localeCompare(b.title, "ar"));
 
-  async function add() {
+  function reset() {
+    setEditingId(null);
+    setTitle("");
+    setPages("");
+    setError("");
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
     setError("");
     const total = Number(pages);
     if (!title.trim() || !Number.isInteger(total) || total < 1) return setError("أدخل العنوان وعدد الصفحات");
-    const { data, error } = await supabase.from("arabic_books").insert({ title: title.trim(), total_pages: total }).select().single();
-    if (error)
-      return setError(/unique|duplicate/i.test(error.message) ? "يوجد كتاب بهذا العنوان (ربما في سجل المحذوفات)" : error.message);
-    await store.applyRemote("arabic_books", [data]);
-    setTitle("");
-    setPages("");
-    showToast("تمت إضافة الكتاب");
+    setBusy(true);
+    try {
+      if (editingId) {
+        const { data, error } = await supabase.from("arabic_entries").select("to_page")
+          .eq("book_id", editingId).is("deleted_at", null).order("to_page", { ascending: false }).limit(1);
+        if (error) return setError(error.message);
+        if (data?.[0] && total < data[0].to_page) return setError(`يوجد درس مسجّل حتى الصفحة ${data[0].to_page}؛ لا يمكن تقليل عدد الصفحات عن ذلك.`);
+      }
+      const values = { title: title.trim(), total_pages: total };
+      const query = editingId
+        ? supabase.from("arabic_books").update({ ...values, edited_at: new Date().toISOString() }).eq("id", editingId)
+        : supabase.from("arabic_books").insert(values);
+      const { data, error } = await query.select().single();
+      if (error) return setError(/unique|duplicate/i.test(error.message) ? "يوجد كتاب بهذا العنوان (ربما في سجل المحذوفات)" : error.message);
+      await store.applyRemote("arabic_books", [data]);
+      showToast(editingId ? "تم تعديل الكتاب" : "تمت إضافة الكتاب");
+      reset();
+    } catch {
+      setError("تعذّر حفظ الكتاب. تحقق من الاتصال وحاول مرة أخرى.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function toggle(id: string, active: boolean) {
@@ -510,18 +541,29 @@ function ArabicBooks() {
         كل كتاب تضيفه هنا يظهر خيارًا عند إضافة طالب وفي قسم «العربية» داخل بطاقة الطالب. عدد الصفحات هو عدد صفحات النسخة
         المستخدمة في المركز، ومنه يُحسب تقدّم الطالب.
       </p>
-      <div className="formgrid compact">
-        <input placeholder="عنوان الكتاب (مثال: الرشيدي)" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input
-          placeholder="عدد الصفحات"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          value={pages}
-          onChange={(e) => setPages(e.target.value)}
-        />
-        <button onClick={add}>إضافة كتاب</button>
-      </div>
+      <p className="small muted">اختر عنوانًا مقترحًا أو اكتب عنوانك، ثم أدخل عدد صفحات طبعتك. يمكنك تعديل العنوان والصفحات لاحقًا؛ هذه قائمة متابعة وليست ملفات الكتب.</p>
+      <form onSubmit={save}>
+        <div className="formgrid compact">
+          <input aria-label="عنوان الكتاب" list="arabic-book-suggestions" placeholder="عنوان الكتاب (مثال: الرشيدي)" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <datalist id="arabic-book-suggestions">
+            <option value="الرشيدي" />
+            <option value="القاعدة النورانية" />
+            <option value="العربية بين يديك — كتاب الطالب الأول، الجزء الأول" />
+          </datalist>
+          <input
+            aria-label="عدد صفحات الكتاب"
+            placeholder="عدد صفحات طبعتك"
+            required
+            type="number"
+            inputMode="numeric"
+            min={1}
+            value={pages}
+            onChange={(e) => setPages(e.target.value)}
+          />
+          <button type="submit" disabled={busy}>{busy ? "جارٍ الحفظ…" : editingId ? "حفظ تعديل الكتاب" : "إضافة كتاب"}</button>
+          {editingId && <button type="button" className="secondary" onClick={reset} disabled={busy}>إلغاء التعديل</button>}
+        </div>
+      </form>
       {error && <p className="error-text">{error}</p>}
       {books.length > 0 && (
         <table>
@@ -538,6 +580,7 @@ function ArabicBooks() {
                 <td>{b.title}</td>
                 <td>{b.total_pages}</td>
                 <td className="row-actions">
+                  <button type="button" className="link" disabled={busy} onClick={() => { setEditingId(b.id); setTitle(b.title); setPages(String(b.total_pages)); setError(""); }}>تعديل</button>
                   <button className="link" onClick={() => toggle(b.id, !b.active)}>
                     {b.active ? "أرشفة" : "استعادة"}
                   </button>

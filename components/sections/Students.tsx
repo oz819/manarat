@@ -33,10 +33,12 @@ export default function Students({
   openId,
   onOpen,
   onClose,
+  onShowList,
 }: {
   openId: string | null;
   onOpen: (id: string) => void;
   onClose: () => void;
+  onShowList: () => void;
 }) {
   const s = useStore();
   const { mushaf, showToast, profile, tracks } = useApp();
@@ -48,6 +50,7 @@ export default function Students({
   const [showArchived, setShowArchived] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
+  const [talqeenOpen, setTalqeenOpen] = useState(false);
   const [rollCall, setRollCall] = useState(false);
   const [sending, setSending] = useState(false);
   const [pending, setPending] = usePersistentState<"all" | "noAtt" | "noRec">("students.pending", "all");
@@ -60,6 +63,10 @@ export default function Students({
     if (!openId && listScroll.current) window.scrollTo({ top: listScroll.current });
   }, [openId]);
 
+  useEffect(() => {
+    if (!openId && talqeenOpen) document.getElementById("talqeen-session")?.scrollIntoView({ block: "start" });
+  }, [openId, talqeenOpen]);
+
   function open(id: string) {
     listScroll.current = window.scrollY;
     onOpen(id);
@@ -71,7 +78,7 @@ export default function Students({
     window.scrollTo({ top: 0 });
   }
 
-  if (openId) return <StudentCard studentId={openId} onClose={onClose} />;
+  if (openId) return <StudentCard studentId={openId} onClose={onClose} onTalqeen={() => { setTalqeenOpen(true); onShowList(); }} />;
 
   const today = todayStr();
   const attendedToday = (id: string) => {
@@ -114,7 +121,7 @@ export default function Students({
 
       <LessonCard circles={scopedCircles} />
 
-      {tracks.has("TALQEEN") && <TalqeenCard />}
+      {tracks.has("TALQEEN") && <TalqeenCard open={talqeenOpen} setOpen={setTalqeenOpen} />}
 
       <Insights students={active} open={open} />
 
@@ -435,12 +442,11 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
 // Two on-device insights from the locally synced window: students absent on their last few
 // recorded days (تنبيه الغياب, with a message to the family), and this month's top memorizers.
 // جلسة التلقين (من آية إلى آية) for a whole halaqa, folded until the teacher opens it.
-function TalqeenCard() {
+function TalqeenCard({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
   const { tracks } = useApp();
-  const [open, setOpen] = useState(false);
   return (
-    <div className="card talqeen-fold">
-      <button type="button" className="fold-head" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+    <div className="card talqeen-fold" id="talqeen-session">
+      <button type="button" className="fold-head" aria-expanded={open} onClick={() => setOpen(!open)}>
         <h3>🎙️ جلسة {tracks.label("TALQEEN")}</h3>
         <span className="muted">{open ? "▲" : "▼"}</span>
       </button>

@@ -34,7 +34,7 @@ const SECTIONS: { id: Section; label: string }[] = [
 
 const STATUSES: AttendanceStatus[] = ["PRESENT", "LATE", "EXCUSED", "ABSENT"];
 
-export default function StudentCard({ studentId, onClose }: { studentId: string; onClose: () => void }) {
+export default function StudentCard({ studentId, onClose, onTalqeen }: { studentId: string; onClose: () => void; onTalqeen: () => void }) {
   const s = useStore();
   const { mushaf, profile, showToast, tracks } = useApp();
   // Opened from «جاهزون للاختبار»: straight to the exams tab on that juz'.
@@ -203,7 +203,7 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
         {section === "EXAMS" && (
           <ExamsSection key={studentId} studentId={studentId} exams={s.byStudent("exams").get(studentId) ?? []} initialJuz={intent?.juz} />
         )}
-        {section === "TALQEEN" && talqeenOn && <TalqeenList entries={quran.filter((e) => e.track === "TALQEEN")} />}
+        {section === "TALQEEN" && talqeenOn && <TalqeenList entries={quran.filter((e) => e.track === "TALQEEN")} onCreate={onTalqeen} />}
         {section === "ARABIC" && <ArabicSection key={studentId} studentId={studentId} enrollments={enrollments} entries={arabic} />}
         {section === "TARBIYA" && <TarbiyaSection key={studentId} studentId={studentId} notes={edu} />}
         <div style={{ marginTop: 12 }}>
@@ -232,7 +232,7 @@ function Pos({ label, value, extra, date }: { label: string; value: string | nul
   );
 }
 
-function TalqeenList({ entries }: { entries: QuranEntry[] }) {
+function TalqeenList({ entries, onCreate }: { entries: QuranEntry[]; onCreate: () => void }) {
   const { mushaf, showToast, tracks } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quality, setQuality] = useState("");
@@ -240,9 +240,10 @@ function TalqeenList({ entries }: { entries: QuranEntry[] }) {
   const list = [...entries].sort(byNewest((e) => e.entry_date));
 
   if (!list.length) return (
-      <p className="muted">
-        لا توجد جلسات {tracks.label("TALQEEN")} لهذا الطالب. تُسجَّل من بطاقة «جلسة {tracks.label("TALQEEN")}» في صفحة «الطلاب».
-      </p>
+      <div>
+        <p className="muted">لم تُسجَّل جلسات {tracks.label("TALQEEN")} لهذا الطالب بعد. سجّل جلسة للحلقة وحدّد الطلاب المشاركين ليظهر سجلّهم هنا.</p>
+        <button type="button" onClick={onCreate}>تسجيل جلسة {tracks.label("TALQEEN")}</button>
+      </div>
     );
 
   return (

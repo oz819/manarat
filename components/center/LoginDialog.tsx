@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { NOT_REGISTERED_MESSAGE } from "@/lib/messages";
-import DevCredit from "@/components/landing/DevCredit";
 import { CenterMark } from "@/components/center/Geo";
 
 // Sign-in for a centre's staff: a 6-digit code sent by email — the only way in (no passwords).
@@ -137,7 +136,6 @@ export default function LoginDialog({
         </form>
       )}
       {error && <p className="error-text">{error}</p>}
-      <DevCredit compact />
     </div>
   );
 

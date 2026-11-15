@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import DevCredit from "@/components/landing/DevCredit";
 import LoginDialog from "@/components/center/LoginDialog";
 import StarField from "@/components/center/StarField";
 import { AboutBody } from "@/components/center/PlatformAbout";
@@ -13,7 +12,6 @@ import "@/app/landing.css";
 
 // تلاوة — the platform's address. First screen: the living night scene (the mushaf's pages turning,
 // lanterns swaying) behind the sign-in form. Scrolling down shows the whole platform page (AboutBody).
-// The developer's Instagram is pinned at the bottom from the first moment.
 export default function PlatformLanding() {
   const [locale, setLocale] = useState<Locale>("ar");
   const tr = T[locale];
@@ -85,8 +83,6 @@ export default function PlatformLanding() {
         <AboutBody locale={locale} />
       </div>
 
-      {/* the developer's Instagram: visible from the first moment, centred at the bottom */}
-      <div className="mn-gate-credit"><DevCredit /></div>
     </div>
   );
 }

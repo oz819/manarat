@@ -36,8 +36,6 @@ export default function PlatformAbout() {
         <AboutBody locale={locale} />
       </div>
 
-      {/* the developer's Instagram, always in view at the bottom centre */}
-      <div className="mn-float-credit"><DevCredit compact /></div>
     </div>
   );
 }
@@ -174,6 +172,7 @@ export function AboutBody({ locale }: { locale: Locale }) {
 
         <footer className="mn-footer">
           <span>{tr.footer}</span>
+          <DevCredit />
           <span dir="ltr">© {new Date().getFullYear()}</span>
         </footer>
     </>

@@ -43,7 +43,6 @@ const NAV: { id: Page; label: string }[] = [
 // Admins and the centre's owner only: the database keeps these out of a teacher's reach.
 // Logs are reached from settings; dashboard remains admin-only.
 const ADMIN_NAV: { id: Page; label: string }[] = [
-  { id: "manage", label: "⚙️ الإدارة والإعدادات" },
   { id: "dashboard", label: "📈 لوحة المتابعة" },
 ];
 // «talqeen» stays a known page so old links and saved history don't break; its session form now
@@ -329,6 +328,11 @@ export default function AppShell() {
                   {tx("المنصة")}</Link>
               )}
               <SyncBadge />
+              {profile.role === "ADMIN" && (
+                <button type="button" className="secondary" aria-current={page === "manage" || page === "audit" || page === "trash" ? "page" : undefined} onClick={() => setPage("manage")}>
+                  {tx("⚙️ الإعدادات")}
+                </button>
+              )}
               <Appearance />
               <LanguageSwitch />
               <button className="secondary" onClick={() => setPage(profile.role === "ADMIN" ? "dashboard" : "students")}>
@@ -341,9 +345,9 @@ export default function AppShell() {
       </header>
 
       <nav className="no-print sliding">
-        <SlidingIndicator active={page === "audit" || page === "trash" ? "manage" : page} />
+        <SlidingIndicator active={page} />
         {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
-          <button key={n.id} className={(page === n.id || (n.id === "manage" && (page === "audit" || page === "trash"))) ? "active" : ""} onClick={() => setPage(n.id)}>
+          <button key={n.id} className={page === n.id ? "active" : ""} onClick={() => setPage(n.id)}>
             {tx(n.label)}
           </button>
         ))}

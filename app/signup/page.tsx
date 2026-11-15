@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import DevCredit from "@/components/landing/DevCredit";
 import { GeoStar } from "@/components/center/Geo";
@@ -14,11 +14,17 @@ import { dirOf, t, type Key, type Locale } from "@/lib/i18n";
 // the centre with these details and the owner becomes its admin. The details are also saved on the
 // login itself, so a link-style email (/auth/confirm?next=/onboarding) leads to the same place.
 export default function SignupPage() {
+  return <Suspense fallback={<div className="login"><p>جارٍ التحميل…</p></div>}><SignupForm /></Suspense>;
+}
+
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const fromLogin = searchParams.get("from") === "login";
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [locale, setLocale] = useState<Locale>("ar");
   const tr = (k: Key) => t(locale, k);
-  const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: "", website: "" });
+  const [f, setF] = useState({ name: "", slug: "", country: "", city: "", owner: "", email: searchParams.get("email")?.trim() ?? "", website: "" });
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugTaken, setSlugTaken] = useState(false);
   const [error, setError] = useState("");
@@ -121,6 +127,13 @@ export default function SignupPage() {
           <GeoStar style={{ width: 44, height: 44, opacity: 0.8 }} />
           <h1 className="ob-title" style={{ marginTop: 8 }}>{tr("signup.title")}</h1>
           <p className="ob-sub">{tr("signup.sub")}</p>
+
+          {fromLogin && !sent && (
+            <div className="notice" role="status" style={{ marginTop: 16 }}>
+              <p>{tr("signup.welcome")}</p>
+              <p className="small">{tr("signup.joinExisting")}</p>
+            </div>
+          )}
 
           {sent ? (
             <form onSubmit={verify}>

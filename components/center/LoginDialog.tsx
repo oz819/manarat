@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import { CenterMark } from "@/components/center/Geo";
 
 // Sign-in for a centre's staff: a 6-digit code sent by email — the only way in (no passwords).
@@ -52,20 +51,31 @@ export default function LoginDialog({
     if (!submitted) return setError("الرجاء إدخال البريد الإلكتروني.");
     setEmail(submitted);
     setLoading(true);
-    const { error } = await createClient().auth.signInWithOtp({ email: submitted, options: { shouldCreateUser: allowCreate } });
-    setLoading(false);
-    if (error) {
-      return setError(
-        error.code === "otp_disabled" || error.code === "signup_disabled" || error.code === "user_not_found"
-          ? NOT_REGISTERED_MESSAGE
-          : error.code === "over_email_send_rate_limit"
-            ? "تم إرسال عدد كبير من الطلبات. انتظر قليلًا ثم أعد المحاولة."
-            : error.code === "unexpected_failure"
-              ? "تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا."
-              : `تعذّر إرسال الكود (${error.code ?? error.status ?? "خطأ غير معروف"}).`
-      );
+    try {
+      const { error } = await createClient().auth.signInWithOtp({ email: submitted, options: { shouldCreateUser: allowCreate } });
+      if (error) {
+        // With account creation disabled, Supabase returns otp_disabled for an unknown email.
+        // Invited staff stay in their invite flow; service/rate-limit errors stay on this form.
+        if (!allowCreate && (error.code === "otp_disabled" || error.code === "user_not_found")) {
+          router.push(`/signup?${new URLSearchParams({ email: submitted, from: "login" })}`);
+          return;
+        }
+        return setError(
+          error.code === "signup_disabled" || error.code === "otp_disabled"
+            ? "التسجيل مغلق حاليًا. أعد المحاولة لاحقًا أو تواصل مع إدارة المنصة."
+            : error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
+              ? "تم إرسال عدد كبير من الطلبات. انتظر قليلًا ثم أعد المحاولة."
+              : error.code === "unexpected_failure"
+                ? "تعذّر إرسال البريد الإلكتروني حاليًا بسبب مشكلة في خدمة البريد. أعد المحاولة لاحقًا."
+                : `تعذّر إرسال الكود (${error.code ?? error.status ?? "خطأ غير معروف"}).`
+        );
+      }
+      setStep("code");
+    } catch {
+      setError("تعذّر الاتصال. تحقق من الإنترنت ثم أعد المحاولة.");
+    } finally {
+      setLoading(false);
     }
-    setStep("code");
   }
 
   async function verifyCode(e: React.FormEvent) {
